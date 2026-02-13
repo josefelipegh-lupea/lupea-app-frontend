@@ -1,0 +1,418 @@
+.pageWrapper {
+  background-color: #ffffff;
+  min-height: 100vh;
+  padding-top: 24px;
+  padding-bottom: 100px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
+}
+
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.leftSection,
+.rightSection {
+  display: contents;
+}
+
+.summaryCard {
+  order: 1;
+}
+
+.ofertasContainer {
+  order: 3;
+}
+
+.metricsContainer {
+  order: 4;
+}
+
+.summaryCard {
+  background-color: #1a1a3d;
+  border-radius: 32px;
+  padding: 28px;
+  padding-bottom: 20px;
+  color: white;
+  margin-bottom: 20px;
+}
+
+.summaryLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+}
+
+.summaryValue {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.summaryTotal {
+  font-size: 14px;
+  margin-bottom: 15px;
+  color: #dadada;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.progressHeader .percentaje {
+  font-weight: 600;
+}
+
+.progressBar {
+  background: rgba(255, 255, 255, 0.15);
+  height: 8px;
+  border-radius: 10px;
+  margin: 5px 0;
+  overflow: hidden;
+}
+
+.progressFill {
+  background: white;
+  height: 100%;
+  border-radius: 10px;
+}
+
+.divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.6);
+  margin: 5px 0 10px 0;
+}
+
+.renovacionRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.renovacionLabel {
+  color: #dadada;
+}
+
+.dateText {
+  font-weight: 600;
+}
+
+.btnNuevaSolicitud {
+  background-color: #f08100;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  width: 100%;
+  padding: 18px;
+  border-radius: 16px;
+  border: none;
+  font-weight: 500;
+  font-size: 16px;
+  box-shadow: 0 4px 15px rgba(240, 129, 0, 0.2);
+  transition: all 0.3s ease-in-out;
+  order: 2;
+  cursor: pointer;
+}
+
+.btnNuevaSolicitud:active {
+  scale: 0.95;
+}
+
+.plusIcon {
+  margin-right: 8px;
+}
+
+.ofertasContainer {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.tabs {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  margin-top: 15px;
+}
+
+.tabActive,
+.tabInactive {
+  background: none;
+  border: none;
+  padding: 10px 5px 5px 5px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabActive {
+  color: #1a1a3d;
+  border-bottom: 3px solid #1a1a3d;
+}
+
+.tabInactive {
+  color: #000;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0px;
+  padding: 0 4px;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 500;
+  color: #1a1a3d;
+  padding: 22px 0;
+}
+
+.badgeNuevas {
+  background-color: #1814401a;
+  color: #181440;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 2px 14px;
+  border-radius: 16px;
+}
+
+.btnVerTodas {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #000000;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 10px 0;
+  cursor: pointer;
+  padding: 15px 0;
+}
+
+.arrowIcon {
+  margin-left: 8px;
+}
+
+.btnVerTodas:hover {
+  opacity: 0.7;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.metricsContainer {
+  border-top: 1px solid #18144033;
+  color: #000;
+}
+
+.metricCardPurple {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f5fb;
+  border-radius: 19px;
+  padding: 20px;
+  text-align: center;
+  height: 264px;
+}
+
+.metricCardGreen,
+.metricCardOrange {
+  border-radius: 19px;
+  padding: 18px;
+}
+
+.metricCardGreen {
+  background-color: #eaf8f1;
+  border-radius: 19px;
+  padding: 20px;
+  padding-bottom: 15px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  min-height: 125px;
+  margin-bottom: 15px;
+}
+
+.metricHeader {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.chartPie {
+  flex-shrink: 0;
+  margin-top: -5px;
+}
+
+.metricCardOrange {
+  background-color: #fff9ed;
+}
+
+.chartBars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+  height: 120px;
+  margin-bottom: 10px;
+}
+
+.barContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  width: 14px;
+}
+
+.bar {
+  background-color: #5e56b2;
+  width: 100%;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.barNumber {
+  font-size: 13px;
+  font-weight: 500;
+  color: #8380a8;
+  line-height: 1;
+}
+
+.smallNum,
+.metricBigNum {
+  font-size: 24px;
+  font-weight: 600;
+  color: #181440;
+}
+
+.metricSmallText {
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.metricCardGreen .metricSmallText,
+.metricCardOrange .metricSmallText {
+  font-size: 14px;
+}
+
+/* --- RESPONSIVE / DESKTOP --- */
+@media (min-width: 768px) {
+  .pageWrapper {
+    margin-left: 230px;
+    width: calc(100% - 230px);
+    max-width: calc(100% - 230px);
+    padding: 40px 0;
+  }
+
+  .pageWrapper.sidebarCollapsed {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+    max-width: calc(100% - 80px);
+  }
+
+  .mainContainer {
+    width: 90%;
+    max-width: 500px;
+    gap: 20px;
+  }
+
+  .tabs {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 1219px) {
+  .mainContainer {
+    flex-direction: column !important;
+  }
+}
+
+@media (min-width: 1220px) {
+  .summaryCard,
+  .btnNuevaSolicitud,
+  .ofertasContainer,
+  .metricsContainer {
+    order: initial;
+  }
+
+  .mainContainer {
+    max-width: 1220px;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 40px;
+  }
+
+  .leftSection,
+  .rightSection {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .leftSection {
+    flex: 0 0 500px;
+  }
+
+  .rightSection {
+    flex: 1;
+  }
+
+  .summaryCard {
+    position: sticky;
+    top: 20px;
+    margin-top: 20px;
+  }
+
+  .metricsContainer {
+    margin-top: 20px;
+    border-top: 1px solid rgba(24, 20, 64, 0.1);
+    padding-top: 20px;
+  }
+
+  .metricsGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .tabs {
+    gap: 30px;
+  }
+
+  .tabActive,
+  .tabInactive {
+    padding: 10px 20px;
+  }
+}

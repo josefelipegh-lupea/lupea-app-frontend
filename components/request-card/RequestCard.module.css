@@ -1,0 +1,134 @@
+.card {
+  height: auto;
+  min-height: min-content;
+  background: rgb(255, 255, 255);
+  border-radius: 19px;
+  border-top-left-radius: 26px;
+  border-top-right-radius: 26px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+.header {
+  background-color: #1a1a3d;
+  color: white;
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 24px;
+}
+
+.headerDate {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.body {
+  padding: 14px 16px;
+  color: #000000;
+}
+
+.repuestosResumen {
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.itemsContainer {
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 10px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 16px;
+}
+
+.settingsIcon {
+  display: flex;
+  align-items: center;
+  color: #666;
+}
+
+.itemName {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.itemDetail {
+  font-size: 13px;
+  margin: 2px 0 0 0;
+  color: #444;
+}
+
+.verTodosBtn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #777777;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 20px 0 10px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.verTodosBtn span {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  margin-left: 8px;
+}
+
+.iconRotate {
+  transform: rotate(180deg);
+}
+
+.actionsSingle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 15px;
+  border-top: 1px solid #18144033;
+}
+
+.btnVerOfertas {
+  width: 235px;
+  padding: 12px;
+  border-radius: 25px;
+  background: #f0f0f5;
+  color: #1a1a3d;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btnVerOfertas:hover {
+  background: #e5e5ed;
+}

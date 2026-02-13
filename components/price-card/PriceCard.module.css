@@ -1,0 +1,156 @@
+.card {
+  height: auto;
+  min-height: min-content;
+  background: white;
+  border-radius: 19px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+.header {
+  background-color: #1a1a3d;
+  color: white;
+  padding: 6px 24px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.body {
+  padding: 14px 16px;
+  color: #000000;
+}
+
+.tallerSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.iconBox {
+  background: #f5f5f7;
+  border-radius: 12px;
+  color: #000000;
+}
+
+.tallerName {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.repuestosResumen {
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.itemsContainer {
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+  margin-bottom: 10px;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 10px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 16px;
+}
+
+.itemName {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.itemDetail {
+  font-size: 13px;
+  margin: 2px 0 0 0;
+}
+
+.verTodosBtn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #777777;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 0 15px;
+  cursor: pointer;
+}
+
+.verTodosBtn span {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  margin-left: 8px;
+}
+
+.iconRotate {
+  transform: rotate(180deg);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-top: 1px solid #18144033;
+  border-bottom: 1px solid #18144033;
+  padding: 16px 0;
+}
+
+.tiempo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  color: #28a745;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.monto {
+  font-size: 24px;
+  font-weight: 600;
+  color: #181440;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btnVer,
+.btnComparar {
+  flex: 1;
+  padding: 7px;
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
+.btnVer {
+  background: #f0f0f5;
+  color: #1a1a3d;
+}
+
+.btnComparar {
+  background: #fff3e6;
+  color: #f08100;
+}
