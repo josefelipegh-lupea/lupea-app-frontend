@@ -1,0 +1,398 @@
+.bgWrapper {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: url("/register-header.jpg") center/cover no-repeat;
+  /* position: relative; */
+  display: flex; /* Cambiamos a Flex */
+  flex-direction: column; /* Elementos uno debajo de otro */
+  align-items: center;
+  justify-content: flex-start;
+  width: 100vw;
+  overflow: hidden;
+  font-family: Poppins;
+  font-weight: 500;
+  font-style: Medium;
+  font-size: 25px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  color: #000000;
+  padding: 0 20px;
+}
+
+.logoContainer {
+  margin-top: 5vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 11;
+  max-height: 25vh;
+  transition: all 0.3s ease;
+}
+
+.logo {
+  object-fit: contain;
+  width: auto;
+
+  height: clamp(120px, 20vh, 250px);
+}
+
+.formBar {
+  position: relative;
+  left: 50%;
+  top: -50px;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 7px;
+  background: #fff;
+  border-radius: 3px;
+}
+
+.backButton {
+  position: absolute;
+  top: 24px;
+  left: 20px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s;
+  cursor: pointer;
+  outline: none;
+}
+
+.backButton:hover {
+  background-color: #f5f5f5;
+}
+
+.backButton:active {
+  transform: scale(0.92);
+}
+
+.backButton svg {
+  pointer-events: none;
+}
+
+.loginSheetHeight {
+  max-height: 70vh !important;
+  max-height: 70dvh !important;
+  bottom: 0 !important;
+}
+
+.formCard {
+  background: #fff;
+  border-radius: 32px 32px 0 0;
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.04);
+  padding: 32px 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 480px;
+  width: 100%;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -150px;
+  margin-left: auto;
+  margin-right: auto;
+  z-index: 2;
+  animation: slideUp 0.7s cubic-bezier(0.4, 1.4, 0.6, 1) 0s 1;
+  transition: transform 0.4s cubic-bezier(0.4, 1.4, 0.6, 1);
+  touch-action: none;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.title {
+  font-family: system-ui, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  margin-top: 0;
+}
+
+.subtitle {
+  font-family: system-ui, sans-serif;
+  font-size: 1rem;
+  margin-bottom: 28px;
+  margin-top: 0;
+}
+
+.label {
+  font-family: system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  margin-top: 0px;
+  display: block;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input {
+  width: 100%;
+  padding: 14px 44px 14px 44px;
+  font-size: 1rem;
+  font-family: system-ui, sans-serif;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 14px;
+  background: #fff;
+  color: #181818;
+  outline: none;
+  transition: border 0.2s;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #ff9100;
+  background: #fff;
+}
+
+.eyeButton {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.termsRow {
+  margin: 18px 0 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkboxInput {
+  display: none;
+}
+
+.customCheckbox {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 6px;
+  background: #fff;
+  margin-right: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+  transition: border 0.2s;
+  flex-shrink: 0;
+}
+
+.checkboxInput:checked + .customCheckbox {
+  border-color: #ff9100;
+  background: #ff9100;
+}
+
+.checkboxInput:checked + .customCheckbox::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 12px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+
+.termsText {
+  font-size: 0.98rem;
+  color: #181818;
+  font-family: system-ui, sans-serif;
+}
+
+.termsLink {
+  text-decoration: underline;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.submitButton {
+  width: 100%;
+  background: #ff9100;
+  color: #fff;
+  font-family: system-ui, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 16px;
+  height: 52px;
+  margin-top: 8px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(255, 145, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s,
+    box-shadow 0.2s;
+  transform-origin: center;
+}
+
+.submitButton:disabled {
+  background: #ffd699;
+  cursor: not-allowed;
+}
+
+.submitButton:active:not(:disabled) {
+  transform: scale(0.97);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.submitButton:disabled {
+  background: #ffd699;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.loginRow {
+  text-align: center;
+  font-size: 1rem;
+  font-family: system-ui, sans-serif;
+  margin-bottom: 32px;
+  margin-top: 0;
+}
+
+.loginLink {
+  text-decoration: underline;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.inputError {
+  border-color: #e53935;
+}
+
+.errorText {
+  display: block;
+  min-height: 16px;
+  font-size: 12px;
+  transition: color 0.2s ease;
+}
+
+/* cuando NO hay error */
+.errorInactive {
+  color: #fafafa; /* mismo color que el fondo del form */
+}
+
+/* cuando hay error */
+.errorActive {
+  color: #e53935;
+}
+
+.forgotPasswordRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+  margin-top: 15px;
+}
+
+.forgotPasswordLink {
+  color: #181818; /* Según la imagen es oscuro */
+  font-size: 0.9rem;
+  text-decoration: underline;
+  font-family: system-ui, sans-serif;
+  font-weight: 500;
+}
+
+@media (max-height: 700px) {
+  .logoContainer {
+    margin-top: -3vh; /* Subimos el logo más al techo */
+  }
+
+  .loginSheetHeight {
+    max-height: 55vh !important; /* El form se hace más pequeño */
+  }
+}
+
+@media (min-width: 768px) {
+  .bgWrapper {
+    display: flex;
+    flex-direction: column; /* Alineamos logo y form en columna */
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 5vh; /* Espacio inicial para el logo */
+    min-height: 100vh;
+  }
+
+  .logoContainer {
+    position: relative; /* Ya no es absoluto */
+    margin-bottom: 4vh; /* Separación con el formulario */
+    flex-shrink: 0;
+  }
+
+  .logo {
+    width: 280px; /* Logo un poco más grande en Desktop */
+    height: auto;
+  }
+
+  .formBar {
+    display: none;
+  }
+
+  .loginSheetHeight {
+    /* 1. Resetear el anclaje de móvil */
+    position: relative !important;
+    bottom: auto !important;
+    margin: 0 auto !important;
+    transform: none !important;
+
+    /* 2. Comportamiento de flujo */
+    /* Quitamos el margin-top: 15vh y usamos algo más controlado */
+    margin-top: 15vh !important;
+
+    /* 3. Estética de Modal */
+    min-height: auto !important;
+    height: fit-content !important;
+    width: 100% !important;
+    max-width: 450px !important;
+    border-radius: 28px !important;
+    padding-bottom: 0 !important;
+
+    /* Box shadow más profundo para desktop */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+  }
+}

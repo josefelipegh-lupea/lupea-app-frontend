@@ -1,0 +1,193 @@
+.gridContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  font-family: system-ui, sans-serif;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.selectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.selectWrapper::after {
+  content: "▼";
+  font-size: 10px;
+  color: #bdbdbd;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none; /* Importante para que no bloquee el click */
+}
+
+/* Forzamos que el select oculte su flecha nativa en todos los estados */
+.selectWrapper select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 30px; /* Espacio para nuestra flecha */
+  padding-left: 14px;
+}
+
+/* Si usas estilos de RegisterUser.module.css (styles.input), 
+   asegúrate de que no tenga un background que tape nuestra flecha */
+
+.rightColumn {
+  margin-top: 20px;
+}
+
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 15px;
+  padding: 10px 15px;
+  margin-top: 5px;
+  transition: border 0.2s;
+}
+
+.searchWrapper:focus-within {
+  border-color: #ff9100;
+}
+
+.briefcaseIcon {
+  margin-right: 10px;
+  font-size: 1.2rem;
+}
+
+.ghostContainer {
+  position: absolute;
+  left: 45px;
+  color: #d1d5db;
+  pointer-events: none;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.searchInput {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 1rem;
+  color: #181818;
+  z-index: 2;
+}
+
+.searchInput::first-letter {
+  text-transform: uppercase;
+}
+
+.addBtn {
+  background: none;
+  border: none;
+  color: #ff9100;
+  font-size: 1.8rem;
+  font-weight: 300;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.helperText {
+  color: #ff9100;
+  font-size: 0.85rem;
+  margin-top: 0;
+  display: block;
+}
+
+.tagsScrollContainer {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 8px;
+
+  height: 82px;
+  overflow-y: auto;
+
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #ff91001b;
+  border-radius: 8px;
+  border: 1.5px solid #ff9100;
+}
+
+.emptyStateText {
+  font-size: 0.85rem;
+  color: #181818;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+.removeIcon {
+  margin-left: 8px;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.tagsScrollContainer::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tagsScrollContainer::-webkit-scrollbar-thumb {
+  background: #ff9100;
+  border-radius: 10px;
+}
+
+.categoryPill {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.activePill {
+  background: #ff9100;
+  border-color: #ff9100;
+  color: #fff;
+}
+
+/* Solo se activa en Desktop */
+@media (min-width: 768px) {
+  .customSheetWidth {
+    max-width: 800px !important; /* Aumentamos el ancho a 950px o lo que prefieras */
+    width: 80% !important;
+  }
+
+  .gridContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas */
+    column-gap: 50px;
+    align-items: start;
+  }
+
+  .fullWidth {
+    grid-column: span 2;
+  }
+
+  .rightColumn {
+    margin-top: 0;
+  }
+
+  /* Centramos el botón que está dentro del fullWidth */
+  .fullWidth button {
+    margin: 20px auto 0;
+    display: block;
+    max-width: 400px;
+  }
+}
