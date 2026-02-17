@@ -1,0 +1,339 @@
+.pageWrapper {
+  background-color: #f2f2f2;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease-in-out;
+}
+
+.mainContainer {
+  background-color: #ffffff;
+  min-height: 100vh;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #f1f1f1;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.headerTitle {
+  flex: 3;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a3d;
+  margin: 0;
+  text-align: center;
+}
+
+.headerAction {
+  flex: 1;
+}
+
+.backButton {
+  flex: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.backButton svg {
+  transform: rotate(180deg);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 24px 20px;
+}
+
+.listWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Clave: hace que el wrapper ocupe todo el alto disponible */
+  width: 100%;
+}
+
+.listContainer {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr; /* 1 columna en mobile */
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.vehicleCard {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid #f8f5fb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+}
+
+.vehicleCard:hover {
+  border-color: #f08000;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+.vehicleCard:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  filter: brightness(0.95);
+}
+
+.iconWrapper {
+  background: #f0810015;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.info {
+  flex: 1;
+}
+
+.info h3 {
+  font-size: 1rem;
+  margin: 0;
+  color: #1a1a3d;
+}
+
+.info p {
+  font-size: 0.85rem;
+  color: #8380a8;
+  margin: 4px 0 0;
+}
+
+.addVehicleBtn {
+  background: white;
+  border: 1px dashed #f08100;
+  border-radius: 16px;
+  color: #f08100;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: auto;
+  padding: 15px 0;
+}
+
+.addVehicleBtn:hover {
+  border-color: #f08100;
+  background-color: #f0810005;
+  color: #f08100;
+}
+
+.addVehicleBtn:active {
+  transform: scale(0.97);
+  background-color: #f0810010;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.inputContainer {
+  margin-bottom: 20px;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a3d;
+  margin-bottom: 8px;
+}
+
+.input {
+  width: 100%;
+  height: 54px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1.5px solid #e0e0e0;
+  padding: 0 16px;
+  box-sizing: border-box;
+  color: #000000;
+}
+
+.input:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: #f08100;
+  box-shadow: 0 0 0 1px #f08100;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.btnSave {
+  width: 100%;
+  height: 56px;
+  background-color: #f08100;
+  color: white;
+  border: none;
+  border-radius: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btnSave:hover:not(:disabled) {
+  background-color: #ff8c00;
+  transform: translateY(-2px);
+}
+
+.btnSave:active:not(:disabled) {
+  transform: scale(0.97);
+  box-shadow: 0 4px 10px rgba(240, 129, 0, 0.2);
+  filter: brightness(0.9);
+}
+
+.btnSave:disabled {
+  background-color: #e0e0e0;
+  color: #a0a0a0;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btnCancelVisible {
+  width: 100%;
+  height: 48px;
+  color: #ff4d4d; /* Un rojo suave pero claro */
+  border: 2px solid transparent;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ff4d4d10; /* Un fondo rosado muy sutil */
+  border-color: #ff4d4d44;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btnCancelVisible:hover {
+  transform: translateY(-2px);
+}
+
+.btnCancelVisible:active {
+  transform: scale(0.97); /* Efecto de hundido consistente */
+  background-color: #ff4d4d20;
+}
+
+/* Icono dentro del botón si decides ponerle uno */
+.btnCancelVisible svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* --- VERSION DESKTOP (768px+) --- */
+@media (min-width: 768px) {
+  .pageWrapper {
+    margin-left: 230px;
+    width: calc(100% - 230px);
+    padding: 40px 0;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+
+  .mainContainer {
+    margin: 0 auto;
+    width: 95%;
+    max-width: 1000px;
+    min-height: auto; /* En desktop deja que el contenido dicte el alto */
+    border-radius: 50px;
+    padding: 40px 60px;
+    min-height: 90vh;
+    display: flex; /* AGREGAR ESTO */
+    flex-direction: column;
+  }
+
+  .pageWrapper.sidebarCollapsed {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+  }
+
+  .layoutContent {
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+    align-items: stretch;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 24px 0;
+  }
+
+  .listWrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    align-items: center;
+  }
+
+  .columnLeft {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .columnRight {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .header {
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+  }
+
+  .headerTitle {
+    flex: 5;
+  }
+
+  .buttonGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 60px;
+    width: 100%;
+  }
+
+  .addVehicleBtn {
+    margin-top: auto;
+    padding: 15px 0;
+    width: 240px;
+  }
+
+  .btnSave,
+  .btnCancelVisible {
+    max-width: 100%;
+  }
+}

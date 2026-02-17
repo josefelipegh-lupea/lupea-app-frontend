@@ -23,7 +23,11 @@ const MENU_CONFIG_USER: Array<{
         href: "/profile/user/personal-info",
       },
       { label: "Ubicaciones", icon: IconsApp.Location },
-      { label: "Vehículos", icon: IconsApp.Vehicle },
+      {
+        label: "Vehículos",
+        icon: IconsApp.Vehicle,
+        href: "/profile/user/vehicle",
+      },
     ],
   },
   {

@@ -121,7 +121,7 @@
   width: 100%;
   height: 54px;
   background-color: #f8f5fb;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   border-radius: 16px;
   padding: 0 16px;
   font-size: 15px;
@@ -154,7 +154,7 @@
 .selectInput:focus {
   outline: none;
   background-color: #ffffff;
-  border-color: #f0810044;
+  border-color: #f08100;
 }
 
 .input:disabled,
@@ -250,7 +250,6 @@
     margin-left: 230px;
     width: calc(100% - 230px);
     padding: 40px 0;
-    display: flex;
     justify-content: center; /* Centra horizontalmente */
     align-items: flex-start; /* Centra verticalmente desde arriba */
     min-height: 100vh;
@@ -266,6 +265,7 @@
     flex-direction: column;
     margin: 0 auto;
     width: 95%;
+    min-height: 90vh;
     max-width: 1000px;
     border-radius: 50px;
     padding: 40px 60px;
@@ -283,12 +283,6 @@
   .columnLeft,
   .columnRight {
     flex: 1;
-  }
-
-  .header {
-    border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 20px;
-    margin-bottom: 30px;
   }
 
   .btnEdit {
