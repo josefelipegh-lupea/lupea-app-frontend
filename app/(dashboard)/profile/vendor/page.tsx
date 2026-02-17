@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import styles from "./UserProfile.module.css";
-import MENU_CONFIG from "@/app/utils/constants/user-profile-options";
+import styles from "./VendorProfile.module.css";
 import ToggleSwitch from "@/components/toggle-switch/ToggleSwitch";
 import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";

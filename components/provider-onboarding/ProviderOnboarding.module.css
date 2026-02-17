@@ -308,7 +308,7 @@
 .btnCancel {
   background: none;
   border: none;
-  color: #bdbdbd;
+  color: #ff4d4d;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -335,7 +335,7 @@
 
   .mainContainer {
     width: 95%;
-    max-width: 800px; /* Formulario más cómodo para leer */
+    max-width: 800px;
     padding: 50px 60px;
     border-radius: 50px; /* Bordes redondeados consistentes */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
@@ -373,7 +373,6 @@
     justify-content: space-between;
   }
 
-  /* Grid de 2 columnas para inputs en Desktop */
   .gridContainer {
     grid-template-columns: 1fr 1fr;
     column-gap: 30px;
@@ -383,9 +382,7 @@
     grid-column: span 2;
   }
 
-  /* El botón de cancelar y siguiente en fila */
-
   .btnActive {
-    width: 240px; /* No tan ancho en desktop */
+    width: 240px;
   }
 }
