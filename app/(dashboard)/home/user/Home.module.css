@@ -1,8 +1,8 @@
 .pageWrapper {
-  background-color: #ffffff;
-  min-height: 100vh;
+  background-color: #f2f2f2;
+  /* min-height: 100vh; */
   padding-top: 24px;
-  padding-bottom: 100px;
+  /* padding-bottom: 100px; */
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
 }
 
@@ -12,6 +12,8 @@
   padding: 20px;
   max-width: 480px;
   margin: 0 auto;
+  background-color: #fff;
+  border-radius: 50px;
 }
 
 .leftSection,
@@ -229,6 +231,13 @@
   color: #000;
 }
 
+.metricsStack {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
 .metricCardPurple {
   display: flex;
   flex-direction: column;
@@ -247,6 +256,17 @@
   padding: 18px;
 }
 
+.metricCardOrange {
+  background-color: #fff9ed;
+}
+
+.stars {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 5px;
+}
+
 .metricCardGreen {
   background-color: #eaf8f1;
   border-radius: 19px;
@@ -256,7 +276,6 @@
   flex-direction: row;
   justify-content: space-between;
   min-height: 125px;
-  margin-bottom: 15px;
 }
 
 .metricHeader {
@@ -272,10 +291,6 @@
 .chartPie {
   flex-shrink: 0;
   margin-top: -5px;
-}
-
-.metricCardOrange {
-  background-color: #fff9ed;
 }
 
 .chartBars {
@@ -405,6 +420,28 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
+  }
+
+  .metricsStack {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 20px;
+    grid-column: span 2;
+  }
+
+  .metricCardGreen,
+  .metricCardOrange {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  .metricCardOrange {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Separa estrellas de los números */
+    align-items: flex-start;
   }
 
   .tabs {

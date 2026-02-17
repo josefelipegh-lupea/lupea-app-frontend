@@ -8,7 +8,7 @@ export interface MenuItemConfig {
   href?: string;
 }
 
-const MENU_CONFIG_USER: Array<{
+const MENU_CONFIG_VENDOR: Array<{
   id: string;
   title: string;
   items?: MenuItemConfig[];
@@ -18,9 +18,9 @@ const MENU_CONFIG_USER: Array<{
     title: "CUENTA",
     items: [
       {
-        label: "Información personal",
+        label: "Información comercial",
         icon: IconsApp.Personal,
-        href: "/profile/user/personal-info",
+        href: "/profile/vendor/personal-info",
       },
       { label: "Ubicaciones", icon: IconsApp.Location },
       { label: "Vehículos", icon: IconsApp.Vehicle },
@@ -67,4 +67,4 @@ const MENU_CONFIG_USER: Array<{
   },
 ];
 
-export default MENU_CONFIG_USER;
+export default MENU_CONFIG_VENDOR;

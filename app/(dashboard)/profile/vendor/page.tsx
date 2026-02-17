@@ -8,7 +8,7 @@ import MENU_CONFIG from "@/app/utils/constants/user-profile-options";
 import ToggleSwitch from "@/components/toggle-switch/ToggleSwitch";
 import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
-import MENU_CONFIG_USER from "@/app/utils/constants/user-profile-options";
+import MENU_CONFIG_VENDOR from "@/app/utils/constants/vendor-profile-opcionts";
 
 interface MenuItemProps {
   icon: string | React.ReactNode;
@@ -83,7 +83,7 @@ export default function UserProfilePage() {
                 <div className={styles.avatarCircle}>
                   <Image
                     src="https://randomuser.me/api/portraits/men/32.jpg"
-                    alt="Cristian Ramirez"
+                    alt={`"Taller Mecánico "El Rayo"`}
                     width={90}
                     height={90}
                     className={styles.avatarImage}
@@ -94,8 +94,10 @@ export default function UserProfilePage() {
                 </div>
               </div>
               <div className={styles.userInfo}>
-                <h1 className={styles.userName}>Cristian Ramirez</h1>
-                <p className={styles.userTag}>@Cristian1739</p>
+                <h1
+                  className={styles.userName}
+                >{`"Taller Mecánico "El Rayo"`}</h1>
+                <p className={styles.userTag}>@TallerElRayo</p>
               </div>
             </section>
 
@@ -115,7 +117,7 @@ export default function UserProfilePage() {
 
           {/* COLUMNA DERECHA (Menú) */}
           <nav className={styles.menuContainer}>
-            {MENU_CONFIG_USER.map((section) => (
+            {MENU_CONFIG_VENDOR.map((section) => (
               <div key={section.id} className={styles.sectionGroup}>
                 <h2
                   className={`${styles.sectionTitle} ${

@@ -19,11 +19,12 @@
   width: 100%;
   justify-content: space-around;
   align-items: center;
+  overflow: hidden;
 }
 
 .sidebarLogo,
 .desktopLabel {
-  display: none; /* Oculto en móvil */
+  display: none;
 }
 
 .linkWrapper {
@@ -41,6 +42,7 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
+  transition: all 0.3s ease-in-out;
 }
 
 .activeIndicator {
@@ -106,7 +108,7 @@
     flex-direction: column;
     justify-content: flex-start;
     padding: 40px 20px;
-    background-color: #ffffff; /* Un blanco limpio para el sidebar */
+    background-color: #ffffff;
     border-right: 1px solid #f0f0f0;
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.02);
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -119,7 +121,6 @@
   }
 
   .tabBar.collapsed .sidebarLogo {
-    padding: 0;
     text-align: center;
   }
 
@@ -145,7 +146,6 @@
     z-index: 10;
   }
 
-  /* Ajuste de labels al contraer */
   .collapsed .desktopLabel {
     display: none;
   }
@@ -177,10 +177,12 @@
     padding: 12px 20px;
     border-radius: 15px;
     gap: 15px;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .tabItemActive {
-    background-color: #f0840010; /* Fondo sutil naranja */
+    background-color: #f0840010;
   }
 
   .activeIndicator {
@@ -189,7 +191,6 @@
     width: auto;
     height: auto;
     border-radius: 0;
-    animation: none;
     gap: 15px;
     justify-content: flex-start;
   }
@@ -199,6 +200,7 @@
     font-size: 16px;
     font-weight: 600;
     color: #333;
+    transition: opacity 0.2s ease;
   }
 
   .tabItemActive .desktopLabel {
