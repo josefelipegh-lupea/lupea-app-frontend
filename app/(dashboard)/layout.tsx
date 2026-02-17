@@ -9,14 +9,12 @@ export default function DashboardLayout({
 }) {
   return (
     <div className={styles.container}>
-      <main className={styles.mainContent}>
-        <SidebarProvider>
-          {children}
-          <div className={styles.mobileFooterWrapper}>
-            <Footer />
-          </div>
-        </SidebarProvider>
-      </main>
+      <SidebarProvider>
+        <main className={styles.mainContent}>{children}</main>
+        <div className={styles.mobileFooterWrapper}>
+          <Footer />
+        </div>
+      </SidebarProvider>
     </div>
   );
 }

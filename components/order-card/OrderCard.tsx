@@ -28,9 +28,6 @@ export const OrderCard: React.FC<OrderProps> = ({
       top: cardRef.current?.offsetTop ? cardRef.current.offsetTop - 100 : 0,
       behavior: "smooth",
     });
-
-    // Aquí iría la lógica para navegar al detalle o expandir
-    // setIsExpanded(!isExpanded);
   };
 
   const formatNumber = (num: number) => (num < 10 ? `0${num}` : num);

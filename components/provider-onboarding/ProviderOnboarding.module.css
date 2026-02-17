@@ -1,0 +1,391 @@
+/* --- CONTENEDORES PRINCIPALES --- */
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ocupa al menos toda la pantalla */
+  background-color: #ffffff;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
+}
+
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 80px);
+}
+
+/* --- HEADER OFICIAL --- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #f1f1f1;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.headerTitle {
+  flex: 4;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a3d;
+  margin: 0;
+  text-align: center;
+}
+
+.backButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.backButton svg {
+  transform: rotate(180deg);
+}
+
+.emptySpacer {
+  flex: 1;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 20px 30px;
+}
+
+.stepContent {
+  flex: 1; /* Crece para llenar el espacio del formulario */
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* --- STEPPER NUMERADO (image_b5b564.png) --- */
+.stepperContainer {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px auto 40px;
+  width: 100%;
+  max-width: 300px;
+  position: relative;
+}
+
+.stepWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.stepNumber {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 1.5px solid #e0e0e0;
+  color: #bdbdbd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  z-index: 2;
+  transition: all 0.3s;
+}
+
+.stepActive {
+  border-color: #ff9100;
+  color: #ff9100;
+  background-color: #fff4e5; /* Fondo crema del paso actual */
+}
+
+.stepLine {
+  position: absolute;
+  top: 17px;
+  left: 50%;
+  width: 100%;
+  height: 1.5px;
+  background-color: #e0e0e0;
+  z-index: 1;
+}
+
+.lineActive {
+  background-color: #ff9100;
+}
+
+/* --- FORMULARIO Y GRIDS --- */
+.gridContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a3d;
+  margin-bottom: 5px;
+}
+
+/* --- CONTENEDORES DE ENTRADA Y BÚSQUEDA --- */
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  border: 1.5px solid #e0e0e0;
+  border-radius: 15px;
+  padding: 10px 15px;
+  margin-top: 5px;
+  transition: border 0.2s;
+  background-color: #fff;
+}
+
+.inputWrapper:focus-within {
+  border-color: #ff9100;
+}
+
+.inputDoc {
+  justify-content: space-between;
+}
+
+.inputInner {
+  display: flex;
+  align-items: center;
+}
+
+.ghostContainer {
+  position: absolute;
+  left: 45px;
+  color: #d1d5db;
+  pointer-events: none;
+  font-family: inherit;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 1rem;
+  color: #181818;
+  z-index: 2;
+}
+
+.icon {
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  color: #bdbdbd;
+}
+
+.btnDisabled {
+  background-color: #e0e0e0 !important;
+  color: #a0a0a0 !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.addBtn {
+  background: none;
+  border: none;
+  color: #ff9100;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 5px;
+}
+
+.helperText {
+  color: #ff9100;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
+  text-align: center;
+}
+
+/* --- CONTENEDOR DE TAGS / PILLS --- */
+.tagsScrollContainer {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 8px;
+  height: 82px; /* Altura fija según tu original */
+  overflow-y: auto;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #ff91001b; /* Fondo naranja suave */
+  border-radius: 8px;
+  border: 1.5px solid #ff9100;
+}
+
+.emptyStateText {
+  font-size: 0.85rem;
+  color: #181818;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+/* --- PILLS (ETIQUETAS) --- */
+.categoryPill {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.activePill {
+  background: #ff9100;
+  border-color: #ff9100;
+  color: #fff;
+}
+
+.removeIcon {
+  margin-left: 8px;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.tagsScrollContainer::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tagsScrollContainer::-webkit-scrollbar-thumb {
+  background: #ff9100;
+  border-radius: 10px;
+}
+
+/* --- BOTONES --- */
+.buttonGroup {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btnActive {
+  width: 100%;
+  height: 56px;
+  background-color: #f08100;
+  color: white;
+  border: none;
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(240, 129, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btnActive:active {
+  transform: scale(0.98);
+}
+
+.btnCancel {
+  background: none;
+  border: none;
+  color: #bdbdbd;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .pageWrapper {
+    padding: 40px 0;
+    margin-left: 230px;
+    width: calc(100% - 230px);
+    background-color: #f2f2f2;
+    justify-content: center;
+    align-items: center;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  .pageWrapper.sidebarCollapsed {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+  }
+
+  .mainContainer {
+    width: 95%;
+    max-width: 800px; /* Formulario más cómodo para leer */
+    padding: 50px 60px;
+    border-radius: 50px; /* Bordes redondeados consistentes */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    background-color: #fff;
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    overflow: hidden;
+    min-height: 850px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 24px 0;
+  }
+
+  .stepContent {
+    flex: 1;
+    width: 100%;
+    position: relative;
+    margin-top: 20px;
+  }
+
+  .buttonGroup {
+    margin-top: auto; /* Refuerza la posición al fondo */
+    padding-top: 30px;
+    width: 100%;
+    display: flex;
+    flex-direction: row-reverse; /* Siguiente a la derecha, Cancelar a la izquierda */
+    justify-content: space-between;
+  }
+
+  /* Grid de 2 columnas para inputs en Desktop */
+  .gridContainer {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 30px;
+  }
+
+  .fullWidth {
+    grid-column: span 2;
+  }
+
+  /* El botón de cancelar y siguiente en fila */
+
+  .btnActive {
+    width: 240px; /* No tan ancho en desktop */
+  }
+}

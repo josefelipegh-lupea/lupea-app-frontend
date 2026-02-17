@@ -1,28 +1,31 @@
 "use client";
 
-import { useState } from "react";
 import styles from "./Footer.module.css";
 import { IconsApp } from "../icons/Icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 
-const tabs = [
-  { id: "home", Icon: IconsApp.Home, path: "/home", label: "Inicio" },
-  { id: "chat", Icon: IconsApp.Chat, path: "/chat", label: "Chat" },
-  { id: "user", Icon: IconsApp.User, path: "/profile/user", label: "Perfil" },
-];
-
 export const Footer = () => {
   const pathname = usePathname();
-  // Estado para controlar si está expandido en Desktop
+  const role = pathname.includes("/vendor") ? "vendor" : "user";
   const { isExpanded, toggleSidebar } = useSidebar();
+
+  const tabs = [
+    { id: "home", Icon: IconsApp.Home, path: `/home/${role}`, label: "Inicio" },
+    { id: "chat", Icon: IconsApp.Chat, path: "/chat", label: "Chat" },
+    {
+      id: "user",
+      Icon: IconsApp.User,
+      path: `/profile/${role}`,
+      label: "Perfil",
+    },
+  ];
 
   return (
     <footer
       className={`${styles.tabBar} ${!isExpanded ? styles.collapsed : ""}`}
     >
-      {/* Botón para contraer - Solo visible en Desktop */}
       <button className={styles.toggleBtn} onClick={toggleSidebar}>
         {isExpanded ? "❮" : "❯"}
       </button>
@@ -33,7 +36,7 @@ export const Footer = () => {
 
       <div className={styles.navContainer}>
         {tabs.map(({ id, Icon, path, label }) => {
-          const isActive = pathname === path;
+          const isActive = pathname.startsWith(path);
           const activeColor = "#F08400";
           const inactiveColor = "#757575";
 
