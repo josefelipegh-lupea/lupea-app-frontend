@@ -73,7 +73,6 @@ export default function LoginPage() {
         <div className={styles.formBar} />
 
         <h1 className={styles.title}>Iniciar Sesión</h1>
-        {apiError && <p className={styles.error}>{apiError}</p>}
         <p className={styles.subtitle}>Ingresa tus datos para continuar</p>
 
         {/* IDENTIFICADOR */}
