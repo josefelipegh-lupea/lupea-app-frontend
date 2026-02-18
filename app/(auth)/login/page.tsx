@@ -38,6 +38,7 @@ export default function LoginPage() {
     } catch (err: unknown) {
       if (err instanceof Error) {
         setApiError(err.message);
+        console.log(err);
       } else {
         setApiError("Ocurrió un error inesperado.");
       }
