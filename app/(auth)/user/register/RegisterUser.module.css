@@ -277,12 +277,10 @@
   transition: color 0.2s ease;
 }
 
-/* cuando NO hay error */
 .errorInactive {
-  color: #fafafa; /* mismo color que el fondo del form */
+  color: #fafafa;
 }
 
-/* cuando hay error */
 .errorActive {
   color: #e53935;
 }
@@ -335,9 +333,16 @@
   }
 }
 
-/* Estilos adicionales para Proveedores */
+@media (max-height: 800px) and (max-width: 767px) {
+  .inputWrapper {
+    margin-bottom: 10px;
+  }
 
-/* Pills para categorías */
+  .loginRow {
+    margin-bottom: 40px;
+  }
+}
+
 .categoryPill {
   padding: 8px 16px;
   border-radius: 20px;
@@ -355,7 +360,6 @@
   color: #fff;
 }
 
-/* Ajuste para los select */
 select.input {
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23BDBDBD' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -364,7 +368,6 @@ select.input {
   background-size: 16px;
 }
 
-/* Asegurar que el BottomSheet sea scrolleable si hay muchos campos */
 .formCard {
   overflow-y: auto;
   max-height: 90vh;

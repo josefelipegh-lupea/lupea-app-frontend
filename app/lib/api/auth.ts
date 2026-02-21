@@ -11,11 +11,27 @@ export type LoginResponse = {
   };
   clientProfile: {
     id: number;
-    display_name: string;
-    tokens_available: number;
-    tokens_last_renewal: string;
-    privacy_level: string;
+    displayName: string;
+    tokensAvailable: number;
+    tokensLastRenewal: string;
+    privacyLevel: string;
   };
+};
+
+export type RegisterResponse = {
+  ok: boolean;
+  message: string;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    confirmed: boolean;
+  };
+  clientProfile: {
+    id: number;
+    tokensAvailable: number;
+  };
+  note: string;
 };
 
 export async function loginClient(
@@ -37,7 +53,35 @@ export async function loginClient(
 
   if (!res.ok) {
     // Manejo de errores específicos de Strapi
-    throw new Error(data.error?.message || "Credenciales incorrectas");
+    throw new Error(data.error || "Credenciales incorrectas");
+  }
+
+  return data;
+}
+
+export async function registerClient(
+  username: string,
+  email: string,
+  password: string,
+  terms_accepted: boolean = true
+): Promise<RegisterResponse> {
+  const res = await fetch(`${API_URL}/auth/local/register-client`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username,
+      email,
+      password,
+      terms_accepted,
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || "Error al registrar el usuario");
   }
 
   return data;

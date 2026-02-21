@@ -1,0 +1,52 @@
+.header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #f1f1f1;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  justify-content: space-between;
+}
+
+.headerTitle {
+  flex: 4;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a3d;
+  margin: 0;
+  text-align: center;
+}
+
+.backButton,
+.headerAction {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.headerAction {
+  justify-content: flex-end;
+}
+
+.backButton {
+  justify-content: flex-start;
+  background: none;
+  border: none;
+  cursor: pointer;
+  height: 40px;
+}
+
+.backButton svg {
+  transform: rotate(180deg);
+}
+
+.btnEditDesktop {
+  font-size: 14px;
+  color: #0070f3;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}

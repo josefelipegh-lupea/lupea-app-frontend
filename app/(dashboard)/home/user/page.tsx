@@ -10,6 +10,7 @@ import styles from "./Home.module.css";
 import { RequestCard } from "@/components/request-card/RequestCard";
 import { PriceCard } from "@/components/price-card/PriceCard";
 import { OrderCard } from "@/components/order-card/OrderCard";
+import Button from "@/components/button/Button";
 
 export default function HomePage() {
   const { isExpanded } = useSidebar();
@@ -20,6 +21,7 @@ export default function HomePage() {
       id: "00125",
       fecha: "20/05/2024",
       taller: "Taller Mecánico 'El Rayo'",
+      reputacion: 3.5,
       monto: "150.000",
       tiempo: "24 Horas",
       items: [
@@ -50,6 +52,7 @@ export default function HomePage() {
       fecha: "21/05/2024",
       taller: "Servicio Autorizado Bosch",
       monto: "85.500",
+      reputacion: 5,
       tiempo: "48 Horas",
       items: [
         {
@@ -64,6 +67,7 @@ export default function HomePage() {
       fecha: "22/05/2024",
       taller: "Frenos Santiago",
       monto: "42.000",
+      reputacion: 2.8,
       tiempo: "12 Horas",
       items: [
         {
@@ -94,6 +98,7 @@ export default function HomePage() {
       fecha: "22/05/2024",
       taller: "Frenos Santiago",
       monto: "42.000",
+      reputacion: 5,
       tiempo: "12 Horas",
       items: [
         {
@@ -127,11 +132,36 @@ export default function HomePage() {
   ];
 
   const ordenesEjemplo = [
-    { id: "88420", cantidadRepuestos: 7, status: "ACTIVA" },
-    { id: "88421", cantidadRepuestos: 3, status: "CANCELADA" },
-    { id: "88422", cantidadRepuestos: 5, status: "COMPLETADA" },
-    { id: "88423", cantidadRepuestos: 12, status: "ACTIVA" },
-    { id: "88424", cantidadRepuestos: 2, status: "COMPLETADA" },
+    {
+      id: "88420",
+      title: "Taller Mecánico 'El Rayo'",
+      cantidadRepuestos: 7,
+      status: "ACTIVA",
+    },
+    {
+      id: "88421",
+      title: "Servicio Autorizado Bosch",
+      cantidadRepuestos: 3,
+      status: "CANCELADA",
+    },
+    {
+      id: "88422",
+      title: "Frenos Santiago",
+      cantidadRepuestos: 5,
+      status: "COMPLETADA",
+    },
+    {
+      id: "88423",
+      title: "Taller Mecánico 'El Rayo'",
+      cantidadRepuestos: 12,
+      status: "ACTIVA",
+    },
+    {
+      id: "88424",
+      title: "Taller Mecánico 'El Rayo'",
+      cantidadRepuestos: 2,
+      status: "COMPLETADA",
+    },
   ] as const;
 
   const renderTabContent = () => {
@@ -194,12 +224,12 @@ export default function HomePage() {
           </section>
 
           {/* BOTÓN NUEVA SOLICITUD */}
-          <button className={styles.btnNuevaSolicitud}>
+          <Button className={styles.btnNuevaSolicitud}>
             <span className={styles.plusIcon}>
               <IconsApp.Plus />
             </span>{" "}
             Nueva solicitud
-          </button>
+          </Button>
 
           {/* 3. MÉTRICAS */}
           <section className={styles.metricsContainer}>

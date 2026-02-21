@@ -11,6 +11,8 @@ import styles from "./Login.module.css";
 import { useRouter } from "next/navigation";
 import { loginClient } from "@/app/lib/api/auth";
 import { IconsApp } from "@/components/icons/Icons";
+import { useAuth } from "@/context/AuthContext";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -19,6 +21,7 @@ export default function LoginPage() {
   const [open, setOpen] = useState(true);
   const [loading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
+  const { login } = useAuth();
   const router = useRouter();
 
   const { isValid } = useLoginValidation({
@@ -33,16 +36,21 @@ export default function LoginPage() {
 
     try {
       const data = await loginClient(email, password);
-      localStorage.setItem("jwt", data.jwt);
+      login(data);
+      // localStorage.setItem("jwt", data.jwt);
+      toast.success("¡Bienvenido de nuevo!");
       router.push("/profile/user");
     } catch (err: unknown) {
+      let message = "Ocurrió un error inesperado.";
+
       if (err instanceof Error) {
-        setApiError(err.message);
-        console.log(err);
-      } else {
-        setApiError("Ocurrió un error inesperado.");
+        message = err.message;
       }
-    } finally {
+
+      setApiError(message);
+      toast.error(message, {
+        duration: 4000,
+      });
       setIsLoading(false);
     }
   };

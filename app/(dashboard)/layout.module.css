@@ -2,16 +2,30 @@
   display: flex;
   flex-direction: column;
   background-color: #f2f2f2;
-  height: calc(100vh - 90px);
+  height: 100dvh;
   overflow: hidden;
 }
 
 .mainContent {
+  flex: 1;
   background-color: #f2f2f2;
   border-bottom-left-radius: 50px;
   border-bottom-right-radius: 50px;
   overflow-y: auto;
   overflow-x: hidden;
+  mask-image: radial-gradient(white, black);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  outline: 1px solid transparent;
+  box-shadow: 0 0 0 100px #f2f2f2;
+}
+
+.mobileFooterWrapper {
+  flex-shrink: 0;
+  height: 90px;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (min-width: 768px) {

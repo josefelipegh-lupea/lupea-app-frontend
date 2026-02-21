@@ -7,6 +7,9 @@ import { useRegisterValidation } from "@/hooks/useRegisterValidation";
 
 import styles from "./RegisterUser.module.css";
 import { IconsApp } from "@/components/icons/Icons";
+import toast from "react-hot-toast";
+import { registerClient } from "@/app/lib/api/auth";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -15,6 +18,9 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [open, setOpen] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const router = useRouter();
 
   const { isValid } = useRegisterValidation({
     username,
@@ -23,12 +29,38 @@ export default function RegisterPage() {
     termsAccepted,
   });
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const loadingToast = toast.loading("Creando tu cuenta...");
+
+    try {
+      const data = await registerClient(
+        username,
+        email,
+        password,
+        termsAccepted
+      );
+
+      toast.success(data.message, { id: loadingToast, duration: 6000 });
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Ocurrió un error inesperado";
+
+      toast.error(errorMessage, {
+        id: loadingToast,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleBackdropClick = () => {
     if (typeof window !== "undefined" && window.innerWidth < 768) {
       if (open) {
         document.dispatchEvent(new CustomEvent("close-sheet"));
       }
     }
+    router.replace("/login");
   };
 
   return (
@@ -67,7 +99,6 @@ export default function RegisterPage() {
           />
         </div>
 
-        {/* EMAIL */}
         <label className={styles.label} htmlFor="email">
           Correo electrónico
         </label>
@@ -86,7 +117,6 @@ export default function RegisterPage() {
           />
         </div>
 
-        {/* PASSWORD */}
         <label className={styles.label} htmlFor="password">
           Contraseña
         </label>
@@ -121,7 +151,6 @@ export default function RegisterPage() {
           </button>
         </div>
 
-        {/* TERMS */}
         <div className={styles.termsRow}>
           <label className={styles.checkboxLabel}>
             <input
@@ -142,9 +171,9 @@ export default function RegisterPage() {
         </div>
 
         <button
-          type="submit"
           className={styles.submitButton}
           disabled={!isValid}
+          onClick={handleSubmit}
         >
           Registrarme
         </button>

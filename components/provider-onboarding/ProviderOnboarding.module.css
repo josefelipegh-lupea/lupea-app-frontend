@@ -152,6 +152,10 @@
   border-color: #ff9100;
 }
 
+.inputMargin {
+  margin-top: 5px;
+}
+
 .inputDoc {
   justify-content: space-between;
 }

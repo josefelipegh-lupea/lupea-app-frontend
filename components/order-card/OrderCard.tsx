@@ -6,12 +6,14 @@ import { IconsApp } from "../icons/Icons";
 
 interface OrderProps {
   id: string;
+  title: string;
   cantidadRepuestos: number;
   status: "ACTIVA" | "COMPLETADA" | "CANCELADA";
 }
 
 export const OrderCard: React.FC<OrderProps> = ({
   id,
+  title,
   cantidadRepuestos,
   status,
 }) => {
@@ -41,6 +43,8 @@ export const OrderCard: React.FC<OrderProps> = ({
 
             <div className={styles.headerTitle}>
               <span className={styles.orderNumber}> Orden #{id}</span>
+
+              <span className={styles.title}>{title}</span>
               <h2 className={styles.repuestosCount}>
                 {formatNumber(cantidadRepuestos)} Repuestos
               </h2>

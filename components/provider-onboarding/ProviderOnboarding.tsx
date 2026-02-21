@@ -1,18 +1,20 @@
 "use client";
 
 import React, { useState, ChangeEvent, useRef, useEffect } from "react";
-import styles from "./ProviderOnboarding.module.css";
 import { ProviderFormData } from "./types";
 import StepBasics from "@/components/provider-onboarding/steps/StepBasics";
 import StepClassification from "@/components/provider-onboarding/steps/StepClassification";
 import StepDocuments from "@/components/provider-onboarding/steps/StepDocuments";
-import { IconsApp } from "../icons/Icons";
 import StepTransition from "./step-transition/StepTransition";
 import { useRouter } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import { useBasicsValidation } from "@/hooks/useBasicsValidation";
 import { useClassificationValidation } from "@/hooks/useClassificationValidation";
 import { useDocumentsValidation } from "@/hooks/useDocumentsValidation";
+import Button from "../button/Button";
+import Header from "../header/Header";
+
+import styles from "./ProviderOnboarding.module.css";
 
 const ProviderOnboarding: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -94,25 +96,12 @@ const ProviderOnboarding: React.FC = () => {
       }`}
     >
       <div className={styles.mainContainer} ref={cardRef}>
-        {/* Header con botón volver a la izquierda y título centrado */}
-        <header className={styles.header}>
-          <button
-            className={styles.backButton}
-            onClick={() => currentStep > 1 && paginate(currentStep - 1)}
-            style={{ visibility: currentStep > 1 ? "visible" : "hidden" }}
-          >
-            {/* IconsApp.RightArrow con la rotación de 180deg definida en tu CSS */}
-            <IconsApp.RightArrow />
-          </button>
-
-          <h1 className={styles.headerTitle}>{getStepTitle()}</h1>
-
-          {/* Espaciador para equilibrar el flex y centrar el título */}
-          <div className={styles.emptySpacer} />
-        </header>
+        <Header
+          onBack={() => currentStep > 1 && paginate(currentStep - 1)}
+          title={getStepTitle()}
+        />
 
         <div className={styles.content}>
-          {/* Stepper de círculos numerados */}
           <div className={styles.stepperContainer}>
             {[1, 2, 3].map((step) => (
               <div key={step} className={styles.stepWrapper}>
@@ -160,7 +149,7 @@ const ProviderOnboarding: React.FC = () => {
           </div>
 
           <div className={styles.buttonGroup}>
-            <button
+            <Button
               className={`${styles.btnSave} ${styles.btnActive} ${
                 !isCurrentStepValid() ? styles.btnDisabled : styles.btnActive
               }`}
@@ -168,7 +157,7 @@ const ProviderOnboarding: React.FC = () => {
               disabled={!isCurrentStepValid()}
             >
               {currentStep === 3 ? "Guardar cambios" : "Siguiente paso"}
-            </button>
+            </Button>
 
             <button className={styles.btnCancel} onClick={() => router.back()}>
               Cancelar
