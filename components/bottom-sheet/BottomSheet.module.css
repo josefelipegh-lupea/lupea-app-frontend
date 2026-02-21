@@ -102,6 +102,52 @@
   }
 }
 
+/* --- AJUSTE PARA PANTALLAS BAJAS (Ej. 360x800) --- */
+
+@media (max-height: 800px) and (max-width: 767px) {
+  /* 1. Reducimos el aire superior del modal */
+  .sheet {
+    padding-top: 8px !important;
+    max-height: 90dvh !important; /* Ganamos un 5% extra de altura */
+  }
+
+  /* 2. Compactamos el contenedor del contenido */
+  .scrollableContent {
+    padding: 0 20px 20px !important; /* Menos espacio a los lados y abajo */
+  }
+
+  /* 3. Reducimos márgenes de los elementos hijos (título, grupos de input) */
+  .scrollableContent > *:first-child {
+    margin-top: 4px !important;
+  }
+
+  /* Ajustamos el Título "Registrarme" */
+  .scrollableContent h1,
+  .scrollableContent h2 {
+    font-size: 1.5rem !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* 4. Compactamos los campos de texto (labels e inputs) */
+  /* Ajusta estos selectores según los nombres de clase de tus componentes de Input */
+  .scrollableContent label {
+    margin-bottom: 0px !important;
+    font-size: 13px !important;
+  }
+
+  .scrollableContent input {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    height: auto !important; /* Por si tiene un height fijo */
+    margin-bottom: 0px !important;
+  }
+
+  /* 5. El botón de Registrarme */
+  .scrollableContent button {
+    margin-top: 8px !important;
+    padding: 10px !important;
+  }
+}
 /* --- ANIMACIONES --- */
 
 @keyframes slideUp {

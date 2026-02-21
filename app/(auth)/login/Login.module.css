@@ -2,9 +2,9 @@
   min-height: 100vh;
   min-height: 100dvh;
   background: url("/register-header.jpg") center/cover no-repeat;
-  /* position: relative; */
-  display: flex; /* Cambiamos a Flex */
-  flex-direction: column; /* Elementos uno debajo de otro */
+
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   width: 100vw;
@@ -313,12 +313,10 @@
   transition: color 0.2s ease;
 }
 
-/* cuando NO hay error */
 .errorInactive {
-  color: #fafafa; /* mismo color que el fondo del form */
+  color: #fafafa;
 }
 
-/* cuando hay error */
 .errorActive {
   color: #e53935;
 }
@@ -331,7 +329,7 @@
 }
 
 .forgotPasswordLink {
-  color: #181818; /* Según la imagen es oscuro */
+  color: #181818;
   font-size: 0.9rem;
   text-decoration: underline;
   font-family: system-ui, sans-serif;
@@ -340,32 +338,32 @@
 
 @media (max-height: 700px) {
   .logoContainer {
-    margin-top: -3vh; /* Subimos el logo más al techo */
+    margin-top: -3vh;
   }
 
   .loginSheetHeight {
-    max-height: 55vh !important; /* El form se hace más pequeño */
+    max-height: 55vh !important;
   }
 }
 
 @media (min-width: 768px) {
   .bgWrapper {
     display: flex;
-    flex-direction: column; /* Alineamos logo y form en columna */
+    flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding-top: 5vh; /* Espacio inicial para el logo */
+    padding-top: 5vh;
     min-height: 100vh;
   }
 
   .logoContainer {
-    position: relative; /* Ya no es absoluto */
-    margin-bottom: 4vh; /* Separación con el formulario */
+    position: relative;
+    margin-bottom: 4vh;
     flex-shrink: 0;
   }
 
   .logo {
-    width: 280px; /* Logo un poco más grande en Desktop */
+    width: 280px;
     height: auto;
   }
 
@@ -374,17 +372,13 @@
   }
 
   .loginSheetHeight {
-    /* 1. Resetear el anclaje de móvil */
     position: relative !important;
     bottom: auto !important;
     margin: 0 auto !important;
     transform: none !important;
 
-    /* 2. Comportamiento de flujo */
-    /* Quitamos el margin-top: 15vh y usamos algo más controlado */
     margin-top: 15vh !important;
 
-    /* 3. Estética de Modal */
     min-height: auto !important;
     height: fit-content !important;
     width: 100% !important;
@@ -392,7 +386,6 @@
     border-radius: 28px !important;
     padding-bottom: 0 !important;
 
-    /* Box shadow más profundo para desktop */
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
   }
 }

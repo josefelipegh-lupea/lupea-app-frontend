@@ -5,6 +5,9 @@ import { IconsApp } from "@/components/icons/Icons";
 import styles from "./Vehicles.module.css";
 import { useSidebar } from "@/context/SidebarContext";
 import { useVehicleValidation } from "@/hooks/useVehicleValidation";
+import Button from "@/components/button/Button";
+import Header from "@/components/header/Header";
+import InputField from "@/components/input/InputField";
 
 interface Vehicle {
   id: number;
@@ -102,23 +105,16 @@ const VehiclesPage = () => {
       }`}
     >
       <div className={styles.mainContainer}>
-        <header className={styles.header}>
-          <button
-            className={styles.backButton}
-            onClick={() => (isAdding ? closeForm() : window.history.back())}
-          >
-            <IconsApp.RightArrow />
-          </button>
-          <h1 className={styles.headerTitle}>
-            {isAdding
+        <Header
+          onBack={() => (isAdding ? closeForm() : window.history.back())}
+          title={
+            isAdding
               ? editingId
                 ? "Editar vehículo"
                 : "Nuevo vehículo"
-              : "Vehículos"}
-          </h1>
-          <div className={styles.headerAction} />
-        </header>
-
+              : "Vehículos"
+          }
+        />
         <div className={styles.content}>
           {!isAdding ? (
             <div className={styles.listWrapper}>
@@ -145,20 +141,21 @@ const VehiclesPage = () => {
                   </div>
                 ))}
               </div>
-              <button
+
+              <Button
                 className={styles.addVehicleBtn}
                 onClick={() => setIsAdding(true)}
               >
                 <span className={styles.addIcon}>+</span> Agregar nuevo vehículo
-              </button>
+              </Button>
             </div>
           ) : (
             <div className={styles.layoutContent}>
               <div className={styles.columnLeft}>
                 <div className={styles.inputContainer}>
                   <label className={styles.label}>Marca</label>
-                  <input
-                    className={styles.input}
+
+                  <InputField
                     name="brand"
                     value={currentVehicle.brand}
                     onChange={handleChange}
@@ -167,8 +164,8 @@ const VehiclesPage = () => {
                 </div>
                 <div className={styles.inputContainer}>
                   <label className={styles.label}>Modelo</label>
-                  <input
-                    className={styles.input}
+
+                  <InputField
                     name="model"
                     value={currentVehicle.model}
                     onChange={handleChange}
@@ -177,8 +174,8 @@ const VehiclesPage = () => {
                 </div>
                 <div className={styles.inputContainer}>
                   <label className={styles.label}>Versión</label>
-                  <input
-                    className={styles.input}
+
+                  <InputField
                     name="version"
                     value={currentVehicle.version}
                     onChange={handleChange}
@@ -191,8 +188,8 @@ const VehiclesPage = () => {
                 <div className={styles.row}>
                   <div className={styles.inputContainer}>
                     <label className={styles.label}>Año</label>
-                    <input
-                      className={styles.input}
+
+                    <InputField
                       name="year"
                       value={currentVehicle.year}
                       onChange={handleChange}
@@ -201,8 +198,8 @@ const VehiclesPage = () => {
                   </div>
                   <div className={styles.inputContainer}>
                     <label className={styles.label}>Motor</label>
-                    <input
-                      className={styles.input}
+
+                    <InputField
                       name="engine"
                       value={currentVehicle.engine}
                       onChange={handleChange}
@@ -212,13 +209,13 @@ const VehiclesPage = () => {
                 </div>
 
                 <div className={styles.buttonGroup}>
-                  <button
+                  <Button
                     className={styles.btnSave}
                     onClick={handleSave}
                     disabled={!isFormValid}
                   >
                     Guardar
-                  </button>
+                  </Button>
                   {editingId && (
                     <button
                       className={styles.btnCancelVisible}

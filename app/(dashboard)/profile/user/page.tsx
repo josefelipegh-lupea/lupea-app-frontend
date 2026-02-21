@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./UserProfile.module.css";
@@ -8,6 +8,8 @@ import ToggleSwitch from "@/components/toggle-switch/ToggleSwitch";
 import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
 import MENU_CONFIG_USER from "@/app/utils/constants/user-profile-options";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 interface MenuItemProps {
   icon: string | React.ReactNode;
@@ -26,7 +28,6 @@ const MenuItem: React.FC<MenuItemProps> = ({
 }) => {
   const isStatusActive = subLabel === "Activada";
 
-  // 1. Definimos el contenido base para no repetirlo
   const MenuItemContent = (
     <div className={styles.menuItem}>
       <div className={styles.menuItemLeft}>
@@ -66,6 +67,29 @@ export default function UserProfilePage() {
 
   const { isExpanded } = useSidebar();
 
+  const { user, clientProfile, logout } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user && typeof window !== "undefined") {
+    }
+  }, [user, router]);
+
+  if (!user || !clientProfile) {
+    return <div className={styles.pageWrapper}>Cargando perfil...</div>;
+  }
+
+  const handleLogout = () => {
+    logout();
+    router.replace("/login");
+  };
+
+  const formatLupas = (amount: number) => {
+    return new Intl.NumberFormat("de-DE").format(amount);
+  };
+
+  if (!user || !clientProfile) return null;
+
   return (
     <div
       className={`${styles.pageWrapper} ${
@@ -73,9 +97,9 @@ export default function UserProfilePage() {
       }`}
     >
       <main className={styles.mainContainer}>
-        {/* Contenedor flexible para Desktop */}
+        {}
         <div className={styles.layoutContent}>
-          {/* COLUMNA IZQUIERDA (Header + Card) */}
+          {}
           <div className={styles.leftPanel}>
             <section className={styles.profileHeader}>
               <div className={styles.avatarContainer}>
@@ -93,8 +117,8 @@ export default function UserProfilePage() {
                 </div>
               </div>
               <div className={styles.userInfo}>
-                <h1 className={styles.userName}>Cristian Ramirez</h1>
-                <p className={styles.userTag}>@Cristian1739</p>
+                <h1 className={styles.userName}>{clientProfile.displayName}</h1>
+                <p className={styles.userTag}>@{user.username}</p>
               </div>
             </section>
 
@@ -102,7 +126,9 @@ export default function UserProfilePage() {
               <div className={styles.lupasContent}>
                 <p className={styles.lupasTitle}>MIS LUPAS</p>
                 <div className={styles.lupasAmountContainer}>
-                  <span className={styles.lupasValue}>10.583</span>
+                  <span className={styles.lupasValue}>
+                    {formatLupas(clientProfile.tokensAvailable)}
+                  </span>
                   <span className={styles.lupasLabel}>Disponibles</span>
                 </div>
               </div>
@@ -112,7 +138,7 @@ export default function UserProfilePage() {
             </section>
           </div>
 
-          {/* COLUMNA DERECHA (Menú) */}
+          {}
           <nav className={styles.menuContainer}>
             {MENU_CONFIG_USER.map((section) => (
               <div key={section.id} className={styles.sectionGroup}>
@@ -158,9 +184,19 @@ export default function UserProfilePage() {
                     );
                   })}
                 </div>
-                <hr className={styles.divider} />
+                <hr
+                  className={`${styles.divider} ${
+                    section.id === "version" ? styles.noDivider : ""
+                  }`}
+                />
               </div>
             ))}
+
+            <div className={styles.logoutWrapper}>
+              <button className={styles.logoutButton} onClick={handleLogout}>
+                Cerrar sesión
+              </button>
+            </div>
           </nav>
         </div>
       </main>

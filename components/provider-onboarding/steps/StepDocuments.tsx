@@ -3,6 +3,7 @@
 import React from "react";
 import styles from "@/components/provider-onboarding/ProviderOnboarding.module.css";
 import { IconsApp } from "@/components/icons/Icons";
+import InputField from "@/components/input/InputField";
 
 interface StepDocumentsProps {
   selectedFiles: { [key: string]: string };
@@ -79,8 +80,10 @@ const StepDocuments: React.FC<StepDocumentsProps> = ({
 
             <label className={styles.addBtn}>
               {fileName ? "CAMBIAR" : "SUBIR"}
-              <input
+
+              <InputField
                 type="file"
+                name="file"
                 hidden
                 accept=".pdf,.jpg,.png"
                 onChange={(e) => handleFileChange(doc.id, e)}

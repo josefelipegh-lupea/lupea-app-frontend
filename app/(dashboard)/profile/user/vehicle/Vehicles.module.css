@@ -35,6 +35,10 @@
   flex: 1;
 }
 
+.addIcon {
+  margin-right: 5px;
+}
+
 .backButton {
   flex: 1;
   background: none;
@@ -115,30 +119,6 @@
   margin: 4px 0 0;
 }
 
-.addVehicleBtn {
-  background: white;
-  border: 1px dashed #f08100;
-  border-radius: 16px;
-  color: #f08100;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-  margin-top: auto;
-  padding: 15px 0;
-}
-
-.addVehicleBtn:hover {
-  border-color: #f08100;
-  background-color: #f0810005;
-  color: #f08100;
-}
-
-.addVehicleBtn:active {
-  transform: scale(0.97);
-  background-color: #f0810010;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
 .inputContainer {
   margin-bottom: 20px;
 }
@@ -160,13 +140,13 @@
   padding: 0 16px;
   box-sizing: border-box;
   color: #000000;
+  transition: all 0.3s ease;
 }
 
 .input:focus {
   outline: none;
   background-color: #ffffff;
   border-color: #f08100;
-  box-shadow: 0 0 0 1px #f08100;
 }
 
 .row {
@@ -178,29 +158,6 @@
 .buttonGroup {
   display: flex;
   flex-direction: column;
-}
-
-.btnSave {
-  width: 100%;
-  height: 56px;
-  background-color: #f08100;
-  color: white;
-  border: none;
-  border-radius: 18px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.btnSave:hover:not(:disabled) {
-  background-color: #ff8c00;
-  transform: translateY(-2px);
-}
-
-.btnSave:active:not(:disabled) {
-  transform: scale(0.97);
-  box-shadow: 0 4px 10px rgba(240, 129, 0, 0.2);
-  filter: brightness(0.9);
 }
 
 .btnSave:disabled {
@@ -235,7 +192,7 @@
 }
 
 .btnCancelVisible:active {
-  transform: scale(0.97); /* Efecto de hundido consistente */
+  transform: scale(0.97);
   background-color: #ff4d4d20;
 }
 

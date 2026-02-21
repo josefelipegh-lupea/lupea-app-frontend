@@ -27,19 +27,52 @@
 .tallerSection {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   margin-bottom: 15px;
+}
+
+.tallerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .iconBox {
   background: #f5f5f7;
   border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #000000;
 }
 
 .tallerName {
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
+  color: #110d35;
+}
+
+.reputation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.reputation svg {
+  margin-bottom: 6px;
+  color: #f08100;
+  width: 21px;
+  height: 20px;
+}
+
+.ratingValue {
+  font-size: 14px;
+  font-weight: 400;
+  color: #000000;
 }
 
 .repuestosResumen {

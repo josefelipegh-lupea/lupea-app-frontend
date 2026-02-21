@@ -14,6 +14,7 @@ interface PriceProps {
   id: string;
   fecha: string;
   taller: string;
+  reputacion: number;
   monto: string;
   tiempo: string;
   items: Item[];
@@ -24,6 +25,7 @@ export const PriceCard: React.FC<PriceProps> = ({
   id,
   fecha,
   taller,
+  reputacion,
   monto,
   tiempo,
   items,
@@ -99,10 +101,17 @@ export const PriceCard: React.FC<PriceProps> = ({
 
       <div className={styles.body}>
         <div className={styles.tallerSection}>
-          <div className={styles.iconBox}>
-            <IconsApp.Tool />
+          <div className={styles.tallerLeft}>
+            <div className={styles.iconBox}>
+              <IconsApp.Tool />
+            </div>
+            <span className={styles.tallerName}>{taller}</span>
           </div>
-          <span className={styles.tallerName}>{taller}</span>
+
+          <div className={styles.reputation}>
+            <IconsApp.Star />{" "}
+            <span className={styles.ratingValue}>{reputacion}</span>
+          </div>
         </div>
 
         <p className={styles.repuestosResumen}>

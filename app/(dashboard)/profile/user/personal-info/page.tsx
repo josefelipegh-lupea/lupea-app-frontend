@@ -3,6 +3,9 @@ import React, { useState } from "react";
 import styles from "./PersonalInfo.module.css";
 import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
+import Button from "@/components/button/Button";
+import Header from "@/components/header/Header";
+import InputField from "@/components/input/InputField";
 
 export default function PersonalInfoPage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -47,25 +50,19 @@ export default function PersonalInfoPage() {
       }`}
     >
       <div className={styles.mainContainer}>
-        <header className={styles.header}>
-          <button
-            className={styles.backButton}
-            onClick={() => window.history.back()}
-          >
-            <IconsApp.RightArrow />
-          </button>
-          <h1 className={styles.headerTitle}>Información personal</h1>
-          <div className={styles.headerAction}>
-            {!isEditing && (
+        <Header
+          title="Información personal"
+          rightAction={
+            !isEditing && (
               <button
                 className={styles.btnEditDesktop}
                 onClick={() => setIsEditing(true)}
               >
                 Editar
               </button>
-            )}
-          </div>
-        </header>
+            )
+          }
+        />
 
         <div className={styles.content}>
           {/* Aviso de perfil incompleto según HU19 flujo principal */}
@@ -81,14 +78,6 @@ export default function PersonalInfoPage() {
               <section className={styles.formSection}>
                 <div className={styles.sectionHeader}>
                   <p className={styles.sectionLabel}>DATOS DE IDENTIFICACIÓN</p>
-                  {!isEditing && (
-                    <button
-                      className={styles.btnEdit}
-                      onClick={() => setIsEditing(true)}
-                    >
-                      Editar
-                    </button>
-                  )}
                 </div>
 
                 {[
@@ -98,12 +87,12 @@ export default function PersonalInfoPage() {
                 ].map((field) => (
                   <div key={field.name} className={styles.inputContainer}>
                     <label className={styles.label}>{field.label}</label>
-                    <input
+
+                    <InputField
                       name={field.name}
                       value={formData[field.name as keyof typeof formData]}
                       onChange={handleChange}
                       disabled={!isEditing}
-                      className={styles.input}
                     />
                   </div>
                 ))}
@@ -116,23 +105,23 @@ export default function PersonalInfoPage() {
                 <p className={styles.sectionLabel}>CONTACTO</p>
                 <div className={styles.inputContainer}>
                   <label className={styles.label}>Correo electrónico</label>
-                  <input
+
+                  <InputField
                     name="email"
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className={styles.input}
                   />
                 </div>
                 <div className={styles.inputContainer}>
                   <label className={styles.label}>Teléfono / WhatsApp</label>
-                  <input
+
+                  <InputField
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className={styles.input}
                   />
                 </div>
               </section>
@@ -163,13 +152,13 @@ export default function PersonalInfoPage() {
           </div>{" "}
           {/* Botones de acción agrupados */}
           <div className={styles.buttonGroup}>
-            <button
+            <Button
               className={styles.btnSave}
               disabled={!isEditing || !isFormValid}
               onClick={handleSave}
             >
               Guardar cambios
-            </button>
+            </Button>
 
             <button
               className={`${styles.btnCancel} ${
