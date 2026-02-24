@@ -93,18 +93,25 @@ export default function UserProfilePage() {
 
     try {
       await updateNotification(jwt, value);
-      setIsNotifEnabled(value);
       refreshProfile();
     } catch (error) {
       setIsNotifEnabled(!value);
+      toast.error("Error al cambiar las preferencias de notificaciones");
     }
   };
 
   const clientProfile = profile as ClientProfileResponse;
 
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace("/login");
+    }
+  }, [user, isLoading, router]);
+
   if (isLoading || !user || !profile) {
     return <div className={styles.pageWrapper}>Cargando perfil...</div>;
   }
+
   return (
     <div
       className={`${styles.pageWrapper} ${
@@ -172,7 +179,7 @@ export default function UserProfilePage() {
                         href={item.href}
                         subLabel={
                           isNotif
-                            ? isNotifEnabled
+                            ? clientProfile.notificationsEnabled
                               ? "Activada"
                               : "Desactivada"
                             : undefined
