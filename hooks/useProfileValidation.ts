@@ -1,14 +1,14 @@
 import { useMemo } from "react";
-import { vehicleSchema, VehicleValues } from "@/schemas/vehicleSchema";
+import { profileSchema, ProfileValues } from "@/schemas/profileSchema";
 
-export function useVehicleValidation(values: VehicleValues) {
+export function useProfileValidation(values: ProfileValues) {
   const result = useMemo(() => {
-    return vehicleSchema.safeParse(values);
+    return profileSchema.safeParse(values);
   }, [values]);
 
   const errors = useMemo(() => {
     if (result.success) return {};
-    // Retorna los errores aplanados por campo
+
     return result.error.flatten().fieldErrors;
   }, [result]);
 

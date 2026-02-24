@@ -10,6 +10,9 @@ import { IconsApp } from "@/components/icons/Icons";
 import MENU_CONFIG_USER from "@/app/utils/constants/user-profile-options";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { ClientProfileResponse } from "@/app/lib/api/client/clientProfile";
+import { updateNotification } from "@/app/lib/api/client/notification";
+import toast from "react-hot-toast";
 
 interface MenuItemProps {
   icon: string | React.ReactNode;
@@ -64,20 +67,16 @@ const MenuItem: React.FC<MenuItemProps> = ({
 
 export default function UserProfilePage() {
   const [isNotifEnabled, setIsNotifEnabled] = useState(true);
-
   const { isExpanded } = useSidebar();
+  const { user, profile, logout, isLoading, refreshProfile } = useAuth();
 
-  const { user, clientProfile, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user && typeof window !== "undefined") {
+    if (!isLoading && !user) {
+      router.replace("/login");
     }
-  }, [user, router]);
-
-  if (!user || !clientProfile) {
-    return <div className={styles.pageWrapper}>Cargando perfil...</div>;
-  }
+  }, [user, isLoading, router]);
 
   const handleLogout = () => {
     logout();
@@ -85,11 +84,27 @@ export default function UserProfilePage() {
   };
 
   const formatLupas = (amount: number) => {
-    return new Intl.NumberFormat("de-DE").format(amount);
+    return new Intl.NumberFormat("de-DE").format(amount || 0);
   };
 
-  if (!user || !clientProfile) return null;
+  const handleToggleSwitch = async (value: boolean) => {
+    const jwt = localStorage.getItem("jwt");
+    if (!jwt) return;
 
+    try {
+      await updateNotification(jwt, value);
+      setIsNotifEnabled(value);
+      refreshProfile();
+    } catch (error) {
+      setIsNotifEnabled(!value);
+    }
+  };
+
+  const clientProfile = profile as ClientProfileResponse;
+
+  if (isLoading || !user || !profile) {
+    return <div className={styles.pageWrapper}>Cargando perfil...</div>;
+  }
   return (
     <div
       className={`${styles.pageWrapper} ${
@@ -97,16 +112,14 @@ export default function UserProfilePage() {
       }`}
     >
       <main className={styles.mainContainer}>
-        {}
         <div className={styles.layoutContent}>
-          {}
           <div className={styles.leftPanel}>
             <section className={styles.profileHeader}>
               <div className={styles.avatarContainer}>
                 <div className={styles.avatarCircle}>
                   <Image
                     src="https://randomuser.me/api/portraits/men/32.jpg"
-                    alt="Cristian Ramirez"
+                    alt={clientProfile.displayName || "Usuario"}
                     width={90}
                     height={90}
                     className={styles.avatarImage}
@@ -138,7 +151,6 @@ export default function UserProfilePage() {
             </section>
           </div>
 
-          {}
           <nav className={styles.menuContainer}>
             {MENU_CONFIG_USER.map((section) => (
               <div key={section.id} className={styles.sectionGroup}>
@@ -173,9 +185,11 @@ export default function UserProfilePage() {
                         rightElement={
                           item.isSwitch ? (
                             <ToggleSwitch
-                              isOn={isNotifEnabled}
+                              isOn={clientProfile.notificationsEnabled}
                               handleToggle={() =>
-                                setIsNotifEnabled(!isNotifEnabled)
+                                handleToggleSwitch(
+                                  !clientProfile.notificationsEnabled
+                                )
                               }
                             />
                           ) : undefined

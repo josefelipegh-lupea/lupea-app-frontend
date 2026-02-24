@@ -46,13 +46,22 @@
   background-color: #ffffff;
   padding: 16px;
   border-radius: 20px;
+  border: 1px solid #f8f5fb;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
+}
+
+.locationCard:hover {
+  border-color: #f08000;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
 }
 
 .locationCard:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  filter: brightness(0.95);
 }
 
 .iconCircle {
@@ -228,6 +237,7 @@
   border: none;
   font-weight: 600;
   margin-top: 20px;
+  cursor: pointer;
 }
 
 /* MEDIA QUERIES DESKTOP */

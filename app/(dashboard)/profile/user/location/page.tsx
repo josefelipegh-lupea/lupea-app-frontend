@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -14,17 +14,16 @@ import Header from "@/components/header/Header";
 import { IconsApp } from "@/components/icons/Icons";
 import Button from "@/components/button/Button";
 import StepTransition from "@/components/provider-onboarding/step-transition/StepTransition";
-
-interface Location {
-  id: number;
-  name: string;
-  state: string;
-  city: string;
-  zone: string;
-  address: string;
-  lat: number;
-  lng: number;
-}
+import { useAuth } from "@/context/AuthContext";
+import {
+  createLocation,
+  deleteLocation,
+  getClientLocations,
+  Location,
+  LocationValues,
+  updateLocation,
+} from "@/app/lib/api/client/location";
+import toast from "react-hot-toast";
 
 const VENEZUELA_BOUNDS = { north: 12.2, south: 0.6, west: -73.4, east: -59.8 };
 const INITIAL_COORDS = { lat: 10.4806, lng: -66.8983 };
@@ -35,28 +34,24 @@ export default function LocationPage() {
   const [direction, setDirection] = useState(1);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [savedLocations, setSavedLocations] = useState<Location[]>([
-    {
-      id: 1,
-      name: "Hogar",
-      state: "Lara",
-      city: "Barquisimeto",
-      zone: "Tamaca",
-      address: "Urb. Don Aurelio",
-      lat: 10.4806,
-      lng: -66.8983,
-    },
-  ]);
+  const { user } = useAuth();
 
-  const [formData, setFormData] = useState<Omit<Location, "id">>({
+  const [savedLocations, setSavedLocations] = useState<Location[]>([]);
+
+  const [formData, setFormData] = useState<LocationValues>({
     name: "",
+    type: "home",
     state: "",
     city: "",
+    searchText: "",
     zone: "",
-    address: "",
-    lat: INITIAL_COORDS.lat,
-    lng: INITIAL_COORDS.lng,
+    exactAddress: "",
+    latitude: INITIAL_COORDS.lat,
+    longitude: INITIAL_COORDS.lng,
+    placeId: "",
   });
 
   const { isLoaded } = useJsApiLoader({
@@ -72,12 +67,15 @@ export default function LocationPage() {
     setEditingId(null);
     setFormData({
       name: "",
+      type: "home",
       state: "",
       city: "",
+      searchText: "",
       zone: "",
-      address: "",
-      lat: INITIAL_COORDS.lat,
-      lng: INITIAL_COORDS.lng,
+      exactAddress: "",
+      latitude: INITIAL_COORDS.lat,
+      longitude: INITIAL_COORDS.lng,
+      placeId: "",
     });
     setCurrentStep(1);
   };
@@ -85,8 +83,18 @@ export default function LocationPage() {
   const handleEdit = (loc: Location) => {
     setDirection(1);
     setEditingId(loc.id);
-    const { ...dataWithoutId } = loc;
-    setFormData(dataWithoutId);
+    setFormData({
+      name: loc.name,
+      type: loc.type,
+      state: loc.state,
+      city: loc.city,
+      searchText: loc.searchText,
+      zone: loc.zone,
+      exactAddress: loc.exactAddress,
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+      placeId: loc.placeId,
+    });
     setCurrentStep(1);
   };
 
@@ -108,6 +116,7 @@ export default function LocationPage() {
           let city = "",
             state = "",
             zone = "";
+
           place.address_components.forEach((comp) => {
             if (comp.types.includes("administrative_area_level_1"))
               state = comp.long_name;
@@ -118,17 +127,22 @@ export default function LocationPage() {
             )
               zone = comp.long_name;
           });
+
           setFormData((prev) => ({
             ...prev,
-            lat,
-            lng,
+            latitude: lat,
+            longitude: lng,
             state,
             city,
             zone,
-            address: place.formatted_address,
+            exactAddress: place.formatted_address,
+            searchText: place.formatted_address,
+            placeId: place.place_id,
           }));
         }
       });
+    } else {
+      toast.error("Ubicación fuera de los límites de Venezuela");
     }
   };
 
@@ -140,26 +154,63 @@ export default function LocationPage() {
     }
   };
 
-  const handleSave = () => {
-    if (editingId) {
-      setSavedLocations((prev) =>
-        prev.map((l) =>
-          l.id === editingId ? { ...formData, id: editingId } : l
-        )
-      );
-    } else {
-      setSavedLocations([...savedLocations, { ...formData, id: Date.now() }]);
+  const handleSave = async () => {
+    const jwt = localStorage.getItem("jwt");
+    if (!jwt) return;
+
+    setIsSaving(true);
+    try {
+      if (editingId) {
+        await updateLocation(jwt, editingId, formData);
+        toast.success("Ubicación actualizada");
+      } else {
+        await createLocation(jwt, formData);
+        toast.success("Ubicación guardada");
+      }
+
+      // Recargar lista
+      const response = await getClientLocations(jwt);
+      setSavedLocations(response.data);
+
+      setDirection(-1);
+      setCurrentStep(0);
+    } catch (error) {
+      toast.error("Error al guardar");
+    } finally {
+      setIsSaving(false);
     }
-    setDirection(-1);
-    setCurrentStep(0);
   };
 
-  const handleDelete = () => {
-    setSavedLocations((prev) => prev.filter((l) => l.id !== editingId));
-    setShowDeleteConfirm(false);
-    setCurrentStep(0);
+  const handleDelete = async () => {
+    const jwt = localStorage.getItem("jwt");
+    if (!jwt || !editingId) return;
+
+    try {
+      await deleteLocation(jwt, editingId);
+      setSavedLocations((prev) => prev.filter((l) => l.id !== editingId));
+      setShowDeleteConfirm(false);
+      setCurrentStep(0);
+      toast.success("Ubicación eliminada");
+    } catch (error) {
+      toast.error("Error al eliminar");
+    }
   };
 
+  useEffect(() => {
+    const loadLocations = async () => {
+      const jwt = localStorage.getItem("jwt");
+      if (!jwt) return;
+      try {
+        const response = await getClientLocations(jwt);
+        setSavedLocations(response.data);
+      } catch (error) {
+        toast.error("Error al cargar ubicaciones");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadLocations();
+  }, []);
   return (
     <div
       className={`${styles.pageWrapper} ${
@@ -199,31 +250,37 @@ export default function LocationPage() {
           <StepTransition stepKey={currentStep} direction={direction}>
             {currentStep === 0 ? (
               <div className={styles.stepWrapper}>
-                <div className={styles.listContainer}>
-                  {savedLocations.map((loc) => (
-                    <div
-                      key={loc.id}
-                      className={styles.locationCard}
-                      onClick={() => handleEdit(loc)}
-                    >
-                      <div className={styles.iconCircle}>
-                        <IconsApp.GPS />
-                      </div>
-                      <div className={styles.locationText}>
-                        <h4>{loc.name || loc.zone || "Ubicación"}</h4>
-                        <p>
-                          {loc.city}, {loc.state}
-                        </p>
-                      </div>
-                      <IconsApp.RightArrow color="#9ca3af" />
+                {isLoading ? (
+                  <div className={styles.loader}>Cargando vehículos...</div>
+                ) : (
+                  <>
+                    <div className={styles.listContainer}>
+                      {savedLocations.map((loc) => (
+                        <div
+                          key={loc.id}
+                          className={styles.locationCard}
+                          onClick={() => handleEdit(loc)}
+                        >
+                          <div className={styles.iconCircle}>
+                            <IconsApp.GPS />
+                          </div>
+                          <div className={styles.locationText}>
+                            <h4>{loc.name || loc.zone || "Ubicación"}</h4>
+                            <p>
+                              {loc.city}, {loc.state}
+                            </p>
+                          </div>
+                          <IconsApp.RightArrow color="#9ca3af" />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <div className={styles.buttonGroup}>
-                  <Button onClick={handleAddNew}>
-                    + Agregar nueva ubicación
-                  </Button>
-                </div>
+                    <div className={styles.buttonGroup}>
+                      <Button onClick={handleAddNew}>
+                        + Agregar nueva ubicación
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               <div className={styles.stepWrapper}>
@@ -284,7 +341,7 @@ export default function LocationPage() {
                       label="Dirección exacta"
                       name="address"
                       placeholder="Urb, calle, avenida..."
-                      value={formData.address}
+                      value={formData.exactAddress}
                       onChange={handleChange}
                     />
                   </section>
@@ -293,7 +350,10 @@ export default function LocationPage() {
                     {isLoaded && (
                       <GoogleMap
                         mapContainerStyle={{ width: "100%", height: "100%" }}
-                        center={{ lat: formData.lat, lng: formData.lng }}
+                        center={{
+                          lat: formData.latitude,
+                          lng: formData.longitude,
+                        }}
                         zoom={15}
                         options={{ disableDefaultUI: true }}
                         onClick={(e) =>
@@ -302,7 +362,10 @@ export default function LocationPage() {
                         }
                       >
                         <Marker
-                          position={{ lat: formData.lat, lng: formData.lng }}
+                          position={{
+                            lat: formData.latitude,
+                            lng: formData.longitude,
+                          }}
                           draggable
                           onDragEnd={(e) =>
                             e.latLng &&

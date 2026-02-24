@@ -1,47 +1,101 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./PersonalInfo.module.css";
 import { useSidebar } from "@/context/SidebarContext";
-import { IconsApp } from "@/components/icons/Icons";
 import Button from "@/components/button/Button";
 import Header from "@/components/header/Header";
 import InputField from "@/components/input/InputField";
+import {
+  ClientProfileResponse,
+  getClientProfile,
+  updateClientProfile,
+} from "@/app/lib/api/client/clientProfile";
+import { useAuth } from "@/context/AuthContext";
+import toast from "react-hot-toast";
+import { ProfileValues } from "@/schemas/profileSchema";
+import { useProfileValidation } from "@/hooks/useProfileValidation";
+import { IconsApp } from "@/components/icons/Icons";
 
 export default function PersonalInfoPage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { profile, role, refreshProfile } = useAuth();
   const { isExpanded } = useSidebar();
 
-  // Estado inicial incluyendo el campo obligatorio de privacidad
-  const [formData, setFormData] = useState({
-    first_name: "Cristian",
-    last_name: "Ramirez",
-    username: "Cristian1739",
-    email: "cristian@ejemplo.com",
-    phone: "+58 412 1234567",
-    privacy_level: "private", // Default requerido por la HU
+  const [formData, setFormData] = useState<ProfileValues>({
+    displayName: "",
+    firstName: "",
+    lastName: "",
+    username: "",
+    email: "",
+    phone: "",
   });
 
-  // Validación: Todos los campos marcados como obligatorios en la HU19
-  const isFormValid = !!(
-    formData.first_name &&
-    formData.last_name &&
-    formData.username &&
-    formData.email &&
-    formData.phone &&
-    formData.privacy_level
-  );
+  const { isValid, errors } = useProfileValidation(formData);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let newValue = value;
+
+    // 1. FILTRO PARA NOMBRES Y APELLIDOS
+    // Permite: letras (a-z), letras con acentos, ñ, Ñ y espacios.
+    if (name === "firstName" || name === "lastName") {
+      // Reemplaza cualquier cosa que NO sea una letra o espacio por un string vacío
+      newValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+    }
+
+    // 2. FILTRO PARA TELÉFONO (Como lo definimos antes)
+    if (name === "phone") {
+      const cleanNumbers = value.replace(/\D/g, ""); // Solo números
+
+      // Forzamos el inicio con +58
+      if (!value.startsWith("+58")) {
+        newValue = "+58" + cleanNumbers;
+      } else {
+        // Si ya tiene el +58, solo permitimos números después
+        newValue = "+58" + value.substring(3).replace(/\D/g, "");
+      }
+
+      // Limitar a +58 + 10 dígitos (13 caracteres en total)
+      if (newValue.length > 13) return;
+    }
+
+    setFormData({ ...formData, [name]: newValue });
   };
 
-  const handleSave = () => {
-    // Aquí se activaría el cambio a estado "verificado"
-    setIsEditing(false);
-    console.log("Perfil actualizado y verificado:", formData);
+  const handleSave = async () => {
+    const jwt = localStorage.getItem("jwt");
+    if (!jwt) return;
+
+    setIsSaving(true);
+    try {
+      await updateClientProfile(jwt, formData);
+      await refreshProfile();
+
+      setIsEditing(false);
+      toast.success("Perfil actualizado");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  useEffect(() => {
+    if (role === "client" && profile) {
+      const p = profile as ClientProfileResponse;
+      setFormData({
+        displayName: p.displayName || "",
+        firstName: p.firstName || "",
+        lastName: p.lastName || "",
+        email: p.email || "",
+        username: p.username || "",
+        phone: p.phone || "",
+      });
+    }
+  }, [profile, role]);
 
   return (
     <div
@@ -66,11 +120,11 @@ export default function PersonalInfoPage() {
 
         <div className={styles.content}>
           {/* Aviso de perfil incompleto según HU19 flujo principal */}
-          {!isFormValid && (
+          {/* {!isValid && (
             <div className={styles.alertBanner}>
               Completa tu perfil para acceder a todas las funciones de Lupea.
             </div>
-          )}
+          )} */}
           {/* Contenedor para manejar las columnas en desktop */}
           <div className={styles.layoutContent}>
             {/* DIV COLUMNA IZQUIERDA */}
@@ -81,9 +135,26 @@ export default function PersonalInfoPage() {
                 </div>
 
                 {[
-                  { label: "Nombre", name: "first_name" },
-                  { label: "Apellido", name: "last_name" },
-                  { label: "Nombre de usuario", name: "username" },
+                  {
+                    label: "Nombre de usuario",
+                    name: "username",
+                    icon: <IconsApp.Username />,
+                  },
+                  {
+                    label: "Nombre a mostrar",
+                    name: "displayName",
+                    icon: <IconsApp.Username />,
+                  },
+                  {
+                    label: "Nombre",
+                    name: "firstName",
+                    icon: <IconsApp.Username />,
+                  },
+                  {
+                    label: "Apellido",
+                    name: "lastName",
+                    icon: <IconsApp.Username />,
+                  },
                 ].map((field) => (
                   <div key={field.name} className={styles.inputContainer}>
                     <label className={styles.label}>{field.label}</label>
@@ -92,7 +163,8 @@ export default function PersonalInfoPage() {
                       name={field.name}
                       value={formData[field.name as keyof typeof formData]}
                       onChange={handleChange}
-                      disabled={!isEditing}
+                      icon={field.icon}
+                      disabled={field.name === "username" ? true : !isEditing}
                     />
                   </div>
                 ))}
@@ -111,7 +183,8 @@ export default function PersonalInfoPage() {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    disabled={!isEditing}
+                    icon={<IconsApp.Email />}
+                    disabled
                   />
                 </div>
                 <div className={styles.inputContainer}>
@@ -121,31 +194,9 @@ export default function PersonalInfoPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
+                    icon={<IconsApp.Whatsapp />}
                     disabled={!isEditing}
                   />
-                </div>
-              </section>
-
-              <section className={styles.formSection}>
-                <p className={styles.sectionLabel}>SEGURIDAD Y PRIVACIDAD</p>
-                <div className={styles.inputContainer}>
-                  <label className={styles.label}>Nivel de Privacidad</label>
-                  <div className={styles.selectWrapper}>
-                    <select
-                      name="privacy_level"
-                      value={formData.privacy_level}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      className={styles.selectInput}
-                    >
-                      <option value="private">Privado</option>
-                      <option value="semi_public">Semipúblico</option>
-                      <option value="public">Público</option>
-                    </select>
-                  </div>
-                  <p className={styles.helperText}>
-                    Define la visibilidad de tus datos para los proveedores.
-                  </p>
                 </div>
               </section>
             </div>
@@ -154,10 +205,10 @@ export default function PersonalInfoPage() {
           <div className={styles.buttonGroup}>
             <Button
               className={styles.btnSave}
-              disabled={!isEditing || !isFormValid}
+              disabled={!isEditing || !isValid || isSaving}
               onClick={handleSave}
             >
-              Guardar cambios
+              {isSaving ? "Guardando..." : "Guardar cambios"}
             </Button>
 
             <button

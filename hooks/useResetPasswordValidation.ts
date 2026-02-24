@@ -1,14 +1,16 @@
 import { useMemo } from "react";
-import { vehicleSchema, VehicleValues } from "@/schemas/vehicleSchema";
+import {
+  resetPasswordSchema,
+  ResetPasswordValues,
+} from "@/schemas/resetPasswordSchema";
 
-export function useVehicleValidation(values: VehicleValues) {
+export function useResetPasswordValidation(values: ResetPasswordValues) {
   const result = useMemo(() => {
-    return vehicleSchema.safeParse(values);
+    return resetPasswordSchema.safeParse(values);
   }, [values]);
 
   const errors = useMemo(() => {
     if (result.success) return {};
-    // Retorna los errores aplanados por campo
     return result.error.flatten().fieldErrors;
   }, [result]);
 

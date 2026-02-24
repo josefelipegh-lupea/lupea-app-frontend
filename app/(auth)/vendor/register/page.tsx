@@ -5,6 +5,9 @@ import BottomSheet from "@/components/bottom-sheet/BottomSheet";
 import styles from "../../user/register/RegisterUser.module.css";
 import vendorStyles from "./RegisterVendor.module.css";
 import { IconsApp } from "@/components/icons/Icons";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { registerProvider } from "@/app/lib/api/auth";
 
 export default function VendorRegisterPage() {
   const [username, setUsername] = useState("");
@@ -18,6 +21,8 @@ export default function VendorRegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [open, setOpen] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const availableCategories = [
     "Motor",
@@ -29,6 +34,17 @@ export default function VendorRegisterPage() {
     "Aceite",
     "Baterías",
   ];
+
+  const categoryMap: Record<string, number> = {
+    Motor: 1,
+    Frenos: 2,
+    Suspensión: 3,
+    Carrocería: 4,
+    Eléctrico: 5,
+    Amortiguadores: 6,
+    Aceite: 7,
+    Baterías: 8,
+  };
 
   const venezuelaData: Record<string, string[]> = {
     Lara: ["Barquisimeto", "Cabudare", "Carora", "El Tocuyo"],
@@ -88,6 +104,45 @@ export default function VendorRegisterPage() {
       if (open) {
         document.dispatchEvent(new CustomEvent("close-sheet"));
       }
+    }
+    router.replace("/login");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValid || isLoading) return;
+
+    setIsLoading(true);
+    const loadingToast = toast.loading("Registrando empresa...");
+
+    try {
+      // 1. Convertimos los strings de categorías a IDs numéricos
+      const mainCategoriesIds = categories
+        .map((cat) => categoryMap[cat])
+        .filter((id) => id !== undefined);
+
+      // 2. Llamada al endpoint
+      const data = await registerProvider(
+        username,
+        email,
+        password,
+        state,
+        city,
+        mainCategoriesIds,
+        termsAccepted
+      );
+
+      toast.success(data.message, { id: loadingToast, duration: 6000 });
+
+      setTimeout(() => {
+        router.push("/login");
+      }, 2500);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Error al registrar proveedor";
+
+      toast.error(errorMessage, { id: loadingToast });
+      setIsLoading(false);
     }
   };
 
@@ -296,9 +351,10 @@ export default function VendorRegisterPage() {
             <button
               type="submit"
               className={styles.submitButton}
-              disabled={!isValid}
+              onClick={handleSubmit}
+              disabled={!isValid || isLoading}
             >
-              Crear cuenta de proveedor
+              {isLoading ? "Registrando..." : "Registrar Empresa"}
             </button>
           </div>
         </div>
