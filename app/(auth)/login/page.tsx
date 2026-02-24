@@ -9,7 +9,7 @@ import { useLoginValidation } from "@/hooks/useLoginValidation";
 
 import styles from "./Login.module.css";
 import { useRouter } from "next/navigation";
-import { loginClient } from "@/app/lib/api/auth";
+import { loginClient, LoginResponse } from "@/app/lib/api/auth";
 import { IconsApp } from "@/components/icons/Icons";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
@@ -35,26 +35,27 @@ export default function LoginPage() {
     setApiError("");
 
     try {
-      const data = await loginClient(email, password);
-      login(data);
-      // localStorage.setItem("jwt", data.jwt);
-      toast.success("¡Bienvenido de nuevo!");
-      router.push("/profile/user");
-    } catch (err: unknown) {
-      let message = "Ocurrió un error inesperado.";
+      const data: LoginResponse = await loginClient(email, password);
 
-      if (err instanceof Error) {
-        message = err.message;
+      // 2. Ejecutamos el login del contexto pasándole el perfil que ya recibimos
+      login(data);
+      toast.success("¡Bienvenido de nuevo!");
+
+      // 3. Redirección basada en el profileType de la respuesta
+      if (data.profileType === "provider") {
+        router.push("/profile/vendor");
+      } else {
+        router.push("/profile/user");
       }
+    } catch (err: unknown) {
+      let message = "Credenciales incorrectas.";
+      if (err instanceof Error) message = err.message;
 
       setApiError(message);
-      toast.error(message, {
-        duration: 4000,
-      });
+      toast.error(message);
       setIsLoading(false);
     }
   };
-
   const handleBackdropClick = () => {
     if (typeof window !== "undefined" && window.innerWidth < 768 && open) {
       document.dispatchEvent(new CustomEvent("close-sheet"));
@@ -141,7 +142,7 @@ export default function LoginPage() {
 
         {/* OLVIDÉ MI CONTRASEÑA */}
         <div className={styles.forgotPasswordRow}>
-          <a href="#" className={styles.forgotPasswordLink}>
+          <a href="/forgot-password" className={styles.forgotPasswordLink}>
             Olvidé mi contraseña
           </a>
         </div>

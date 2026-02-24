@@ -162,6 +162,26 @@
   color: #fff;
 }
 
+@media (max-height: 800px) and (max-width: 767px) {
+  .searchWrapper {
+    padding: 0px 15px;
+  }
+
+  .searchInput,
+  .ghostContainer {
+    font-size: 13px;
+  }
+
+  .addBtn {
+    font-size: 1.3rem;
+  }
+
+  .emptyStateText,
+  .helperText {
+    font-size: 13px;
+  }
+}
+
 /* Solo se activa en Desktop */
 @media (min-width: 768px) {
   .customSheetWidth {

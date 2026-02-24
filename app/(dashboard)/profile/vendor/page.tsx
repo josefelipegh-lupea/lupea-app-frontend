@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./VendorProfile.module.css";
@@ -8,6 +8,9 @@ import ToggleSwitch from "@/components/toggle-switch/ToggleSwitch";
 import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
 import MENU_CONFIG_VENDOR from "@/app/utils/constants/vendor-profile-opcionts";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { ProviderProfile } from "@/app/lib/api/vendor/vendorProfile";
 
 interface MenuItemProps {
   icon: string | React.ReactNode;
@@ -26,7 +29,6 @@ const MenuItem: React.FC<MenuItemProps> = ({
 }) => {
   const isStatusActive = subLabel === "Activada";
 
-  // 1. Definimos el contenido base para no repetirlo
   const MenuItemContent = (
     <div className={styles.menuItem}>
       <div className={styles.menuItemLeft}>
@@ -61,10 +63,32 @@ const MenuItem: React.FC<MenuItemProps> = ({
   return MenuItemContent;
 };
 
-export default function UserProfilePage() {
+export default function VendorProfilePage() {
   const [isNotifEnabled, setIsNotifEnabled] = useState(true);
-
   const { isExpanded } = useSidebar();
+  const { user, profile, logout, isLoading } = useAuth();
+  const router = useRouter();
+
+  // Redirección si no hay usuario logueado
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace("/login");
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading || !user || !profile) {
+    return (
+      <div className={styles.pageWrapper}>Cargando perfil de proveedor...</div>
+    );
+  }
+
+  const handleLogout = () => {
+    logout();
+    router.replace("/login");
+  };
+
+  // Cast del perfil a tipo Proveedor
+  const vendorProfile = profile as ProviderProfile;
 
   return (
     <div
@@ -73,7 +97,6 @@ export default function UserProfilePage() {
       }`}
     >
       <main className={styles.mainContainer}>
-        {/* Contenedor flexible para Desktop */}
         <div className={styles.layoutContent}>
           {/* COLUMNA IZQUIERDA (Header + Card) */}
           <div className={styles.leftPanel}>
@@ -82,7 +105,7 @@ export default function UserProfilePage() {
                 <div className={styles.avatarCircle}>
                   <Image
                     src="https://randomuser.me/api/portraits/men/32.jpg"
-                    alt={`"Taller Mecánico "El Rayo"`}
+                    alt={vendorProfile.businessName}
                     width={90}
                     height={90}
                     className={styles.avatarImage}
@@ -93,10 +116,10 @@ export default function UserProfilePage() {
                 </div>
               </div>
               <div className={styles.userInfo}>
-                <h1
-                  className={styles.userName}
-                >{`"Taller Mecánico "El Rayo"`}</h1>
-                <p className={styles.userTag}>@TallerElRayo</p>
+                <h1 className={styles.userName}>
+                  {vendorProfile.businessName || "Nombre del Negocio"}
+                </h1>
+                <p className={styles.userTag}>@{user.username}</p>
               </div>
             </section>
 
@@ -104,7 +127,7 @@ export default function UserProfilePage() {
               <div className={styles.lupasContent}>
                 <p className={styles.lupasTitle}>MIS LUPAS</p>
                 <div className={styles.lupasAmountContainer}>
-                  <span className={styles.lupasValue}>10.583</span>
+                  <span className={styles.lupasValue}>0</span>
                   <span className={styles.lupasLabel}>Disponibles</span>
                 </div>
               </div>
@@ -163,6 +186,13 @@ export default function UserProfilePage() {
                 <hr className={styles.divider} />
               </div>
             ))}
+
+            {/* Botón de Logout para Proveedor */}
+            <div className={styles.logoutWrapper}>
+              <button className={styles.logoutButton} onClick={handleLogout}>
+                Cerrar sesión
+              </button>
+            </div>
           </nav>
         </div>
       </main>

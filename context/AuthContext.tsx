@@ -1,5 +1,5 @@
+// AuthContext.tsx
 "use client";
-import { LoginResponse } from "@/app/lib/api/auth";
 import {
   createContext,
   useContext,
@@ -7,50 +7,98 @@ import {
   useEffect,
   ReactNode,
 } from "react";
+import { LoginResponse } from "@/app/lib/api/auth";
+import {
+  getClientProfile,
+  ClientProfileResponse,
+} from "@/app/lib/api/client/clientProfile";
+import {
+  getProviderProfile,
+  ProviderProfile,
+} from "@/app/lib/api/vendor/vendorProfile";
 
 interface AuthContextType {
   user: LoginResponse["user"] | null;
-  clientProfile: LoginResponse["clientProfile"] | null;
-  login: (data: LoginResponse) => void;
+  profile: ClientProfileResponse | ProviderProfile | null;
+  role: "client" | "provider" | null;
+  isLoading: boolean;
+  login: (data: LoginResponse) => Promise<void>;
   logout: () => void;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<LoginResponse["user"] | null>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("auth_data");
-      return saved ? (JSON.parse(saved) as LoginResponse).user : null;
-    }
-    return null;
-  });
+  const [user, setUser] = useState<LoginResponse["user"] | null>(null);
+  const [profile, setProfile] = useState<
+    ClientProfileResponse | ProviderProfile | null
+  >(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [clientProfile, setClientProfile] = useState<
-    LoginResponse["clientProfile"] | null
-  >(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("auth_data");
-      return saved ? (JSON.parse(saved) as LoginResponse).clientProfile : null;
-    }
-    return null;
-  });
+  const role = user?.role === "provider" ? "provider" : user ? "client" : null;
 
-  const login = (data: LoginResponse) => {
-    setUser(data.user);
-    setClientProfile(data.clientProfile);
-    localStorage.setItem("auth_data", JSON.stringify(data));
-    localStorage.setItem("jwt", data.jwt);
+  const fetchProfileData = async (jwt: string, currentRole: string) => {
+    try {
+      const data =
+        currentRole === "provider"
+          ? await getProviderProfile(jwt)
+          : await getClientProfile(jwt);
+      setProfile(data);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
   };
 
+  const login = async (data: LoginResponse) => {
+    localStorage.setItem("jwt", data.jwt);
+    localStorage.setItem("userData", JSON.stringify(data.user));
+    setUser(data.user);
+    await fetchProfileData(data.jwt, data.user.role);
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      const jwt = localStorage.getItem("jwt");
+      const savedUser = localStorage.getItem("userData");
+      if (jwt && savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+        await fetchProfileData(jwt, parsedUser.role);
+      }
+      setIsLoading(false);
+    };
+    init();
+  }, []);
+
   const logout = () => {
-    setUser(null);
-    setClientProfile(null);
     localStorage.clear();
+    setUser(null);
+    setProfile(null);
+    window.location.href = "/login";
+  };
+
+  const refreshProfile = async () => {
+    const jwt = localStorage.getItem("jwt");
+    if (!jwt || !user) return;
+
+    try {
+      const data =
+        user.role === "provider"
+          ? await getProviderProfile(jwt)
+          : await getClientProfile(jwt);
+
+      setProfile(data);
+      localStorage.setItem("fullProfile", JSON.stringify(data));
+    } catch (error) {
+      console.error("Error al refrescar perfil:", error);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, clientProfile, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, profile, role, login, logout, isLoading, refreshProfile }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -58,6 +106,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth debe usarse dentro de AuthProvider");
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };

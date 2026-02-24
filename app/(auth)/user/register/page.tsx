@@ -31,6 +31,8 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+
     const loadingToast = toast.loading("Creando tu cuenta...");
 
     try {
@@ -42,6 +44,10 @@ export default function RegisterPage() {
       );
 
       toast.success(data.message, { id: loadingToast, duration: 6000 });
+
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Ocurrió un error inesperado";
@@ -49,7 +55,6 @@ export default function RegisterPage() {
       toast.error(errorMessage, {
         id: loadingToast,
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -172,10 +177,10 @@ export default function RegisterPage() {
 
         <button
           className={styles.submitButton}
-          disabled={!isValid}
+          disabled={!isValid || isLoading}
           onClick={handleSubmit}
         >
-          Registrarme
+          {isLoading ? "Registrando..." : "Registrarme"}
         </button>
 
         <div className={styles.loginRow}>
