@@ -37,11 +37,9 @@ export default function LoginPage() {
     try {
       const data: LoginResponse = await loginClient(email, password);
 
-      // 2. Ejecutamos el login del contexto pasándole el perfil que ya recibimos
       login(data);
       toast.success("¡Bienvenido de nuevo!");
 
-      // 3. Redirección basada en el profileType de la respuesta
       if (data.profileType === "provider") {
         router.push("/profile/vendor");
       } else {
@@ -79,6 +77,7 @@ export default function LoginPage() {
         onClose={() => setOpen(false)}
         onSubmit={handleSubmit}
         className={styles.loginSheetHeight}
+        onAnimationComplete={() => router.replace("/")}
       >
         <div className={styles.formBar} />
 

@@ -3,6 +3,15 @@ import { VehicleValues } from "@/schemas/vehicleSchema";
 const API_URL =
   process.env.NEXT_PUBLIC_STRAPI_API_URL ?? "http://localhost:1337/api";
 
+export interface VehicleItemResponse<T> {
+  data: T[];
+}
+
+export interface VehicleItem {
+  documentId: string;
+  name: string;
+}
+
 export interface Vehicle {
   id: number;
   documentId: string;
@@ -80,6 +89,62 @@ export async function getClientVehicles(
   if (!res.ok) {
     throw new Error(
       data.error?.message || "No se pudieron obtener los vehículos del cliente"
+    );
+  }
+
+  return data;
+}
+
+export async function getBrands(
+  jwt: string
+): Promise<VehicleItemResponse<VehicleItem>> {
+  const res = await fetch(`${API_URL}/vehicle-brands`, {
+    headers: { Authorization: `Bearer ${jwt}` },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(
+      data.error?.message || "No se pudieron obtener los vehículos del cliente"
+    );
+  }
+
+  return data;
+}
+
+export async function getEngineTypes(
+  jwt: string
+): Promise<VehicleItemResponse<VehicleItem>> {
+  const res = await fetch(`${API_URL}/engine-types`, {
+    headers: { Authorization: `Bearer ${jwt}` },
+  });
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(
+      data.error?.message || "No se pudieron obtener los tipos de motor"
+    );
+  }
+
+  return data;
+}
+
+export async function getModelsByBrand(
+  jwt: string,
+  brandName: string
+): Promise<VehicleItemResponse<VehicleItem>> {
+  const res = await fetch(
+    `${API_URL}/vehicle-models?filters[brand][name][$eq]=${brandName}`,
+    {
+      headers: { Authorization: `Bearer ${jwt}` },
+    }
+  );
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(
+      data.error?.message || "No se pudieron obtener los modelos"
     );
   }
 

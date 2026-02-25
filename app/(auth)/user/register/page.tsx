@@ -73,7 +73,11 @@ export default function RegisterPage() {
       <button type="button" className={styles.backButton} aria-label="Volver">
         <IconsApp.Back />
       </button>
-      <BottomSheet open={open} onClose={() => setOpen(false)}>
+      <BottomSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        onAnimationComplete={() => router.replace("/login")}
+      >
         <input
           type="text"
           name="chrome-bug-preventer"

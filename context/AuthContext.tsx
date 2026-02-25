@@ -19,6 +19,7 @@ import {
 
 interface AuthContextType {
   user: LoginResponse["user"] | null;
+  jwt: string | null;
   profile: ClientProfileResponse | ProviderProfile | null;
   role: "client" | "provider" | null;
   isLoading: boolean;
@@ -31,6 +32,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<LoginResponse["user"] | null>(null);
+  const [jwt, setJwt] = useState<string | null>(null);
   const [profile, setProfile] = useState<
     ClientProfileResponse | ProviderProfile | null
   >(null);
@@ -54,6 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("jwt", data.jwt);
     localStorage.setItem("userData", JSON.stringify(data.user));
     setUser(data.user);
+    setJwt(data.jwt);
     await fetchProfileData(data.jwt, data.user.role);
   };
 
@@ -63,6 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const savedUser = localStorage.getItem("userData");
       if (jwt && savedUser) {
         const parsedUser = JSON.parse(savedUser);
+        setJwt(jwt);
         setUser(parsedUser);
         await fetchProfileData(jwt, parsedUser.role);
       }
@@ -74,6 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     localStorage.clear();
     setUser(null);
+    setJwt(null);
     setProfile(null);
     window.location.href = "/login";
   };
@@ -97,7 +102,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, profile, role, login, logout, isLoading, refreshProfile }}
+      value={{
+        user,
+        profile,
+        role,
+        login,
+        jwt,
+        logout,
+        isLoading,
+        refreshProfile,
+      }}
     >
       {children}
     </AuthContext.Provider>

@@ -165,6 +165,7 @@ export default function VendorRegisterPage() {
         open={open}
         onClose={() => setOpen(false)}
         className={vendorStyles.customSheetWidth}
+        onAnimationComplete={() => router.replace("/login")}
       >
         <div className={vendorStyles.gridContainer}>
           <div className={vendorStyles.fullWidth}>
