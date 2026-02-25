@@ -7,6 +7,7 @@ import styles from "./BottomSheet.module.css";
 interface BottomSheetProps {
   open: boolean;
   onClose: () => void;
+  onAnimationComplete?: () => void;
   onSubmit?: (e: React.FormEvent) => void;
   children: ReactNode;
   className?: string;
@@ -15,6 +16,7 @@ interface BottomSheetProps {
 export default function BottomSheet({
   open,
   onClose,
+  onAnimationComplete,
   onSubmit,
   children,
   className,
@@ -27,10 +29,6 @@ export default function BottomSheet({
   const lastY = useRef(0);
   const lastTime = useRef(0);
   const sheetRef = useRef<HTMLDivElement>(null);
-
-  /* ===========================
-     Drag core
-     =========================== */
 
   const startDrag = (clientY: number) => {
     if (closing) return;
@@ -55,7 +53,7 @@ export default function BottomSheet({
   const animateClose = () => {
     const sheetHeight = sheetRef.current?.offsetHeight ?? 0;
     setClosing(true);
-    setDragY(sheetHeight + 40); // baja completamente
+    setDragY(sheetHeight + 40);
   };
 
   const endDrag = () => {
@@ -88,14 +86,9 @@ export default function BottomSheet({
     }, 350);
   };
 
-  /* ===========================
-     Global listeners
-     =========================== */
-
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => moveDrag(e.clientY);
     const onTouchMove = (e: TouchEvent) => {
-      // e.preventDefault();
       moveDrag(e.touches[0].clientY);
     };
 
@@ -115,17 +108,14 @@ export default function BottomSheet({
     };
   }, [dragging, dragY, closing]);
 
-  /* ===========================
-     Close after animation
-     =========================== */
-
   useEffect(() => {
     if (!closing) return;
 
     const timer = setTimeout(() => {
       onClose();
+      if (onAnimationComplete) onAnimationComplete();
       setClosing(false);
-    }, 350); // igual al transition
+    }, 350);
 
     return () => clearTimeout(timer);
   }, [closing, onClose]);
@@ -135,10 +125,6 @@ export default function BottomSheet({
     document.addEventListener("close-sheet", close);
     return () => document.removeEventListener("close-sheet", close);
   }, []);
-
-  /* ===========================
-     Reset when opened
-     =========================== */
 
   if (!open) return null;
 
@@ -159,17 +145,11 @@ export default function BottomSheet({
           touchAction: "auto",
         }}
         onClick={(e) => e.stopPropagation()}
-        // onMouseDown={(e) => {
-        //   if (e.button !== 0) return;
-        //   startDrag(e.clientY);
-        // }}
-        // onTouchStart={(e) => startDrag(e.touches[0].clientY)}
       >
         <div
           className={styles.dragHandle}
           onMouseDown={(e) => startDrag(e.clientY)}
           onTouchStart={(e) => startDrag(e.touches[0].clientY)}
-          // style={{ width: "100%", cursor: "grab" }}
         >
           <div className={styles.formBar} />
         </div>

@@ -69,13 +69,20 @@
   margin-bottom: 24px;
   text-align: center;
   border: 1px solid #f0810033;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .listWrapper {
   display: flex;
   flex-direction: column;
-  flex: 1; /* Clave: hace que el wrapper ocupe todo el alto disponible */
+  /* flex: 1;  */
   width: 100%;
+}
+
+.formBody {
+  display: flex;
+  flex-direction: column;
 }
 
 .listContainer {
@@ -145,6 +152,34 @@
   margin-bottom: 8px;
 }
 
+.selectWrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.selectField {
+  width: 100%;
+  padding: 14px 16px;
+  padding-right: 40px; /* Espacio para que el texto no pise tu icono */
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  appearance: none; /* Obligatorio para que no salga la flecha fea del sistema */
+  cursor: pointer;
+}
+
+.iconOverlay {
+  position: absolute;
+  right: 16px;
+  pointer-events: none; /* ¡Clave! Permite que el click pase a través del icono al select */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b; /* El color gris de la foto */
+}
+
 .input {
   width: 100%;
   height: 54px;
@@ -155,6 +190,9 @@
   box-sizing: border-box;
   color: #000000;
   transition: all 0.3s ease;
+  cursor: pointer;
+  appearance: none;
+  font-size: 13px;
 }
 
 .input:focus {
@@ -170,8 +208,11 @@
 }
 
 .buttonGroup {
+  min-width: 300px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 
 .btnSave:disabled {
@@ -278,8 +319,16 @@
   font-weight: 500;
   padding: 12px;
   cursor: pointer;
+  transition: all 0.3s ease-in-out;
 }
 
+.btnCancel:hover {
+  color: #f08100;
+}
+
+.btnCancel:active {
+  transform: scale(0.97);
+}
 /* --- VERSION DESKTOP (768px+) --- */
 @media (min-width: 768px) {
   .pageWrapper {
@@ -310,16 +359,13 @@
 
   .layoutContent {
     display: flex;
-    flex-direction: row;
-    gap: 40px;
-    align-items: stretch;
+    flex-direction: column;
   }
 
   .content {
     display: flex;
     flex-direction: column;
     flex: 1;
-    padding: 24px 0;
   }
 
   .listWrapper {

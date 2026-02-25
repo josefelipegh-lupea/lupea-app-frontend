@@ -37,7 +37,7 @@ export default function LocationPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  const { user } = useAuth();
+  const { jwt } = useAuth();
 
   const [savedLocations, setSavedLocations] = useState<Location[]>([]);
 
@@ -155,7 +155,6 @@ export default function LocationPage() {
   };
 
   const handleSave = async () => {
-    const jwt = localStorage.getItem("jwt");
     if (!jwt) return;
 
     setIsSaving(true);
@@ -182,7 +181,6 @@ export default function LocationPage() {
   };
 
   const handleDelete = async () => {
-    const jwt = localStorage.getItem("jwt");
     if (!jwt || !editingId) return;
 
     try {
@@ -198,7 +196,6 @@ export default function LocationPage() {
 
   useEffect(() => {
     const loadLocations = async () => {
-      const jwt = localStorage.getItem("jwt");
       if (!jwt) return;
       try {
         const response = await getClientLocations(jwt);
@@ -210,7 +207,8 @@ export default function LocationPage() {
       }
     };
     loadLocations();
-  }, []);
+  }, [jwt]);
+
   return (
     <div
       className={`${styles.pageWrapper} ${
@@ -251,28 +249,34 @@ export default function LocationPage() {
             {currentStep === 0 ? (
               <div className={styles.stepWrapper}>
                 {isLoading ? (
-                  <div className={styles.loader}>Cargando vehículos...</div>
+                  <div className={styles.loader}>Cargando ubicaciones...</div>
                 ) : (
                   <>
                     <div className={styles.listContainer}>
-                      {savedLocations.map((loc) => (
-                        <div
-                          key={loc.id}
-                          className={styles.locationCard}
-                          onClick={() => handleEdit(loc)}
-                        >
-                          <div className={styles.iconCircle}>
-                            <IconsApp.GPS />
+                      {savedLocations.length === 0 ? (
+                        <p className={styles.emptyState}>
+                          No tienes ubicaciones registradas.
+                        </p>
+                      ) : (
+                        savedLocations.map((loc) => (
+                          <div
+                            key={loc.id}
+                            className={styles.locationCard}
+                            onClick={() => handleEdit(loc)}
+                          >
+                            <div className={styles.iconCircle}>
+                              <IconsApp.GPS />
+                            </div>
+                            <div className={styles.locationText}>
+                              <h4>{loc.name || loc.zone || "Ubicación"}</h4>
+                              <p>
+                                {loc.city}, {loc.state}
+                              </p>
+                            </div>
+                            <IconsApp.RightArrow color="#9ca3af" />
                           </div>
-                          <div className={styles.locationText}>
-                            <h4>{loc.name || loc.zone || "Ubicación"}</h4>
-                            <p>
-                              {loc.city}, {loc.state}
-                            </p>
-                          </div>
-                          <IconsApp.RightArrow color="#9ca3af" />
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                     <div className={styles.buttonGroup}>
                       <Button onClick={handleAddNew}>

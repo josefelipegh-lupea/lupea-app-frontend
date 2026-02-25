@@ -32,6 +32,21 @@
   width: 100%;
 }
 
+.loader,
+.emptyState {
+  background-color: #fff4e5;
+  color: #f08100;
+  padding: 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  text-align: center;
+  border: 1px solid #f0810033;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* LISTA DE UBICACIONES */
 .listContainer {
   display: flex;
@@ -191,6 +206,15 @@
   font-weight: 500;
   padding: 12px;
   cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.btnCancel:hover {
+  color: #f08100;
+}
+
+.btnCancel:active {
+  transform: scale(0.97);
 }
 
 .modalOverlay {

@@ -141,11 +141,6 @@ export default function PersonalInfoPage() {
                     icon: <IconsApp.Username />,
                   },
                   {
-                    label: "Nombre a mostrar",
-                    name: "displayName",
-                    icon: <IconsApp.Username />,
-                  },
-                  {
                     label: "Nombre",
                     name: "firstName",
                     icon: <IconsApp.Username />,
