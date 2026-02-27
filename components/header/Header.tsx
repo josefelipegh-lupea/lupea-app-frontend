@@ -24,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ title, onBack, rightAction }) => {
         onClick={handleBack}
         aria-label="Volver"
       >
-        <IconsApp.RightArrow />
+        <IconsApp.Back color="#000"/>
       </button>
 
       <h1 className={styles.headerTitle}>{title}</h1>

@@ -31,7 +31,7 @@ export default function PersonalInfoPage() {
     phone: "",
   });
 
-  const { isValid, errors } = useProfileValidation(formData);
+  const { isValid } = useProfileValidation(formData);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -120,11 +120,11 @@ export default function PersonalInfoPage() {
 
         <div className={styles.content}>
           {/* Aviso de perfil incompleto según HU19 flujo principal */}
-          {/* {!isValid && (
+          {profile?.status === "incomplete" && (
             <div className={styles.alertBanner}>
               Completa tu perfil para acceder a todas las funciones de Lupea.
             </div>
-          )} */}
+          )}
           {/* Contenedor para manejar las columnas en desktop */}
           <div className={styles.layoutContent}>
             {/* DIV COLUMNA IZQUIERDA */}

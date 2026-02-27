@@ -11,9 +11,11 @@ import { RequestCard } from "@/components/request-card/RequestCard";
 import { PriceCard } from "@/components/price-card/PriceCard";
 import { OrderCard } from "@/components/order-card/OrderCard";
 import Button from "@/components/button/Button";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const { isExpanded } = useSidebar();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("COTIZACIONES");
 
   const solicitudesEjemplo = [
@@ -224,7 +226,12 @@ export default function HomePage() {
           </section>
 
           {/* BOTÓN NUEVA SOLICITUD */}
-          <Button className={styles.btnNuevaSolicitud}>
+          <Button
+            className={styles.btnNuevaSolicitud}
+            onClick={() => {
+              router.push("/home/user/request");
+            }}
+          >
             <span className={styles.plusIcon}>
               <IconsApp.Plus />
             </span>{" "}

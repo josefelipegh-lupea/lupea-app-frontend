@@ -22,7 +22,7 @@ import {
 import StepTransition from "@/components/provider-onboarding/step-transition/StepTransition";
 
 // Datos estáticos para versiones (puedes mover esto a un archivo de constantes)
-const VERSIONS = [
+export const VERSIONS = [
   "LE",
   "SE",
   "XSE",
@@ -389,7 +389,7 @@ const VehiclesPage = () => {
 
                   {/* VERSIÓN (Depende de Marca y Modelo) */}
                   <div className={styles.inputContainer}>
-                    <label className={styles.label}>Versión (Opcional)</label>
+                    <label className={styles.label}>Versión</label>
                     <div className={styles.selectWrapper}>
                       <select
                         name="version"
