@@ -47,8 +47,31 @@
 }
 
 .avatarImage {
+  transition: opacity 0.3s ease;
+  object-fit: cover;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.uploading {
+  opacity: 0.5;
+  filter: grayscale(0.5);
+}
+
+/* Opcional: un spinner simple */
+.smallSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #f08400;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .cameraButton {

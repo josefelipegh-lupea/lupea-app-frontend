@@ -335,14 +335,14 @@ export default function LocationPage() {
                       </Autocomplete>
                     )}
                     <InputField
-                      label="Parroquia / Zona"
+                      label="Parroquia"
                       name="zone"
                       placeholder="Ej: Irribarren"
                       value={formData.zone}
                       onChange={handleChange}
                     />
                     <InputField
-                      label="Dirección exacta"
+                      label="Dirección"
                       name="address"
                       placeholder="Urb, calle, avenida..."
                       value={formData.exactAddress}

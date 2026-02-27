@@ -38,9 +38,9 @@
   height: 40px;
 }
 
-.backButton svg {
+/* .backButton svg {
   transform: rotate(180deg);
-}
+} */
 
 .btnEditDesktop {
   font-size: 14px;

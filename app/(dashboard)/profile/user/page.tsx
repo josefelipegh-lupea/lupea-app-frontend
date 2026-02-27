@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./UserProfile.module.css";
@@ -10,7 +10,10 @@ import { IconsApp } from "@/components/icons/Icons";
 import MENU_CONFIG_USER from "@/app/utils/constants/user-profile-options";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { ClientProfileResponse } from "@/app/lib/api/client/clientProfile";
+import {
+  ClientProfileResponse,
+  updateClientAvatar,
+} from "@/app/lib/api/client/clientProfile";
 import { updateNotification } from "@/app/lib/api/client/notification";
 import toast from "react-hot-toast";
 
@@ -68,15 +71,54 @@ const MenuItem: React.FC<MenuItemProps> = ({
 export default function UserProfilePage() {
   const [isNotifEnabled, setIsNotifEnabled] = useState(true);
   const { isExpanded } = useSidebar();
-  const { user, profile, logout, isLoading, refreshProfile } = useAuth();
+  const { user, jwt, profile, logout, isLoading, refreshProfile } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   const router = useRouter();
+
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !jwt) return;
+
+    try {
+      setIsUploading(true);
+      setError("");
+
+      const response = await updateClientAvatar(jwt, file);
+
+      if (response.ok) {
+        setAvatarUrl(response.data.avatar.url);
+
+        await refreshProfile();
+
+        toast.success("Foto de perfil actualizada");
+      }
+    } catch (err: unknown) {
+      let message = "Error al cambiar la imagen";
+      if (err instanceof Error) message = err.message;
+      setError(message);
+      toast.error(message);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.replace("/login");
     }
   }, [user, isLoading, router]);
+
+  const handleCameraClick = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleLogout = () => {
     logout();
@@ -88,7 +130,6 @@ export default function UserProfilePage() {
   };
 
   const handleToggleSwitch = async (value: boolean) => {
-    const jwt = localStorage.getItem("jwt");
     if (!jwt) return;
 
     try {
@@ -108,6 +149,14 @@ export default function UserProfilePage() {
     }
   }, [user, isLoading, router]);
 
+  useEffect(() => {
+    if (clientProfile?.avatar?.url) {
+      setAvatarUrl(clientProfile.avatar.url);
+    } else {
+      setAvatarUrl("https://randomuser.me/api/portraits/men/32.jpg");
+    }
+  }, [clientProfile]);
+
   if (isLoading || !user || !profile) {
     return <div className={styles.pageWrapper}>Cargando perfil...</div>;
   }
@@ -125,17 +174,39 @@ export default function UserProfilePage() {
               <div className={styles.avatarContainer}>
                 <div className={styles.avatarCircle}>
                   <Image
-                    src="https://randomuser.me/api/portraits/men/32.jpg"
+                    src={avatarUrl}
                     alt={clientProfile.displayName || "Usuario"}
                     width={90}
                     height={90}
-                    className={styles.avatarImage}
+                    priority
+                    className={`${styles.avatarImage} ${
+                      isUploading ? styles.uploading : ""
+                    }`}
                   />
-                  <button className={styles.cameraButton}>
-                    <IconsApp.Camera />
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    style={{ display: "none" }}
+                  />
+
+                  <button
+                    className={styles.cameraButton}
+                    onClick={handleCameraClick}
+                    type="button"
+                    disabled={isUploading}
+                  >
+                    {isUploading ? (
+                      <div className={styles.smallSpinner} />
+                    ) : (
+                      <IconsApp.Camera />
+                    )}
                   </button>
                 </div>
               </div>
+
               <div className={styles.userInfo}>
                 <h1 className={styles.userName}>{clientProfile.displayName}</h1>
                 <p className={styles.userTag}>@{user.username}</p>
