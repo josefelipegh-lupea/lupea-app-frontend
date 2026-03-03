@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "peaceful-acoustics-7f7ce4f047.media.strapiapp.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "randomuser.me",
         port: "",
         pathname: "/api/portraits/**",

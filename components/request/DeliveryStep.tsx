@@ -43,7 +43,7 @@ export default function DeliveryStep({
       <div className={styles.cardBody}>
         {/* Selector de Ciudad / Comuna */}
         <div className={styles.field}>
-          <label>Ciudad / Comuna</label>
+          <label>Estado</label>
           <div className={styles.selectWrapper}>
             <div
               className={styles.iconOverlay}
@@ -52,7 +52,7 @@ export default function DeliveryStep({
               <IconsApp.Pin />
             </div>
             <select
-              style={{ paddingLeft: "45px" }} // Espacio para el icono de la izquierda
+              style={{ paddingLeft: "45px" }}
               name="deliveryCity"
               value={formData.deliveryCity}
               onChange={handleCityChange}

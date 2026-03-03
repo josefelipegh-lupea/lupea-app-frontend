@@ -20,6 +20,7 @@ import {
   VehicleItem,
 } from "@/app/lib/api/client/vehicle";
 import StepTransition from "@/components/provider-onboarding/step-transition/StepTransition";
+import { ConfirmModal } from "@/components/confirm-modal/ConfirmModal";
 
 // Datos estáticos para versiones (puedes mover esto a un archivo de constantes)
 export const VERSIONS = [
@@ -486,34 +487,13 @@ const VehiclesPage = () => {
         </div>
       </div>
 
-      {/* MODAL DE ELIMINACIÓN */}
-      {showDeleteConfirm && (
-        <div
-          className={styles.modalOverlay}
-          onClick={() => setShowDeleteConfirm(false)}
-        >
-          <div
-            className={styles.floatingCard}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3>¿Eliminar vehículo?</h3>
-            <p>Esta acción no se puede deshacer.</p>
-            <button
-              className={styles.confirmDeleteBtn}
-              onClick={handleDelete}
-              disabled={isSaving}
-            >
-              {isSaving ? "Eliminando..." : "Sí, eliminar"}
-            </button>
-            <button
-              className={styles.btnCancel}
-              onClick={() => setShowDeleteConfirm(false)}
-            >
-              No, mantener
-            </button>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title="¿Eliminar vehículo?"
+        description="Este vehículo se borrará permanentemente de tu lista."
+      />
     </div>
   );
 };

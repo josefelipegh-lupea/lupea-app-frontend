@@ -5,9 +5,9 @@ export interface LocationValues {
   name: string;
   type: string;
   state: string;
-  city: string;
-  searchText: string;
-  zone: string;
+  municipality: string;
+  parish: string;
+  address: string;
   exactAddress: string;
   latitude: number;
   longitude: number;
@@ -21,6 +21,41 @@ export interface Location extends LocationValues {
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
+}
+
+export interface State {
+  id: number;
+  name: string;
+  isoCode: string;
+  capital: string;
+}
+
+export interface StateResponse {
+  ok: boolean;
+  data: State[];
+}
+
+export interface Municipality {
+  name: string;
+  capital: string;
+  parishCount: number;
+}
+
+export interface MunicipalitiesResponse {
+  ok: boolean;
+  data: {
+    state: State;
+    municipalities: Municipality[];
+  };
+}
+
+interface ParishesResponse {
+  ok: boolean;
+  data: {
+    state: { id: number; name: string };
+    municipality: { name: string; capital: string };
+    parishes: string[];
+  };
 }
 
 export interface ClientLocationsResponse {
@@ -101,5 +136,65 @@ export async function deleteLocation(jwt: string, id: number) {
   const data = await res.json();
   if (!res.ok)
     throw new Error(data.message || "Error al eliminar la ubicación");
+  return data;
+}
+
+export async function getStates(jwt: string): Promise<StateResponse> {
+  const res = await fetch(
+    `${API_URL}/client-profiles/catalog/venezuela/states`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+    }
+  );
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Error al obtener los estados");
+  return data;
+}
+
+export async function getMunicipalities(
+  jwt: string,
+  stateId: number
+): Promise<MunicipalitiesResponse> {
+  const res = await fetch(
+    `${API_URL}/client-profiles/catalog/venezuela/municipalities?stateId=${stateId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+    }
+  );
+
+  const data = await res.json();
+  if (!res.ok)
+    throw new Error(data.message || "Error al obtener los municipios");
+  return data;
+}
+
+export async function getParishes(
+  jwt: string,
+  stateId: number,
+  municipalityName: string
+): Promise<ParishesResponse> {
+  const res = await fetch(
+    `${API_URL}/client-profiles/catalog/venezuela/parishes?stateId=${stateId}&municipality=${municipalityName}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+    }
+  );
+
+  const data = await res.json();
+  if (!res.ok)
+    throw new Error(data.message || "Error al obtener las parroquias");
   return data;
 }
