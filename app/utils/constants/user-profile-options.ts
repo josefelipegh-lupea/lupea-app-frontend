@@ -57,6 +57,7 @@ const MENU_CONFIG_USER: Array<{
       {
         label: "Cambiar clave",
         icon: IconsApp.Eye,
+        href: "/profile/user/change-password",
       },
     ],
   },

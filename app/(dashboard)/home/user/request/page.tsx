@@ -86,6 +86,7 @@ export default function RequestPage() {
     const initLoad = async () => {
       if (!jwt) return;
       try {
+        setLoading(true);
         const [vRes, bRes, eRes, cRes] = await Promise.all([
           getClientVehicles(jwt),
           getBrands(jwt),
@@ -125,7 +126,6 @@ export default function RequestPage() {
             refreshVehicles={refreshVehicles}
           />
 
-          {/* SIGUIENTES CARDS VENDRÁN AQUÍ COMO COMPONENTES */}
           <SparePartsStep
             formData={formData}
             setFormData={setFormData}

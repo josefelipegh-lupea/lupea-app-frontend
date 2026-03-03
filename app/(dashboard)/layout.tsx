@@ -10,7 +10,9 @@ export default function DashboardLayout({
   return (
     <div className={styles.container}>
       <SidebarProvider>
-        <main className={styles.mainContent}>{children}</main>
+        <main className={styles.mainContent} id="scroll-container">
+          {children}
+        </main>
         <div className={styles.mobileFooterWrapper}>
           <Footer />
         </div>

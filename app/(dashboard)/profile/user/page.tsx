@@ -73,7 +73,7 @@ export default function UserProfilePage() {
   const { isExpanded } = useSidebar();
   const { user, jwt, profile, logout, isLoading, refreshProfile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("/");
 
   const router = useRouter();
 

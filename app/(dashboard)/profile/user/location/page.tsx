@@ -1,12 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import {
-  GoogleMap,
-  useJsApiLoader,
-  Marker,
-  Autocomplete,
-} from "@react-google-maps/api";
+import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import { useSidebar } from "@/context/SidebarContext";
 import styles from "./LocationPage.module.css";
 import InputField from "@/components/input/InputField";
@@ -17,42 +12,65 @@ import StepTransition from "@/components/provider-onboarding/step-transition/Ste
 import { useAuth } from "@/context/AuthContext";
 import {
   createLocation,
-  deleteLocation,
   getClientLocations,
   Location,
   LocationValues,
   updateLocation,
+  deleteLocation,
+  getStates,
+  Municipality,
+  getMunicipalities,
+  State,
+  getParishes,
 } from "@/app/lib/api/client/location";
 import toast from "react-hot-toast";
+import { createPortal } from "react-dom";
+import { ConfirmModal } from "@/components/confirm-modal/ConfirmModal";
 
-const VENEZUELA_BOUNDS = { north: 12.2, south: 0.6, west: -73.4, east: -59.8 };
+const VENEZUELA_BOUNDS = { north: 12.5, south: 0.8, west: -71.4, east: -59.7 };
 const INITIAL_COORDS = { lat: 10.4806, lng: -66.8983 };
+
+const ModalPortal = ({ children }: { children: React.ReactNode }) => {
+  if (typeof window === "undefined" || !document.body) return null;
+
+  return createPortal(children, document.body);
+};
 
 export default function LocationPage() {
   const { isExpanded } = useSidebar();
+  const { jwt } = useAuth();
+
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  const { jwt } = useAuth();
-
   const [savedLocations, setSavedLocations] = useState<Location[]>([]);
+  const [states, setStates] = useState<State[]>([]);
+  const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
+  const [parishes, setParishes] = useState<string[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [formData, setFormData] = useState<LocationValues>({
     name: "",
     type: "home",
     state: "",
-    city: "",
-    searchText: "",
-    zone: "",
+    municipality: "",
+    parish: "",
+    address: "",
     exactAddress: "",
     latitude: INITIAL_COORDS.lat,
     longitude: INITIAL_COORDS.lng,
     placeId: "",
   });
+
+  // REF para el rebote del pin
+  const lastValidPos = useRef({
+    lat: INITIAL_COORDS.lat,
+    lng: INITIAL_COORDS.lng,
+  });
+  const mapRef = useRef<google.maps.Map | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -60,103 +78,190 @@ export default function LocationPage() {
     libraries: ["places"],
   });
 
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-
-  const handleAddNew = () => {
-    setDirection(1);
-    setEditingId(null);
-    setFormData({
-      name: "",
-      type: "home",
-      state: "",
-      city: "",
-      searchText: "",
-      zone: "",
-      exactAddress: "",
-      latitude: INITIAL_COORDS.lat,
-      longitude: INITIAL_COORDS.lng,
-      placeId: "",
-    });
-    setCurrentStep(1);
+  // Función de validación corregida
+  const isWithinVenezuela = (lat: number, lng: number) => {
+    return (
+      lat >= VENEZUELA_BOUNDS.south &&
+      lat <= VENEZUELA_BOUNDS.north &&
+      lng >= VENEZUELA_BOUNDS.west &&
+      lng <= VENEZUELA_BOUNDS.east
+    );
   };
 
-  const handleEdit = (loc: Location) => {
-    setDirection(1);
-    setEditingId(loc.id);
-    setFormData({
-      name: loc.name,
-      type: loc.type,
-      state: loc.state,
-      city: loc.city,
-      searchText: loc.searchText,
-      zone: loc.zone,
-      exactAddress: loc.exactAddress,
-      latitude: loc.latitude,
-      longitude: loc.longitude,
-      placeId: loc.placeId,
-    });
-    setCurrentStep(1);
-  };
+  useEffect(() => {
+    const init = async () => {
+      if (!jwt) return;
+      try {
+        const [locs] = await Promise.all([getClientLocations(jwt)]);
+        setSavedLocations(locs.data);
+      } catch (error) {
+        toast.error("Error al cargar datos");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    init();
+  }, [jwt]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!jwt) return;
+      try {
+        const res = await getStates(jwt);
+        if (res.ok) setStates(res.data);
+      } catch (error) {
+        toast.error("Error al cargar estados");
+      }
+    };
+    fetchData();
+  }, [jwt]);
+
+  useEffect(() => {
+    if (!jwt) return;
+    const fetchMunicipalitiesData = async () => {
+      const stateObj = states.find((s) => s.name === formData.state);
+      if (!stateObj) {
+        setMunicipalities([]);
+        return;
+      }
+      try {
+        const response = await getMunicipalities(jwt, stateObj.id);
+        if (response.ok) setMunicipalities(response.data.municipalities);
+      } catch (error) {
+        toast.error("Error al cargar municipios");
+      }
+    };
+    fetchMunicipalitiesData();
+  }, [formData.state, states, jwt]);
+
+  useEffect(() => {
+    if (!jwt) return;
+    const fetchParishesData = async () => {
+      const stateObj = states.find((s) => s.name === formData.state);
+      if (!stateObj || !formData.municipality) {
+        setParishes([]);
+        return;
+      }
+      try {
+        const response = await getParishes(
+          jwt,
+          stateObj.id,
+          formData.municipality
+        );
+        if (response.ok) setParishes(response.data.parishes);
+      } catch (error) {
+        toast.error("Error al cargar parroquias");
+      }
+    };
+    fetchParishesData();
+  }, [formData.municipality, formData.state, states, jwt]);
 
   const handleLocationUpdate = (lat: number, lng: number) => {
-    if (
-      lat <= VENEZUELA_BOUNDS.north &&
-      lat >= VENEZUELA_BOUNDS.south &&
-      lng <= VENEZUELA_BOUNDS.east &&
-      lng >= VENEZUELA_BOUNDS.west
-    ) {
-      const geocoder = new google.maps.Geocoder();
-      geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-        if (status === "OK" && results?.[0]) {
-          const place = results[0];
-          let city = "",
-            state = "",
-            zone = "";
+    // RESTRICCIÓN Y REBOTE
+    if (!isWithinVenezuela(lat, lng)) {
+      toast.error("Ubicación fuera de Venezuela");
+      // Forzamos al estado a volver a la última posición válida para que el pin "rebote"
+      setFormData((prev) => ({
+        ...prev,
+        latitude: lastValidPos.current.lat,
+        longitude: lastValidPos.current.lng,
+      }));
+      return;
+    }
 
-          place.address_components.forEach((comp) => {
-            if (comp.types.includes("administrative_area_level_1"))
-              state = comp.long_name;
-            if (comp.types.includes("locality")) city = comp.long_name;
-            if (
-              comp.types.includes("sublocality") ||
-              comp.types.includes("neighborhood")
-            )
-              zone = comp.long_name;
-          });
+    // Si es válida, la guardamos como última posición buena
+    lastValidPos.current = { lat, lng };
 
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: { lat, lng } }, async (results, status) => {
+      if (status === google.maps.GeocoderStatus.OK && results?.[0]) {
+        const addressComponents = results[0].address_components;
+        const googleFormatted = results[0].formatted_address;
+        const googleStateName =
+          addressComponents.find((c) =>
+            c.types.includes("administrative_area_level_1")
+          )?.long_name || "";
+
+        const foundState = states.find(
+          (s) =>
+            googleStateName.toLowerCase().includes(s.name.toLowerCase()) ||
+            s.name.toLowerCase().includes(googleStateName.toLowerCase())
+        );
+
+        setFormData((prev) => ({
+          ...prev,
+          latitude: lat,
+          longitude: lng,
+          exactAddress: googleFormatted,
+          placeId: results[0].place_id,
+          state: foundState ? foundState.name : prev.state,
+          municipality:
+            foundState && foundState.name !== prev.state
+              ? ""
+              : prev.municipality,
+          parish:
+            foundState && foundState.name !== prev.state ? "" : prev.parish,
+        }));
+      }
+    });
+  };
+
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const stateName = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      state: stateName,
+      municipality: "",
+      parish: "",
+    }));
+    if (stateName) updateMapByQuery(stateName, 9);
+  };
+
+  const handleMunicipalityChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const muniName = e.target.value;
+    setFormData((prev) => ({ ...prev, municipality: muniName, parish: "" }));
+    if (muniName) updateMapByQuery(`${muniName}, ${formData.state}`, 13);
+  };
+
+  const updateMapByQuery = (query: string, zoom: number) => {
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ address: `${query}, Venezuela` }, (results, status) => {
+      if (status === "OK" && results?.[0] && mapRef.current) {
+        const loc = results[0].geometry.location;
+        const lat = loc.lat();
+        const lng = loc.lng();
+
+        // Validamos también lo que viene de la búsqueda por texto
+        if (isWithinVenezuela(lat, lng)) {
+          lastValidPos.current = { lat, lng };
+          mapRef.current.panTo(loc);
+          mapRef.current.setZoom(zoom);
           setFormData((prev) => ({
             ...prev,
             latitude: lat,
             longitude: lng,
-            state,
-            city,
-            zone,
-            exactAddress: place.formatted_address,
-            searchText: place.formatted_address,
-            placeId: place.place_id,
+            exactAddress: results[0].formatted_address,
           }));
         }
-      });
-    } else {
-      toast.error("Ubicación fuera de los límites de Venezuela");
-    }
+      }
+    });
   };
 
   const handleGPS = () => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((p) =>
-        handleLocationUpdate(p.coords.latitude, p.coords.longitude)
+      navigator.geolocation.getCurrentPosition(
+        (p) => {
+          handleLocationUpdate(p.coords.latitude, p.coords.longitude);
+        }
+        // { enableHighAccuracy: true }
       );
     }
   };
 
   const handleSave = async () => {
     if (!jwt) return;
-
     setIsSaving(true);
     try {
       if (editingId) {
@@ -166,12 +271,8 @@ export default function LocationPage() {
         await createLocation(jwt, formData);
         toast.success("Ubicación guardada");
       }
-
-      // Recargar lista
       const response = await getClientLocations(jwt);
       setSavedLocations(response.data);
-
-      setDirection(-1);
       setCurrentStep(0);
     } catch (error) {
       toast.error("Error al guardar");
@@ -180,9 +281,59 @@ export default function LocationPage() {
     }
   };
 
+  const handleEdit = async (loc: Location) => {
+    if (!jwt) return;
+    setEditingId(loc.id);
+    setFormData({ ...loc });
+    lastValidPos.current = { lat: loc.latitude, lng: loc.longitude };
+    setDirection(1);
+    setCurrentStep(1);
+
+    const stateObj = states.find((s) => s.name === loc.state);
+    if (stateObj) {
+      try {
+        const muniRes = await getMunicipalities(jwt, stateObj.id);
+        if (muniRes.ok) {
+          setMunicipalities(muniRes.data.municipalities);
+          if (loc.municipality) {
+            const parishRes = await getParishes(
+              jwt,
+              stateObj.id,
+              loc.municipality
+            );
+            if (parishRes.ok) setParishes(parishRes.data.parishes);
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleAddNew = () => {
+    setEditingId(null);
+    const initial = {
+      name: "",
+      type: "home",
+      state: "",
+      municipality: "",
+      parish: "",
+      address: "",
+      exactAddress: "",
+      latitude: INITIAL_COORDS.lat,
+      longitude: INITIAL_COORDS.lng,
+      placeId: "",
+    };
+    setFormData(initial);
+    lastValidPos.current = { lat: INITIAL_COORDS.lat, lng: INITIAL_COORDS.lng };
+    setMunicipalities([]);
+    setParishes([]);
+    setDirection(1);
+    setCurrentStep(1);
+  };
+
   const handleDelete = async () => {
     if (!jwt || !editingId) return;
-
     try {
       await deleteLocation(jwt, editingId);
       setSavedLocations((prev) => prev.filter((l) => l.id !== editingId));
@@ -193,21 +344,6 @@ export default function LocationPage() {
       toast.error("Error al eliminar");
     }
   };
-
-  useEffect(() => {
-    const loadLocations = async () => {
-      if (!jwt) return;
-      try {
-        const response = await getClientLocations(jwt);
-        setSavedLocations(response.data);
-      } catch (error) {
-        toast.error("Error al cargar ubicaciones");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadLocations();
-  }, [jwt]);
 
   return (
     <div
@@ -224,14 +360,7 @@ export default function LocationPage() {
               ? "Editar Ubicación"
               : "Nueva Ubicación"
           }
-          onBack={
-            currentStep === 1
-              ? () => {
-                  setDirection(-1);
-                  setCurrentStep(0);
-                }
-              : undefined
-          }
+          onBack={currentStep === 1 ? () => setCurrentStep(0) : undefined}
           rightAction={
             currentStep === 1 && editingId ? (
               <button
@@ -249,7 +378,7 @@ export default function LocationPage() {
             {currentStep === 0 ? (
               <div className={styles.stepWrapper}>
                 {isLoading ? (
-                  <div className={styles.loader}>Cargando ubicaciones...</div>
+                  <div className={styles.loader}>Cargando...</div>
                 ) : (
                   <>
                     <div className={styles.listContainer}>
@@ -268,9 +397,9 @@ export default function LocationPage() {
                               <IconsApp.GPS />
                             </div>
                             <div className={styles.locationText}>
-                              <h4>{loc.name || loc.zone || "Ubicación"}</h4>
+                              <h4>{loc.name || loc.parish}</h4>
                               <p>
-                                {loc.city}, {loc.state}
+                                {loc.municipality}, {loc.state}
                               </p>
                             </div>
                             <IconsApp.RightArrow color="#9ca3af" />
@@ -278,11 +407,9 @@ export default function LocationPage() {
                         ))
                       )}
                     </div>
-                    <div className={styles.buttonGroup}>
-                      <Button onClick={handleAddNew}>
-                        + Agregar nueva ubicación
-                      </Button>
-                    </div>
+                    <Button onClick={handleAddNew}>
+                      + Agregar nueva ubicación
+                    </Button>
                   </>
                 )}
               </div>
@@ -294,11 +421,14 @@ export default function LocationPage() {
                       label="Nombre"
                       name="name"
                       value={formData.name}
-                      onChange={handleChange}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                       placeholder="Ej: Hogar"
                     />
+
                     <div className={styles.chipsContainer}>
-                      {["Hogar", "Trabajo", "Taller", "Casa"].map((tag) => (
+                      {["Hogar", "Trabajo", "Taller"].map((tag) => (
                         <button
                           key={tag}
                           type="button"
@@ -313,53 +443,114 @@ export default function LocationPage() {
                         </button>
                       ))}
                     </div>
-                    {isLoaded && (
-                      <Autocomplete
-                        onLoad={(r) => (autocompleteRef.current = r)}
-                        onPlaceChanged={() => {
-                          const p = autocompleteRef.current?.getPlace();
-                          if (p?.geometry?.location)
-                            handleLocationUpdate(
-                              p.geometry.location.lat(),
-                              p.geometry.location.lng()
-                            );
-                        }}
-                      >
-                        <InputField
-                          label="Buscar ubicación"
+
+                    <div className={styles.selectGroup}>
+                      <label className={styles.label}>Estado</label>
+                      <div className={styles.selectWrapper}>
+                        <select
                           name="state"
-                          placeholder="Ej: Barquisimeto"
                           value={formData.state}
-                          onChange={handleChange}
-                        />
-                      </Autocomplete>
-                    )}
-                    <InputField
-                      label="Parroquia"
-                      name="zone"
-                      placeholder="Ej: Irribarren"
-                      value={formData.zone}
-                      onChange={handleChange}
-                    />
+                          onChange={handleStateChange}
+                          className={styles.input}
+                        >
+                          <option value="">Seleccione Estado</option>
+                          {states.map((s) => (
+                            <option key={s.id} value={s.name}>
+                              {s.name}
+                            </option>
+                          ))}
+                        </select>
+                        <div className={styles.iconOverlay}>
+                          <IconsApp.DownArrow />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.selectGroup}>
+                      <label className={styles.label}>Municipio</label>
+                      <div className={styles.selectWrapper}>
+                        <select
+                          name="municipality"
+                          value={formData.municipality}
+                          onChange={handleMunicipalityChange}
+                          disabled={!formData.state}
+                          className={styles.input}
+                        >
+                          <option value="">Seleccione Municipio</option>
+                          {municipalities.map((m, index) => (
+                            <option key={index} value={m.name}>
+                              {m.name}
+                            </option>
+                          ))}
+                        </select>
+                        <div className={styles.iconOverlay}>
+                          <IconsApp.DownArrow />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.selectGroup}>
+                      <label className={styles.label}>Parroquia</label>
+                      <div className={styles.selectWrapper}>
+                        <select
+                          name="parish"
+                          value={formData.parish}
+                          disabled={!formData.municipality}
+                          className={styles.input}
+                          onChange={(e) => {
+                            setFormData({
+                              ...formData,
+                              parish: e.target.value,
+                            });
+                            updateMapByQuery(
+                              `${e.target.value}, ${formData.municipality}`,
+                              15
+                            );
+                          }}
+                        >
+                          <option value="">Seleccione Parroquia</option>
+                          {parishes.map((p) => (
+                            <option key={p} value={p}>
+                              {p}
+                            </option>
+                          ))}
+                        </select>
+                        <div className={styles.iconOverlay}>
+                          <IconsApp.DownArrow />
+                        </div>
+                      </div>
+                    </div>
+
                     <InputField
                       label="Dirección"
                       name="address"
-                      placeholder="Urb, calle, avenida..."
-                      value={formData.exactAddress}
-                      onChange={handleChange}
+                      placeholder="Urb, calle, casa..."
+                      value={formData.address}
+                      onChange={(e) =>
+                        setFormData({ ...formData, address: e.target.value })
+                      }
                     />
                   </section>
 
                   <div className={styles.mapWrapper}>
                     {isLoaded && (
                       <GoogleMap
+                        onLoad={(map) => {
+                          mapRef.current = map;
+                        }}
                         mapContainerStyle={{ width: "100%", height: "100%" }}
                         center={{
                           lat: formData.latitude,
                           lng: formData.longitude,
                         }}
                         zoom={15}
-                        options={{ disableDefaultUI: true }}
+                        options={{
+                          disableDefaultUI: true,
+                          restriction: {
+                            latLngBounds: VENEZUELA_BOUNDS,
+                            strictBounds: false,
+                          },
+                        }}
                         onClick={(e) =>
                           e.latLng &&
                           handleLocationUpdate(e.latLng.lat(), e.latLng.lng())
@@ -388,18 +579,20 @@ export default function LocationPage() {
                   </div>
                 </div>
                 <div className={styles.buttonGroup}>
-                  <Button onClick={handleSave}>
+                  <Button
+                    onClick={handleSave}
+                    disabled={
+                      isSaving ||
+                      !formData.name ||
+                      !formData.state ||
+                      !formData.municipality ||
+                      !formData.parish ||
+                      !formData.exactAddress ||
+                      !formData.address
+                    }
+                  >
                     {editingId ? "Actualizar Cambios" : "Guardar Ubicación"}
                   </Button>
-                  <button
-                    className={styles.btnCancel}
-                    onClick={() => {
-                      setDirection(-1);
-                      setCurrentStep(0);
-                    }}
-                  >
-                    Cancelar
-                  </button>
                 </div>
               </div>
             )}
@@ -407,29 +600,13 @@ export default function LocationPage() {
         </div>
       </div>
 
-      {showDeleteConfirm && (
-        <div
-          className={styles.modalOverlay}
-          onClick={() => setShowDeleteConfirm(false)}
-        >
-          <div
-            className={styles.floatingCard}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3>¿Eliminar ubicación?</h3>
-            <p>Esta acción no se puede deshacer.</p>
-            <button className={styles.confirmDeleteBtn} onClick={handleDelete}>
-              Sí, eliminar
-            </button>
-            <button
-              className={styles.btnCancel}
-              onClick={() => setShowDeleteConfirm(false)}
-            >
-              No, mantener
-            </button>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title="¿Eliminar ubicación?"
+        description="Esta ubicación se borrará permanentemente de tu lista."
+      />
     </div>
   );
 }

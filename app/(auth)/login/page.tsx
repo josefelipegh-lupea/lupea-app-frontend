@@ -41,9 +41,9 @@ export default function LoginPage() {
       toast.success("¡Bienvenido de nuevo!");
 
       if (data.profileType === "provider") {
-        router.push("/profile/vendor");
+        router.replace("/home/vendor");
       } else {
-        router.push("/profile/user");
+        router.replace("/home/user");
       }
     } catch (err: unknown) {
       let message = "Credenciales incorrectas.";

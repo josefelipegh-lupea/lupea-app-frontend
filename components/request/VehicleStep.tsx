@@ -33,6 +33,7 @@ export default function VehicleStep({
   engines,
   formData,
   setFormData,
+  loadingInitial,
   contentRef,
   refreshVehicles,
 }: VehicleStepProps) {
@@ -201,7 +202,10 @@ export default function VehicleStep({
       // }));
 
       goToList();
-      toast.success("Vehículo agregado con éxito");
+      toast.success(
+        "Vehículo agregado con éxito. Puede ver su lista actualizada de sus vehículos en la sección Vehículos de su perfil",
+        { duration: 10000 }
+      );
     } catch (error) {
       console.error(error);
       toast.error("No se pudo guardar el vehículo. Inténtalo de nuevo.");
@@ -254,7 +258,9 @@ export default function VehicleStep({
                   >
                     {userVehicles.length === 0 ? (
                       <div className={styles.noVehicles}>
-                        No tiene vehículos registrados
+                        {loadingInitial
+                          ? "Cargando..."
+                          : "No tiene vehículos registrados"}
                       </div>
                     ) : (
                       userVehicles.map((v) => (

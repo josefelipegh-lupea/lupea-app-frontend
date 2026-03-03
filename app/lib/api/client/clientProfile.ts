@@ -41,6 +41,11 @@ export interface UpdateProfilePayload {
   privacyLevel: string;
 }
 
+export interface PasswordUpdateResponse {
+  ok: boolean;
+  message: string;
+}
+
 export async function getClientProfile(
   jwt: string
 ): Promise<ClientProfileResponse> {
@@ -104,6 +109,30 @@ export async function updateClientAvatar(
 
   if (!res.ok) {
     throw new Error(responseData.message || "Error al actualizar el perfil");
+  }
+
+  return responseData;
+}
+
+export async function updateClientPassword(
+  jwt: string,
+  formData: { currentPassword: string; newPassword: string }
+): Promise<PasswordUpdateResponse> {
+  const res = await fetch(`${API_URL}/client-profiles/me/password`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(formData),
+  });
+
+  const responseData = await res.json();
+
+  if (!res.ok) {
+    throw new Error(
+      responseData.error?.message || "Error al cambiar la contraseña"
+    );
   }
 
   return responseData;

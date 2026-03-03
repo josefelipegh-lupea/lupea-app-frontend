@@ -47,6 +47,8 @@
 }
 
 .avatarImage {
+  width: 90px;
+  height: 90px;
   transition: opacity 0.3s ease;
   object-fit: cover;
   border-radius: 50%;
