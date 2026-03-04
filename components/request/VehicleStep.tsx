@@ -24,6 +24,7 @@ interface VehicleStepProps {
   loadingInitial: boolean;
   contentRef: React.RefObject<HTMLDivElement | null>;
   refreshVehicles: () => Promise<Vehicle[] | undefined>;
+  isCompleted: boolean;
 }
 
 export default function VehicleStep({
@@ -36,6 +37,7 @@ export default function VehicleStep({
   loadingInitial,
   contentRef,
   refreshVehicles,
+  isCompleted,
 }: VehicleStepProps) {
   const years = Array.from({ length: 30 }, (_, i) => (2025 - i).toString());
   const [models, setModels] = useState<VehicleItem[]>([]);
@@ -230,9 +232,14 @@ export default function VehicleStep({
             <IconsApp.Car />
           </div>
         </div>
-        <div style={{ flex: 1 }}>
-          <h2 className={styles.cardTitle}>Datos del Vehículo</h2>
-        </div>
+
+        <h2 className={styles.cardTitle}>Datos del Vehículo</h2>
+        {isCompleted && (
+          <div className={styles.stepCompletedBadge}>
+            <IconsApp.Check />
+          </div>
+        )}
+
         {showVehicleForm && (
           <button type="button" className={styles.backBtn} onClick={goToList}>
             Mis Vehículos

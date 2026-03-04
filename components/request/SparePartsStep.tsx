@@ -20,13 +20,14 @@ interface SparePartsStepProps {
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
   contentRef: React.RefObject<HTMLDivElement | null>;
   categories: Category[];
+  isCompleted: boolean;
 }
 
 export default function SparePartsStep({
   formData,
   setFormData,
-  contentRef,
   categories,
+  isCompleted,
 }: SparePartsStepProps) {
   const [showForm, setShowForm] = useState(false);
   const [direction, setDirection] = useState(1);
@@ -195,9 +196,14 @@ export default function SparePartsStep({
             <IconsApp.Gear color="#f58220" />
           </div>
         </div>
-        <div style={{ flex: 1 }}>
-          <h2 className={styles.cardTitle}>Datos del Repuesto</h2>
-        </div>
+
+        <h2 className={styles.cardTitle}>Datos del Repuesto</h2>
+        {isCompleted && (
+          <div className={styles.stepCompletedBadge}>
+            <IconsApp.Check />
+          </div>
+        )}
+
         {showForm && (
           <button type="button" className={styles.backBtn} onClick={goToList}>
             Ver Lista

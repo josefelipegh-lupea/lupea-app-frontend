@@ -131,7 +131,7 @@ export default function LoginPage() {
             }
             onClick={() => setShowPassword((v) => !v)}
           >
-            {showPassword ? (
+            {!showPassword ? (
               <IconsApp.EyePassword />
             ) : (
               <IconsApp.EyePasswordOff />

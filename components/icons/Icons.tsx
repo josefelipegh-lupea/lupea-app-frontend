@@ -760,13 +760,34 @@ export const IconsApp = {
       </svg>
     );
   },
-  PlusAddNew: ({color = "#EC7F13"}: IconProps) =>{
-    return(
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M6 0V12" stroke={color} stroke-width="2"/>
-<path d="M0 6L12 6" stroke={color} stroke-width="2"/>
-</svg>
-
-    )
-  }
+  PlusAddNew: ({ color = "#EC7F13" }: IconProps) => {
+    return (
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 12 12"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="M6 0V12" stroke={color} strokeWidth="2" />
+        <path d="M0 6L12 6" stroke={color} strokeWidth="2" />
+      </svg>
+    );
+  },
+  Check: ({ color = "green" }: IconProps) => {
+    return (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke={color}
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <polyline points="4 12 9 17 20 6" />
+      </svg>
+    );
+  },
 };
