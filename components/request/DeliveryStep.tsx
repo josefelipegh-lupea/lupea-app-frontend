@@ -3,15 +3,22 @@
 import { IconsApp } from "@/components/icons/Icons";
 import styles from "../../app/(dashboard)/home/user/request/Request.module.css";
 import { FormData } from "@/app/(dashboard)/home/user/request/page";
+import { Location } from "@/app/lib/api/client/location";
 
 interface DeliveryStepProps {
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  states: { id: number; name: string }[];
+  isCompleted: boolean;
+  locations: Location[];
 }
 
 export default function DeliveryStep({
   formData,
   setFormData,
+  states,
+  isCompleted,
+  locations,
 }: DeliveryStepProps) {
   const handleMethodChange = (method: "retiro" | "envio") => {
     setFormData((prev) => ({
@@ -37,6 +44,11 @@ export default function DeliveryStep({
           </div>
         </div>
         <h2 className={styles.cardTitle}>Preferencias de Entrega</h2>
+        {isCompleted && (
+          <div className={styles.stepCompletedBadge}>
+            <IconsApp.Check />
+          </div>
+        )}
       </div>
       <div className={styles.divider} />
 
@@ -57,9 +69,12 @@ export default function DeliveryStep({
               value={formData.deliveryCity}
               onChange={handleCityChange}
             >
-              <option value="Caracas, RM">Caracas, RM</option>
-              <option value="Miranda, RM">Miranda, RM</option>
-              {/* Más ciudades... */}
+              <option value="">Seleccione una ubicación</option>
+              {locations.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  {loc.name} - {loc.state}
+                </option>
+              ))}
             </select>
             <div className={styles.iconOverlay}>
               <IconsApp.DownArrow />

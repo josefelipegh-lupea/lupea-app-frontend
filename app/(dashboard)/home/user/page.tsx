@@ -289,7 +289,7 @@ export default function HomePage() {
 
                 <div className={styles.metricCardOrange}>
                   <div className={styles.stars}>
-                    <StarRating rating={3.2} />
+                    <StarRating rating={3} />
                   </div>
                   <h4 className={styles.smallNum}>3.2</h4>
                   <p className={styles.metricSmallText}>Tu reputación</p>
