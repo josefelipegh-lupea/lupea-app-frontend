@@ -1,13 +1,21 @@
+import { BaseEntity } from "@/app/lib/api/vendor/vendorProfile";
 import { ChangeEvent } from "react";
 
 export interface ProviderFormData {
   username: string;
   email: string;
-  business_name: string;
+  businessName: string;
   phone: string;
-  categories: string[];
-  brands: string[];
-  business_photos: File[];
+  mainCategories: BaseEntity[];
+  brands: BaseEntity[];
+  businessPhotos: File[];
+  paymentMethods: string[];
+  warrantyPolicy?: string;
+  returnPolicy?: string;
+  hasStorePickup: boolean;
+  hasLocalDelivery: boolean;
+  hasNationalDelivery: boolean;
+  shippingCarriers: string[];
 }
 
 export interface StepProps {

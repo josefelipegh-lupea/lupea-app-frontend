@@ -18,12 +18,14 @@ const MENU_CONFIG_VENDOR: Array<{
     title: "CUENTA",
     items: [
       {
-        label: "Información comercial",
+        label: "Datos comerciales",
         icon: IconsApp.Personal,
         href: "/profile/vendor/personal-info",
       },
-      { label: "Ubicaciones", icon: IconsApp.Location },
-      { label: "Vehículos", icon: IconsApp.Vehicle },
+      { label: "Información comercial", icon: IconsApp.Location },
+      { label: "Ubicaciones", icon: IconsApp.Vehicle },
+      { label: "Condiciones de venta", icon: IconsApp.Vehicle },
+      { label: "Logística y entrega", icon: IconsApp.Vehicle },
     ],
   },
   {

@@ -39,26 +39,18 @@ export default function PersonalInfoPage() {
     const { name, value } = e.target;
     let newValue = value;
 
-    // 1. FILTRO PARA NOMBRES Y APELLIDOS
-    // Permite: letras (a-z), letras con acentos, ñ, Ñ y espacios.
     if (name === "firstName" || name === "lastName") {
-      // Reemplaza cualquier cosa que NO sea una letra o espacio por un string vacío
       newValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
     }
 
-    // 2. FILTRO PARA TELÉFONO (Como lo definimos antes)
     if (name === "phone") {
-      const cleanNumbers = value.replace(/\D/g, ""); // Solo números
-
-      // Forzamos el inicio con +58
+      const cleanNumbers = value.replace(/\D/g, "");
       if (!value.startsWith("+58")) {
         newValue = "+58" + cleanNumbers;
       } else {
-        // Si ya tiene el +58, solo permitimos números después
         newValue = "+58" + value.substring(3).replace(/\D/g, "");
       }
 
-      // Limitar a +58 + 10 dígitos (13 caracteres en total)
       if (newValue.length > 13) return;
     }
 
