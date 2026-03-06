@@ -49,7 +49,7 @@ export interface MunicipalitiesResponse {
   };
 }
 
-interface ParishesResponse {
+export interface ParishesResponse {
   ok: boolean;
   data: {
     state: { id: number; name: string };

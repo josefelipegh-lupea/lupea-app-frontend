@@ -24,6 +24,7 @@ const StepBasics: React.FC<ExtendedStepProps> = ({
           value={formData.username}
           onChange={handleChange}
           placeholder="ejemplo123"
+          disabled
           icon={<IconsApp.Username />}
         />
       </div>
@@ -43,6 +44,7 @@ const StepBasics: React.FC<ExtendedStepProps> = ({
           value={formData.email}
           onChange={handleChange}
           placeholder="negocio@correo.com"
+          disabled
           icon={<IconsApp.Email />}
         />
       </div>
@@ -52,24 +54,24 @@ const StepBasics: React.FC<ExtendedStepProps> = ({
     {/* Campo: Razón Social */}
     <div className={styles.fieldGroup}>
       <label className={styles.label}>Razón Social</label>
-      <div className={` ${errors?.business_name ? styles.inputError : ""}`}>
+      <div className={` ${errors?.businessName ? styles.inputError : ""}`}>
         <InputField
-          name="business_name"
+          name="businessName"
           className={styles.inputMargin}
-          value={formData.business_name}
+          value={formData.businessName}
           onChange={handleChange}
           placeholder="Nombre de la empresa"
           icon={<IconsApp.Business />}
         />
       </div>
-      {errors?.business_name && (
-        <p className={styles.errorMessage}>{errors.business_name}</p>
+      {errors?.businessName && (
+        <p className={styles.errorMessage}>{errors.businessName}</p>
       )}
     </div>
 
     {/* Campo: WhatsApp */}
     <div className={styles.fieldGroup}>
-      <label className={styles.label}>WhatsApp Comercial</label>
+      <label className={styles.label}>Teléfono</label>
       <div className={` ${errors?.phone ? styles.inputError : ""}`}>
         <InputField
           name="phone"

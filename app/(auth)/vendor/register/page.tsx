@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, KeyboardEvent } from "react";
+import { useState, useEffect } from "react";
 import BottomSheet from "@/components/bottom-sheet/BottomSheet";
 import styles from "../../user/register/RegisterUser.module.css";
 import vendorStyles from "./RegisterVendor.module.css";
@@ -8,6 +8,7 @@ import { IconsApp } from "@/components/icons/Icons";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { registerProvider } from "@/app/lib/api/auth";
+import { Category, getCategories } from "@/app/lib/api/getCategories";
 
 export default function VendorRegisterPage() {
   const [username, setUsername] = useState("");
@@ -15,36 +16,16 @@ export default function VendorRegisterPage() {
   const [password, setPassword] = useState("");
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
-  const [categories, setCategories] = useState<string[]>([]);
-  const [categoryInput, setCategoryInput] = useState("");
-  const [suggestion, setSuggestion] = useState("");
+
+  // Estados para categorías dinámicas
+  const [dbCategories, setDbCategories] = useState<Category[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [open, setOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-
-  const availableCategories = [
-    "Motor",
-    "Frenos",
-    "Suspensión",
-    "Carrocería",
-    "Eléctrico",
-    "Amortiguadores",
-    "Aceite",
-    "Baterías",
-  ];
-
-  const categoryMap: Record<string, number> = {
-    Motor: 1,
-    Frenos: 2,
-    Suspensión: 3,
-    Carrocería: 4,
-    Eléctrico: 5,
-    Amortiguadores: 6,
-    Aceite: 7,
-    Baterías: 8,
-  };
 
   const venezuelaData: Record<string, string[]> = {
     Lara: ["Barquisimeto", "Cabudare", "Carora", "El Tocuyo"],
@@ -55,57 +36,39 @@ export default function VendorRegisterPage() {
     "Distrito Capital": ["Caracas", "Chacao"],
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-
-    if (value.length > 0) {
-      value = value.charAt(0).toUpperCase() + value.slice(1);
-    }
-
-    setCategoryInput(value);
-
-    if (value.trim().length > 0) {
-      const match = availableCategories.find((cat) =>
-        cat.toLowerCase().startsWith(value.toLowerCase())
-      );
-
-      setSuggestion(match ? value + match.slice(value.length) : "");
-    } else {
-      setSuggestion("");
-    }
-  };
-
-  const addCategory = () => {
-    const finalValue = suggestion || categoryInput.trim();
-    if (finalValue && !categories.includes(finalValue)) {
-      setCategories((prev) => [...prev, finalValue]);
-      setCategoryInput("");
-      setSuggestion("");
-    }
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addCategory();
-    }
-    if ((e.key === "ArrowRight" || e.key === "Tab") && suggestion) {
-      setCategoryInput(suggestion);
-      setSuggestion("");
-    }
-  };
-
-  const removeCategory = (cat: string) => {
-    setCategories((prev) => prev.filter((c) => c !== cat));
-  };
-
-  const handleBackdropClick = () => {
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
-      if (open) {
-        document.dispatchEvent(new CustomEvent("close-sheet"));
+  // Carga de categorías desde la API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getCategories();
+        // Ajustamos según si el res es el array directo o viene en .data
+        const data = Array.isArray(res) ? res : res.data;
+        if (data) setDbCategories(data);
+      } catch (error) {
+        toast.error("Error al cargar categorías");
       }
+    };
+    fetchData();
+  }, []);
+
+  // Manejador para agregar categoría desde el Select
+  const handleSelectCategory = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const categoryId = Number(e.target.value);
+    if (!categoryId) return;
+
+    const categoryObj = dbCategories.find((c) => c.id === categoryId);
+
+    // Validamos que exista y que no esté ya seleccionada
+    if (categoryObj && !selectedCategories.find((c) => c.id === categoryId)) {
+      setSelectedCategories((prev) => [...prev, categoryObj]);
     }
-    router.replace("/login");
+
+    // Reseteamos el select a la opción por defecto
+    e.target.value = "";
+  };
+
+  const removeCategory = (id: number) => {
+    setSelectedCategories((prev) => prev.filter((c) => c.id !== id));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,12 +79,8 @@ export default function VendorRegisterPage() {
     const loadingToast = toast.loading("Registrando empresa...");
 
     try {
-      // 1. Convertimos los strings de categorías a IDs numéricos
-      const mainCategoriesIds = categories
-        .map((cat) => categoryMap[cat])
-        .filter((id) => id !== undefined);
+      const mainCategoriesIds = selectedCategories.map((cat) => cat.id);
 
-      // 2. Llamada al endpoint
       const data = await registerProvider(
         username,
         email,
@@ -132,18 +91,24 @@ export default function VendorRegisterPage() {
         termsAccepted
       );
 
-      toast.success(data.message, { id: loadingToast, duration: 6000 });
-
-      setTimeout(() => {
-        router.push("/login");
-      }, 2500);
+      toast.success(data.message || "Registro exitoso", {
+        id: loadingToast,
+        duration: 6000,
+      });
+      setTimeout(() => router.push("/login"), 2500);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Error al registrar proveedor";
-
       toast.error(errorMessage, { id: loadingToast });
       setIsLoading(false);
     }
+  };
+
+  const handleBackdropClick = () => {
+    if (typeof window !== "undefined" && window.innerWidth < 768 && open) {
+      document.dispatchEvent(new CustomEvent("close-sheet"));
+    }
+    router.replace("/login");
   };
 
   const isValid =
@@ -152,7 +117,7 @@ export default function VendorRegisterPage() {
     password &&
     state &&
     city &&
-    categories.length > 0 &&
+    selectedCategories.length > 0 &&
     termsAccepted;
 
   return (
@@ -167,7 +132,10 @@ export default function VendorRegisterPage() {
         className={vendorStyles.customSheetWidth}
         onAnimationComplete={() => router.replace("/login")}
       >
-        <div className={vendorStyles.gridContainer}>
+        <div
+          className={vendorStyles.gridContainer}
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className={vendorStyles.fullWidth}>
             <h1 className={styles.title}>Cuenta Proveedor</h1>
             <p className={styles.subtitle}>Registra tu negocio de repuestos</p>
@@ -210,7 +178,6 @@ export default function VendorRegisterPage() {
             </div>
 
             <div style={{ display: "flex", gap: "10px" }}>
-              {/* SELECT DE ESTADO */}
               <div style={{ flex: 1 }}>
                 <label className={styles.label}>Estado</label>
                 <div className={vendorStyles.selectWrapper}>
@@ -219,7 +186,7 @@ export default function VendorRegisterPage() {
                     value={state}
                     onChange={(e) => {
                       setState(e.target.value);
-                      setCity(""); // Limpiar ciudad al cambiar estado
+                      setCity("");
                     }}
                   >
                     <option value="">Seleccionar</option>
@@ -229,10 +196,12 @@ export default function VendorRegisterPage() {
                       </option>
                     ))}
                   </select>
+                  <div className={vendorStyles.iconOverlay}>
+                    <IconsApp.DownArrow />
+                  </div>
                 </div>
               </div>
 
-              {/* SELECT DE CIUDAD */}
               <div style={{ flex: 1 }}>
                 <label className={styles.label}>Ciudad</label>
                 <div className={vendorStyles.selectWrapper}>
@@ -250,6 +219,9 @@ export default function VendorRegisterPage() {
                         </option>
                       ))}
                   </select>
+                  <div className={vendorStyles.iconOverlay}>
+                    <IconsApp.DownArrow />
+                  </div>
                 </div>
               </div>
             </div>
@@ -257,55 +229,59 @@ export default function VendorRegisterPage() {
 
           {/* COLUMNA DERECHA */}
           <div className={vendorStyles.rightColumn}>
-            {/* NUEVA SECCIÓN DE CATEGORÍAS */}
             <label className={styles.label}>¿Qué repuestos vendes?</label>
-            <div className={vendorStyles.searchWrapper}>
-              <span className={vendorStyles.briefcaseIcon}>
-                <span className={vendorStyles.toolIcon}>
-                  <IconsApp.ToolInput />
-                </span>
-              </span>
-              <div className={vendorStyles.ghostContainer}>{suggestion}</div>
-              <input
-                type="text"
-                className={vendorStyles.searchInput}
-                value={categoryInput}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                placeholder={suggestion ? "" : "Escribe tus categorías"}
-              />
-              <button
-                type="button"
-                onClick={addCategory}
-                className={vendorStyles.addBtn}
+            <div className={vendorStyles.selectWrapper}>
+              <select
+                className={styles.input}
+                onChange={handleSelectCategory}
+                defaultValue=""
               >
-                +
-              </button>
+                <option value="" disabled>
+                  Selecciona tus categorías
+                </option>
+                {dbCategories.map((cat) => (
+                  <option
+                    key={cat.id}
+                    value={cat.id}
+                    disabled={selectedCategories.some((s) => s.id === cat.id)}
+                  >
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+              <div className={vendorStyles.iconOverlay}>
+                <IconsApp.DownArrow />
+              </div>
             </div>
-            <small className={vendorStyles.helperText}>
-              Enter o el botón &quot;+&quot; para agregar
-            </small>
 
-            <div className={vendorStyles.tagsScrollContainer}>
-              {categories.length === 0 ? (
+            <div
+              className={vendorStyles.tagsScrollContainer}
+              style={{ marginTop: "10px" }}
+            >
+              {selectedCategories.length === 0 ? (
                 <p className={vendorStyles.emptyStateText}>
-                  Aquí aparecerán las categorías que agregues
+                  Selecciona categorías de la lista
                 </p>
               ) : (
-                categories.map((cat) => (
+                selectedCategories.map((cat) => (
                   <button
-                    key={cat}
+                    key={cat.id}
                     type="button"
-                    onClick={() => removeCategory(cat)}
+                    onClick={() => removeCategory(cat.id)}
                     className={`${vendorStyles.categoryPill} ${vendorStyles.activePill}`}
                   >
-                    {cat} <span className={vendorStyles.removeIcon}>×</span>
+                    {cat.name}{" "}
+                    <span className={vendorStyles.removeIcon}>×</span>
                   </button>
                 ))
               )}
             </div>
 
-            <label className={styles.label} htmlFor="vendor-pass">
+            <label
+              className={styles.label}
+              htmlFor="vendor-pass"
+              style={{ marginTop: "15px" }}
+            >
               Contraseña
             </label>
             <div className={styles.inputWrapper}>

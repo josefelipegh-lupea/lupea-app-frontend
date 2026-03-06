@@ -11,9 +11,11 @@
   display: flex;
   flex-direction: column;
   padding: 0 24px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: Poppins;
   color: #000;
   width: 100%;
+  height: 90dvh;
+  min-height: 90dvh;
   margin: 0 auto;
   position: relative;
   padding-bottom: 20px;
@@ -212,6 +214,22 @@
 .subLabelActive {
   color: #f08400; /* Tu naranja de marca */
   font-weight: 600; /* Un poco más de peso para que resalte */
+}
+
+.logoutButton {
+  color: #ff4d4d;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  width: 90%;
+  justify-content: center;
 }
 
 @media (max-width: 900px) and (min-width: 768px) {

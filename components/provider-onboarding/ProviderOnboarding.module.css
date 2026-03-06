@@ -160,6 +160,10 @@
   justify-content: space-between;
 }
 
+.iconDoc {
+  margin-right: 10px;
+}
+
 .inputInner {
   display: flex;
   align-items: center;
@@ -188,8 +192,22 @@
   z-index: 2;
 }
 
+.selects {
+  padding: 0 20px;
+  appearance: none;
+}
+
+.iconOverlay {
+  position: absolute;
+  right: 16px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
 .icon {
-  margin-right: 10px;
   display: flex;
   align-items: center;
   color: #bdbdbd;
@@ -318,6 +336,23 @@
   cursor: pointer;
   padding: 10px;
   text-align: center;
+}
+
+/* Ajuste para 4 pasos */
+.stepperContainer {
+  max-width: 400px; /* Un poco más ancho para que quepan los 4 círculos */
+}
+
+/* Estilo para cuando la ubicación ya se guardó y el botón del padre debe resaltar */
+.btnActive {
+  background-color: #f08100;
+  transition: all 0.3s ease;
+}
+
+/* Efecto de carga en el mapa */
+.mapWrapper {
+  border: 2px solid #e0e0e0;
+  margin-top: 10px;
 }
 
 @media (min-width: 768px) {
