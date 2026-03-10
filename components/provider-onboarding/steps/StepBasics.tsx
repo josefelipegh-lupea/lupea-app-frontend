@@ -74,9 +74,9 @@ const StepBasics: React.FC<ExtendedStepProps> = ({
       <label className={styles.label}>Teléfono</label>
       <div className={` ${errors?.phone ? styles.inputError : ""}`}>
         <InputField
-          name="phone"
+          name="phoneNumber"
           className={styles.inputMargin}
-          value={formData.phone}
+          value={formData.phoneNumber}
           onChange={handleChange}
           placeholder="+58 412 0000000"
           icon={<IconsApp.Whatsapp />}

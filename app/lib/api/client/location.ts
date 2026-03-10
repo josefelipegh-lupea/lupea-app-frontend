@@ -8,7 +8,7 @@ export interface LocationValues {
   municipality: string;
   parish: string;
   address: string;
-  exactAddress: string;
+  exactAddress?: string;
   latitude: number;
   longitude: number;
   placeId: string;
@@ -47,6 +47,10 @@ export interface MunicipalitiesResponse {
     state: State;
     municipalities: Municipality[];
   };
+}
+
+export interface Parish {
+  parishes: string[];
 }
 
 export interface ParishesResponse {

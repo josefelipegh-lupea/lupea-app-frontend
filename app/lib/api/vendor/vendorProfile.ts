@@ -28,20 +28,34 @@ export interface ProviderProfile {
   mainCategories: Category[];
 }
 
+export interface ProviderLocationDTO {
+  name: string;
+  type: "branch";
+  state: string;
+  municipality: string;
+  parish: string;
+  address: string;
+  exactAddress?: string;
+  latitude: number;
+  longitude: number;
+  placeId: string;
+}
+
 export interface UpdateProviderProfileDTO {
   businessName: string;
-  phone: string;
-  whatsapp: string;
-  brands: number[];
+  phoneNumber: string;
   mainCategories: number[];
+  subcategories: number[];
+  brands: number[];
   paymentMethods: string[];
   warrantyPolicy?: string;
   returnPolicy?: string;
   hasStorePickup: boolean;
   hasLocalDelivery: boolean;
   hasNationalDelivery: boolean;
-  shippingCarriers: string[];
+  nationalCarriers: string[];
   termsAccepted: boolean;
+  location: ProviderLocationDTO;
 }
 
 export interface ProviderProfileData {

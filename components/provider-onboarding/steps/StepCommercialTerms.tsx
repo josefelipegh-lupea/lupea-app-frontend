@@ -10,17 +10,19 @@ export default function StepCommercialTerms({
   setFormData,
   handleChange,
 }: StepProps) {
-  // Función auxiliar para manejar los arrays de chips (Métodos de pago y Carriers)
   const toggleItem = (
-    list: string[],
+    list: string[] = [],
     item: string,
-    field: keyof typeof formData
+    field: "paymentMethods" | "nationalCarriers"
   ) => {
     const newList = list.includes(item)
       ? list.filter((i) => i !== item)
       : [...list, item];
 
-    setFormData({ ...formData, [field]: newList });
+    setFormData({
+      ...formData,
+      [field]: newList,
+    });
   };
 
   const handleCheckboxChange = (
@@ -29,9 +31,10 @@ export default function StepCommercialTerms({
   ) => {
     setFormData({ ...formData, [field]: value });
   };
-  console.log(formData);
+
   return (
     <div className={styles.container}>
+      {/* SECCIÓN: CONDICIONES DE VENTA */}
       <section className={styles.section}>
         <h3 className={styles.title}>Condiciones de Venta</h3>
 
@@ -60,9 +63,9 @@ export default function StepCommercialTerms({
             <label className={styles.label}>Garantía General</label>
             <select
               className={styles.select}
-              name="warrantyPolicy" // Obligatorio para handleChange
+              name="warrantyPolicy"
               value={formData.warrantyPolicy}
-              onChange={handleChange} // Usamos handleChange del padre
+              onChange={handleChange}
             >
               <option value="Sin garantía">Sin garantía</option>
               <option value="3 meses">3 meses</option>
@@ -73,14 +76,15 @@ export default function StepCommercialTerms({
         </div>
 
         <InputField
-          name="returnPolicy" // Nombre exacto en el formData
+          name="returnPolicy"
           label="Políticas de devolución (Opcional)"
           placeholder="Ej: 48 horas para reportar fallas..."
           value={formData.returnPolicy}
-          onChange={handleChange} // Usamos handleChange del padre
+          onChange={handleChange}
         />
       </section>
 
+      {/* SECCIÓN: LOGÍSTICA */}
       <section className={styles.section}>
         <h3 className={styles.title}>Logística y Entrega</h3>
 
@@ -117,17 +121,17 @@ export default function StepCommercialTerms({
           </label>
         </div>
 
-        <label className={styles.label}>Envíos Nacionales</label>
+        <label className={styles.label}>Agencias de envío</label>
         <div className={styles.chips}>
           {["MRW", "Zoom", "Tealca", "Domesa", "Liberty Express"].map((c) => (
             <button
               key={c}
               type="button"
               className={`${styles.chip} ${
-                formData.shippingCarriers?.includes(c) ? styles.chipActive : ""
+                formData.nationalCarriers?.includes(c) ? styles.chipActive : ""
               }`}
               onClick={() =>
-                toggleItem(formData.shippingCarriers, c, "shippingCarriers")
+                toggleItem(formData.nationalCarriers, c, "nationalCarriers")
               }
             >
               {c}

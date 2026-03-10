@@ -1,18 +1,6 @@
 import { ProviderFormData } from "@/components/provider-onboarding/types";
+import { commercialSchema } from "@/schemas/stepper/commercialSchema";
 import { useMemo } from "react";
-import { z } from "zod";
-
-const commercialSchema = z.object({
-  paymentMethods: z
-    .array(z.string())
-    .min(1, { message: "Debes seleccionar al menos un método de pago" }),
-  warrantyPolicy: z.string().optional().or(z.literal("")),
-  returnPolicy: z.string().optional().or(z.literal("")),
-  hasStorePickup: z.boolean(),
-  hasLocalDelivery: z.boolean(),
-  hasNationalDelivery: z.boolean(),
-  shippingCarriers: z.array(z.string()),
-});
 
 export function useCommercialValidation(values: ProviderFormData) {
   const result = useMemo(() => {

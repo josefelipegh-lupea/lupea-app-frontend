@@ -31,7 +31,6 @@
   margin-bottom: -0.5rem;
 }
 
-/* Chips Container */
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -50,19 +49,19 @@
   transition: all 0.2s ease;
 }
 
-.chip:hover {
-  background: #ff9100;
-  border-color: #ff9100;
-  color: #fff;
+@media (hover: hover) {
+  .chip:hover {
+    background: #ff9100;
+    border-color: #ff9100;
+    color: #fff;
+  }
 }
-
 .chipActive {
   border-color: var(--primary-color, #f08100);
   color: var(--primary-color, #f08100);
   box-shadow: 0 0 0 1px var(--primary-color, #f08100);
 }
 
-/* Row for Selects/Inputs */
 .row {
   display: grid;
   grid-template-columns: 1fr;
@@ -97,7 +96,6 @@
   border-color: var(--primary-color, #f08100);
 }
 
-/* Checkboxes */
 .checkboxes {
   display: flex;
   flex-direction: column;

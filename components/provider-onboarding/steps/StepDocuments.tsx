@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import styles from "@/components/provider-onboarding/ProviderOnboarding.module.css";
 import { IconsApp } from "@/components/icons/Icons";
-import InputField from "@/components/input/InputField";
-import { uploadProviderDocument } from "@/app/lib/api/vendor/vendorProfile";
 import toast from "react-hot-toast";
 
 interface StepDocumentsProps {
@@ -12,103 +10,85 @@ interface StepDocumentsProps {
   setSelectedFiles: React.Dispatch<
     React.SetStateAction<{ [key: string]: File | null }>
   >;
-  jwt: string;
+  // jwt ya no es estrictamente necesario aquí si no subimos al momento,
+  // pero lo dejamos por si tu interfaz StepProps lo requiere.
+  jwt?: string;
 }
 
 const StepDocuments: React.FC<StepDocumentsProps> = ({
   selectedFiles,
   setSelectedFiles,
-  jwt,
 }) => {
-  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
-
   const requiredDocs = [
-    {
-      id: "registry",
-      label: "Acta Constitutiva o Registro",
-      icon: <IconsApp.Document color="#A9A9A9" />,
-    },
-    {
-      id: "assembly",
-      label: "Última Acta de Asamblea",
-      icon: <IconsApp.Document color="#A9A9A9" />,
-    },
-    {
-      id: "rif",
-      label: "RIF Obligatorio",
-      icon: <IconsApp.Document color="#A9A9A9" />,
-    },
-    {
-      id: "legal_id",
-      label: "CI del Representante Legal",
-      icon: <IconsApp.Document color="#A9A9A9" />,
-    },
+    { id: "registry", label: "Acta Constitutiva o Registro" },
+    { id: "assembly", label: "Última Acta de Asamblea" },
+    { id: "rif", label: "RIF Obligatorio" },
+    { id: "legal_id", label: "CI del Representante Legal" },
   ];
 
-  const handleFileChange = async (
+  const handleFileChange = (
     id: string,
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // 1. Actualizar estado local para mostrar el nombre en la UI
-    setSelectedFiles((prev) => ({ ...prev, [id]: file }));
-
-    // 2. Iniciar subida al servidor
-    setUploading((prev) => ({ ...prev, [id]: true }));
-
-    try {
-      await uploadProviderDocument(jwt, id, file);
-      toast.success(`${file.name} subido con éxito`);
-    } catch (error) {
-      console.error(error);
-      toast.error(`Error: ${error}`);
-      // Opcional: limpiar el archivo si falló la subida
-      setSelectedFiles((prev) => ({ ...prev, [id]: null }));
-    } finally {
-      setUploading((prev) => ({ ...prev, [id]: false }));
+    // Validación de tamaño (5MB) para no tener problemas en el paso final
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("El archivo excede los 5MB permitidos");
+      // Limpiamos el input para que pueda re-seleccionar
+      event.target.value = "";
+      return;
     }
+
+    // Solo guardamos en el estado del padre. La "magia" de la subida
+    // ocurrirá en handleNextStep cuando currentStep === 5.
+    setSelectedFiles((prev) => ({ ...prev, [id]: file }));
+    toast.success(`Archivo "${file.name}" listo para subir`);
   };
 
   return (
     <div className={styles.gridContainer}>
-      <p className={`${styles.fullWidth} ${styles.helperText}`}>
-        Formatos permitidos: PDF, JPG, PNG
-      </p>
+      <div className={styles.fullWidth}>
+        <p className={styles.helperText}>
+          Formatos permitidos <strong>PDF, JPG o PNG</strong>
+          .
+          <br />
+        </p>
+      </div>
 
       {requiredDocs.map((doc) => {
         const file = selectedFiles[doc.id];
-        const isUploading = uploading[doc.id];
 
         return (
           <div
             key={doc.id}
-            className={`${styles.inputWrapper} ${styles.inputDoc}`}
+            className={`${styles.inputWrapper} ${styles.inputDoc} ${
+              file ? styles.docActive : ""
+            }`}
           >
             <div className={styles.inputInner}>
-              <span className={styles.iconDoc}>{doc.icon}</span>
+              <span className={styles.iconDoc}>
+                <IconsApp.Document color={file ? "#2ecc71" : "#A9A9A9"} />
+              </span>
               <span
                 className={`${styles.input} ${file ? styles.fileSelected : ""}`}
               >
-                {isUploading ? "Subiendo..." : file ? file.name : doc.label}
+                {file ? file.name : doc.label}
               </span>
             </div>
 
             <label
-              className={`${styles.addBtn} ${
-                isUploading ? styles.disabled : ""
-              }`}
+              className={`${styles.addBtn} ${file ? styles.btnChange : ""}`}
             >
-              {isUploading ? "..." : file ? "CAMBIAR" : "SUBIR"}
-
-              <InputField
+              {file ? "CAMBIAR" : "SELECCIONAR"}
+              <input
                 type="file"
-                name="file"
+                name={doc.id}
                 hidden
-                disabled={isUploading}
                 accept=".pdf,.jpg,.png"
                 onChange={(e) => handleFileChange(doc.id, e)}
+                style={{ display: "none" }}
               />
             </label>
           </div>
