@@ -213,13 +213,11 @@
   color: #bdbdbd;
 }
 
-.btnDisabled {
-  background-color: #e0e0e0 !important;
-  color: #a0a0a0 !important;
-  cursor: not-allowed !important;
-  pointer-events: none;
-  box-shadow: none !important;
-  transform: none !important;
+.btnSubmit {
+  background-color: #e0e0e0;
+  color: #a0a0a0;
+  width: 100%;
+  padding: 10px;
 }
 
 .addBtn {
@@ -306,7 +304,10 @@
   margin-top: 20px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
   gap: 12px;
+  width: 100%;
 }
 
 .btnActive {
@@ -421,7 +422,7 @@
     grid-column: span 2;
   }
 
-  .btnActive {
+  .btnSubmit {
     width: 240px;
   }
 }

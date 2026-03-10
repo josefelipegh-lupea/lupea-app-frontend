@@ -5,8 +5,9 @@ export interface ProviderFormData {
   username: string;
   email: string;
   businessName: string;
-  phone: string;
+  phoneNumber: string;
   mainCategories: BaseEntity[];
+  subcategories: BaseEntity[];
   brands: BaseEntity[];
   businessPhotos: File[];
   paymentMethods: string[];
@@ -15,11 +16,12 @@ export interface ProviderFormData {
   hasStorePickup: boolean;
   hasLocalDelivery: boolean;
   hasNationalDelivery: boolean;
-  shippingCarriers: string[];
+  nationalCarriers: string[];
 }
 
 export interface StepProps {
   formData: ProviderFormData;
   handleChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  updateFormData?: (newData: Partial<ProviderFormData>) => void;
   setFormData: React.Dispatch<React.SetStateAction<ProviderFormData>>;
 }

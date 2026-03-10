@@ -28,6 +28,7 @@ import {
   uploadProviderDocument,
 } from "@/app/lib/api/vendor/vendorProfile";
 import { LocationValues } from "@/app/lib/api/client/location";
+import { useLocationValidation } from "@/hooks/useLocation";
 
 const STORAGE_KEY = "provider_onboarding_data";
 const LOCATION_STORAGE_KEY = "provider_onboarding_location";
@@ -51,22 +52,24 @@ const ProviderOnboarding: React.FC = () => {
     username: profile?.username || "",
     email: profile?.email || "",
     businessName: "",
-    phone: "",
+    phoneNumber: "",
     mainCategories: [],
+    subcategories: [],
     brands: [],
     businessPhotos: [],
     paymentMethods: [],
-    warrantyPolicy: "",
+    warrantyPolicy: "Sin garantía",
     returnPolicy: "",
     hasStorePickup: false,
     hasLocalDelivery: false,
     hasNationalDelivery: false,
-    shippingCarriers: [],
+    nationalCarriers: [],
   });
 
   const basics = useBasicsValidation(formData);
   const classification = useClassificationValidation(formData);
   const documents = useDocumentsValidation(selectedFiles);
+  const location = useLocationValidation(locationData);
   const comercial = useCommercialValidation(formData);
 
   // 1. Cargar datos persistidos al iniciar
@@ -74,14 +77,25 @@ const ProviderOnboarding: React.FC = () => {
     const savedData = localStorage.getItem(STORAGE_KEY);
     const savedLocation = localStorage.getItem(LOCATION_STORAGE_KEY);
 
-    if (savedData) setFormData(JSON.parse(savedData));
+    // Importante: Mezclamos lo guardado con los datos de sesión por si acaso
+    if (savedData) {
+      setFormData((prev) => ({
+        ...prev,
+        ...JSON.parse(savedData),
+        username: profile?.username || prev.username,
+        email: profile?.email || prev.email,
+      }));
+    }
     if (savedLocation) setLocationData(JSON.parse(savedLocation));
-  }, []);
+  }, [profile]);
 
-  // 2. Persistir formData cuando cambie
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-  }, [formData]);
+  const updateFormData = (newData: Partial<ProviderFormData>) => {
+    setFormData((prev) => {
+      const updated = { ...prev, ...newData };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   const handleSetLocation = (data: LocationValues) => {
     setLocationData(data);
@@ -97,7 +111,7 @@ const ProviderOnboarding: React.FC = () => {
     if (currentStep === 1) return basics.isValid;
     if (currentStep === 2) return classification.isValid;
     if (currentStep === 3) return documents.isValid;
-    if (currentStep === 4) return !!locationData;
+    if (currentStep === 4) return location.isValid;
     if (currentStep === 5) return comercial.isValid;
     return false;
   };
@@ -107,14 +121,26 @@ const ProviderOnboarding: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     let newValue = value;
-    if (name === "phone") {
+
+    if (name === "phoneNumber") {
       const cleanNumbers = value.replace(/\D/g, "");
       newValue = value.startsWith("+58")
         ? "+58" + value.substring(3).replace(/\D/g, "")
         : "+58" + cleanNumbers;
       if (newValue.length > 14) return;
     }
-    setFormData({ ...formData, [name]: newValue });
+
+    updateFormData({ [name]: newValue });
+  };
+
+  const handleSetFormData: React.Dispatch<
+    React.SetStateAction<ProviderFormData>
+  > = (value) => {
+    setFormData((prev) => {
+      const nextState = typeof value === "function" ? value(prev) : value;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+      return nextState;
+    });
   };
 
   const handleNextStep = async () => {
@@ -124,24 +150,25 @@ const ProviderOnboarding: React.FC = () => {
       if (!jwt || !locationData) return;
       setIsSaving(true);
       try {
-        // A. Primero crear la localización (sede)
-        await createLocationProvider(jwt, locationData);
-
-        // B. Actualizar perfil comercial
         const profileBody: UpdateProviderProfileDTO = {
-          businessName: formData.businessName,
-          phone: formData.phone,
-          whatsapp: formData.phone,
+          ...formData,
+          phoneNumber: formData.phoneNumber,
           brands: formData.brands.map((b) => b.id),
           mainCategories: formData.mainCategories.map((c) => c.id),
-          paymentMethods: formData.paymentMethods,
-          warrantyPolicy: formData.warrantyPolicy,
-          returnPolicy: formData.returnPolicy,
-          hasStorePickup: formData.hasStorePickup,
-          hasLocalDelivery: formData.hasLocalDelivery,
-          hasNationalDelivery: formData.hasNationalDelivery,
-          shippingCarriers: formData.shippingCarriers,
+          subcategories: formData.subcategories.map((s) => s.id),
           termsAccepted: true,
+          location: {
+            name: locationData.name,
+            type: "branch",
+            state: locationData.state,
+            municipality: locationData.municipality,
+            parish: locationData.parish,
+            address: locationData.address,
+            exactAddress: locationData.exactAddress,
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+            placeId: locationData.placeId,
+          },
         };
         await updateProviderProfile(jwt, profileBody);
 
@@ -220,14 +247,16 @@ const ProviderOnboarding: React.FC = () => {
               {currentStep === 1 && (
                 <StepBasics
                   formData={formData}
-                  setFormData={setFormData}
+                  updateFormData={updateFormData}
+                  setFormData={handleSetFormData}
                   handleChange={handleChange}
                 />
               )}
               {currentStep === 2 && (
                 <StepClassification
                   formData={formData}
-                  setFormData={setFormData}
+                  updateFormData={updateFormData}
+                  setFormData={handleSetFormData}
                   handleChange={handleChange}
                 />
               )}
@@ -249,7 +278,8 @@ const ProviderOnboarding: React.FC = () => {
               {currentStep === 5 && (
                 <StepCommercialTerms
                   formData={formData}
-                  setFormData={setFormData}
+                  updateFormData={updateFormData}
+                  setFormData={handleSetFormData}
                   handleChange={handleChange}
                 />
               )}
@@ -258,7 +288,7 @@ const ProviderOnboarding: React.FC = () => {
 
           <div className={styles.buttonGroup}>
             <Button
-              className={`${styles.btnSave} ${
+              className={`${styles.btnSubmit} ${
                 !isCurrentStepValid() || isSaving
                   ? styles.btnDisabled
                   : styles.btnActive

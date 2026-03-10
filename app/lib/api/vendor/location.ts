@@ -46,10 +46,15 @@ export async function getMunicipalitiesProvider(
 export async function getParishesProvider(
   jwt: string,
   stateId: number,
-  municipalityName: string
+  municipality: string
 ): Promise<ParishesResponse> {
+  const params = new URLSearchParams({
+    state: stateId.toString(),
+    municipality: municipality,
+  });
+
   const res = await fetch(
-    `${API_URL}/catalog/venezuela/parishes?stateId=${stateId}&municipality=${municipalityName}`,
+    `${API_URL}/catalog/venezuela/parishes?${params.toString()}`,
     {
       method: "GET",
       headers: {
@@ -60,8 +65,10 @@ export async function getParishesProvider(
   );
 
   const data = await res.json();
+
   if (!res.ok)
     throw new Error(data.message || "Error al obtener las parroquias");
+
   return data;
 }
 

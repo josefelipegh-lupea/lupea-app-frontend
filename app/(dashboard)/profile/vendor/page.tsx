@@ -11,7 +11,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { ProviderProfile } from "@/app/lib/api/vendor/vendorProfile";
 
-// IMPORTAMOS TU ARCHIVO Y TU INTERFAZ
 import MENU_CONFIG_VENDOR, {
   MenuItemConfig,
 } from "@/app/utils/constants/vendor-profile-opcionts";
@@ -84,31 +83,34 @@ export default function VendorProfilePage() {
   }
 
   const vendorProfile = profile as ProviderProfile;
-  const isRestricted =
-    profile.status === "incomplete" || profile.status === "under_review";
+  const isInReview = profile.status === "in_review";
+  const isIncomplete = profile.status === "incomplete";
 
+  // LÓGICA DE FILTRADO DE MENÚ SEGÚN ESTADO
   const displayMenu = MENU_CONFIG_VENDOR.map((section) => {
-    if (isRestricted) {
+    // 1. Si está en revisión, no mostramos ningún ítem de menú normal
+    if (isInReview) {
+      return { ...section, items: [] };
+    }
+
+    // 2. Si está incompleto, solo mostramos la opción de Onboarding
+    if (isIncomplete) {
       if (section.id === "cuenta") {
         return {
           ...section,
           items: [
             {
-              label:
-                profile.status === "incomplete"
-                  ? "Completar perfil"
-                  : "Perfil en revisión",
+              label: "Completar perfil",
               icon: IconsApp.Personal,
-              href:
-                profile.status === "incomplete"
-                  ? "/profile/vendor/onboarding"
-                  : undefined,
+              href: "/profile/vendor/onboarding",
             } as MenuItemConfig,
           ],
         };
       }
-      return { ...section, items: [] as MenuItemConfig[] };
+      return { ...section, items: [] };
     }
+
+    // 3. Si está activo (o cualquier otro estado), mostramos el menú completo
     return section;
   }).filter(
     (section) =>
@@ -149,6 +151,21 @@ export default function VendorProfilePage() {
           </div>
 
           <nav className={styles.menuContainer}>
+            {/* MENSAJE EXCLUSIVO PARA PERFIL EN REVISIÓN */}
+            {isInReview && (
+              <div className={styles.reviewStatusBanner}>
+                <div className={styles.reviewIcon}>
+                  <IconsApp.OrangeClock />
+                </div>
+                <h3>Perfil en revisión</h3>
+                <p>
+                  Estamos validando tus documentos y datos comerciales. Te
+                  notificaremos pronto.
+                </p>
+              </div>
+            )}
+
+            {/* RENDERIZADO DINÁMICO DEL MENÚ */}
             {displayMenu.map((section) => (
               <div key={section.id} className={styles.sectionGroup}>
                 <h2 className={styles.sectionTitle}>{section.title}</h2>
@@ -163,8 +180,6 @@ export default function VendorProfilePage() {
                           ? isNotifEnabled
                             ? "Activada"
                             : "Desactivada"
-                          : item.label === "Perfil en revisión"
-                          ? "Validando datos"
                           : undefined
                       }
                       icon={item.icon()}

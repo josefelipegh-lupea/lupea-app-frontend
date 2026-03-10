@@ -41,7 +41,7 @@ export default function LoginPage() {
       toast.success("¡Bienvenido de nuevo!");
 
       if (data.profileType === "provider") {
-        router.replace("/home/vendor");
+        router.replace("/profile/vendor");
       } else {
         router.replace("/home/user");
       }

@@ -5,7 +5,6 @@ import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import styles from "./StepLocationProvider.module.css";
 import InputField from "@/components/input/InputField";
 import { IconsApp } from "@/components/icons/Icons";
-import Button from "@/components/button/Button";
 import {
   State,
   Municipality,
@@ -20,6 +19,43 @@ import {
 
 const VENEZUELA_BOUNDS = { north: 12.5, south: 0.8, west: -71.4, east: -59.7 };
 const INITIAL_COORDS = { lat: 10.4806, lng: -66.8983 };
+
+const STOP_WORDS = [
+  "municipio",
+  "autonomo",
+  "parroquia",
+  "estado",
+  "de",
+  "del",
+  "la",
+  "el",
+  "distrito",
+  "capital",
+  "bolivariano",
+  "libertador",
+];
+
+const normalizeText = (text: string) =>
+  text
+    ? text
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+    : "";
+
+const cleanAndTokenize = (text: string) => {
+  return normalizeText(text)
+    .split(/\s+/)
+    .filter((word) => !STOP_WORDS.includes(word) && word.length > 2);
+};
+
+const isSmartMatch = (googleText: string, dbText: string) => {
+  const cleanGoogle = normalizeText(googleText);
+  const dbTokens = cleanAndTokenize(dbText);
+  if (dbTokens.length === 0) return cleanGoogle.includes(normalizeText(dbText));
+  return dbTokens.every((token) => cleanGoogle.includes(token));
+};
 
 interface StepLocationProviderProps {
   jwt: string | null;
@@ -37,8 +73,9 @@ export default function StepLocationProvider({
   const [states, setStates] = useState<State[]>([]);
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
   const [parishes, setParishes] = useState<string[]>([]);
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
-  // Inicializamos el estado interno con lo que haya en locationData (LocalStorage) o valores por defecto
+  // Fuente de verdad: carga inicial del Padre (LocalStorage)
   const [localFormData, setLocalFormData] = useState<LocationValues>(
     locationData || {
       name: "",
@@ -54,11 +91,8 @@ export default function StepLocationProvider({
     }
   );
 
-  const lastValidPos = useRef({
-    lat: localFormData.latitude,
-    lng: localFormData.longitude,
-  });
   const mapRef = useRef<google.maps.Map | null>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -75,6 +109,23 @@ export default function StepLocationProvider({
     );
   };
 
+  const findMatchInResults = (
+    results: google.maps.GeocoderResult[],
+    validList: string[]
+  ) => {
+    const allGoogleTexts = results.flatMap((res) => [
+      ...res.address_components.map((c) => c.long_name),
+      res.formatted_address,
+    ]);
+
+    for (const validName of validList) {
+      for (const googleText of allGoogleTexts) {
+        if (isSmartMatch(googleText, validName)) return validName;
+      }
+    }
+    return "";
+  };
+
   // 1. Cargar Estados
   useEffect(() => {
     const fetchStates = async () => {
@@ -89,15 +140,13 @@ export default function StepLocationProvider({
     fetchStates();
   }, [jwt]);
 
-  // 2. Cargar Municipios (cuando cambia el estado)
+  // 2. Cargar Municipios
   useEffect(() => {
     const fetchMunicipalitiesData = async () => {
-      // Si no hay JWT o no hay estado seleccionado, limpiamos y salimos
       if (!jwt || !localFormData.state) {
         setMunicipalities([]);
         return;
       }
-
       const stateObj = states.find((s) => s.name === localFormData.state);
       if (!stateObj) return;
 
@@ -107,10 +156,9 @@ export default function StepLocationProvider({
           setMunicipalities(response.data.municipalities);
         }
       } catch (error) {
-        toast.error("Error al cargar municipios");
+        console.error("Error municipios:", error);
       }
     };
-
     fetchMunicipalitiesData();
   }, [localFormData.state, states, jwt]);
 
@@ -122,93 +170,169 @@ export default function StepLocationProvider({
         return;
       }
       const stateObj = states.find((s) => s.name === localFormData.state);
-      if (!stateObj) return;
+      const muniObj = municipalities.find(
+        (m) => m.name === localFormData.municipality
+      );
+      if (!stateObj || !muniObj) return;
+
       try {
         const response = await getParishesProvider(
           jwt,
           stateObj.id,
-          localFormData.municipality
+          muniObj.name
         );
-        if (response.ok) setParishes(response.data.parishes);
+        if (response.ok) {
+          setParishes(response.data.parishes);
+        }
       } catch (error) {
-        toast.error("Error al cargar parroquias");
+        console.error("Error parroquias:", error);
       }
     };
     fetchParishesData();
-  }, [localFormData.municipality, localFormData.state, states, jwt]);
+  }, [localFormData.municipality, municipalities]);
 
+  // 4. EL PIN MANDA: handleLocationUpdate
   const handleLocationUpdate = (lat: number, lng: number) => {
     if (!isWithinVenezuela(lat, lng)) {
       toast.error("Ubicación fuera de Venezuela");
       return;
     }
 
-    lastValidPos.current = { lat, lng };
-
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-      if (status === google.maps.GeocoderStatus.OK && results?.[0]) {
-        const addressComponents = results[0].address_components;
-        const googleStateName =
-          addressComponents.find((c) =>
-            c.types.includes("administrative_area_level_1")
-          )?.long_name || "";
-
-        const foundState = states.find(
-          (s) =>
-            googleStateName.toLowerCase().includes(s.name.toLowerCase()) ||
-            s.name.toLowerCase().includes(googleStateName.toLowerCase())
+      if (status === "OK" && results?.[0]) {
+        const matchedState = findMatchInResults(
+          results,
+          states.map((s) => s.name)
         );
+        const matchedMuni = findMatchInResults(
+          results,
+          municipalities.map((m) => m.name)
+        );
+        const matchedParish = findMatchInResults(results, parishes);
 
-        setLocalFormData((prev) => ({
-          ...prev,
-          latitude: lat,
-          longitude: lng,
-          exactAddress: results[0].formatted_address,
-          placeId: results[0].place_id,
-          state: foundState ? foundState.name : prev.state,
-        }));
+        setLocalFormData((prev) => {
+          const hasStateChanged = matchedState && matchedState !== prev.state;
+          const hasMuniChanged =
+            matchedMuni && matchedMuni !== prev.municipality;
+          const hasParishChanged =
+            matchedParish && matchedParish !== prev.parish;
+
+          let newExactAddress = prev.exactAddress;
+          if (hasStateChanged || hasMuniChanged || hasParishChanged) {
+            newExactAddress = ""; // Solo borramos si el pin se movió a otro municipio/estado
+          }
+
+          return {
+            ...prev,
+            latitude: lat,
+            longitude: lng,
+            placeId: results[0].place_id,
+            address: results[0].formatted_address,
+            exactAddress: newExactAddress,
+            state: matchedState || prev.state,
+            municipality:
+              matchedMuni || (hasStateChanged ? "" : prev.municipality),
+            parish: matchedParish || (hasMuniChanged ? "" : prev.parish),
+          };
+        });
       }
     });
   };
+
+  // 5. BÚSQUEDA POR TEXTO (Solo ocurre por tecleo)
+  // 5. BÚSQUEDA POR TEXTO (Ahora también actualiza los selects)
+  const handleDetailedAddressSearch = (specificAddress: string) => {
+    const fullQuery = [
+      specificAddress,
+      localFormData.parish,
+      localFormData.municipality,
+      localFormData.state,
+      "Venezuela",
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode(
+      { address: fullQuery, componentRestrictions: { country: "VE" } },
+      (results, status) => {
+        if (status === "OK" && results?.[0] && mapRef.current) {
+          const res = results[0];
+          const { lat, lng } = res.geometry.location;
+
+          // 1. Mover el mapa
+          mapRef.current.panTo({ lat: lat(), lng: lng() });
+          mapRef.current.setZoom(17);
+
+          // 2. Intentar buscar matches para los selects basados en lo que encontró Google
+          const matchedState = findMatchInResults(
+            results,
+            states.map((s) => s.name)
+          );
+          const matchedMuni = findMatchInResults(
+            results,
+            municipalities.map((m) => m.name)
+          );
+          const matchedParish = findMatchInResults(results, parishes);
+
+          // 3. Actualizar TODO el estado
+          setLocalFormData((prev) => ({
+            ...prev,
+            latitude: lat(),
+            longitude: lng(),
+            address: res.formatted_address,
+            placeId: res.place_id,
+            // Aquí la magia: si Google encontró un estado/muni/parroquia diferente, lo ponemos
+            state: matchedState || prev.state,
+            municipality: matchedMuni || prev.municipality,
+            parish: matchedParish || prev.parish,
+          }));
+        }
+      }
+    );
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalFormData((prev) => ({ ...prev, exactAddress: value }));
+
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+
+    if (value.length >= 5) {
+      searchTimeoutRef.current = setTimeout(() => {
+        handleDetailedAddressSearch(value);
+      }, 1500);
+    }
+  };
+
+  // Sincronización con el padre cada vez que cambie algo
+  useEffect(() => {
+    setLocationData(localFormData);
+  }, [localFormData, setLocationData]);
 
   const updateMapByQuery = (query: string, zoom: number) => {
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ address: `${query}, Venezuela` }, (results, status) => {
       if (status === "OK" && results?.[0] && mapRef.current) {
         const loc = results[0].geometry.location;
-        const lat = loc.lat();
-        const lng = loc.lng();
-
-        if (isWithinVenezuela(lat, lng)) {
-          lastValidPos.current = { lat, lng };
-          mapRef.current.panTo(loc);
-          mapRef.current.setZoom(zoom);
-          setLocalFormData((prev) => ({
-            ...prev,
-            latitude: lat,
-            longitude: lng,
-            exactAddress: results[0].formatted_address,
-          }));
-        }
+        mapRef.current.panTo(loc);
+        mapRef.current.setZoom(zoom);
+        setLocalFormData((prev) => ({
+          ...prev,
+          latitude: loc.lat(),
+          longitude: loc.lng(),
+        }));
       }
     });
   };
 
   const handleGPS = () => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (p) => handleLocationUpdate(p.coords.latitude, p.coords.longitude),
-        () => toast.error("Habilita el GPS para obtener tu ubicación")
+      navigator.geolocation.getCurrentPosition((p) =>
+        handleLocationUpdate(p.coords.latitude, p.coords.longitude)
       );
     }
-  };
-
-  const handleConfirm = () => {
-    // Aquí persistimos en el estado global/LocalStorage del padre
-    setLocationData(localFormData);
-    toast.success("Ubicación guardada localmente");
-    // onSuccess();
   };
 
   return (
@@ -222,7 +346,6 @@ export default function StepLocationProvider({
             onChange={(e) =>
               setLocalFormData({ ...localFormData, name: e.target.value })
             }
-            placeholder="Ej: Sede Principal"
           />
 
           <div className={styles.chipsContainer}>
@@ -252,6 +375,7 @@ export default function StepLocationProvider({
                     state: val,
                     municipality: "",
                     parish: "",
+                    exactAddress: "",
                   });
                   if (val) updateMapByQuery(val, 9);
                 }}
@@ -282,6 +406,7 @@ export default function StepLocationProvider({
                     ...localFormData,
                     municipality: val,
                     parish: "",
+                    exactAddress: "",
                   });
                   if (val)
                     updateMapByQuery(`${val}, ${localFormData.state}`, 13);
@@ -309,7 +434,11 @@ export default function StepLocationProvider({
                 disabled={!localFormData.municipality}
                 onChange={(e) => {
                   const val = e.target.value;
-                  setLocalFormData({ ...localFormData, parish: val });
+                  setLocalFormData({
+                    ...localFormData,
+                    parish: val,
+                    exactAddress: "",
+                  });
                   if (val)
                     updateMapByQuery(
                       `${val}, ${localFormData.municipality}`,
@@ -333,25 +462,10 @@ export default function StepLocationProvider({
 
           <InputField
             label="Dirección Específica"
-            name="address"
-            placeholder="Urb, calle, local..."
-            value={localFormData.address}
-            onChange={(e) =>
-              setLocalFormData({ ...localFormData, address: e.target.value })
-            }
+            name="exactAddress"
+            value={localFormData.exactAddress}
+            onChange={handleInputChange}
           />
-
-          <Button
-            onClick={handleConfirm}
-            disabled={
-              !localFormData.name ||
-              !localFormData.state ||
-              !localFormData.parish ||
-              !localFormData.address
-            }
-          >
-            Confirmar Ubicación de Sede
-          </Button>
         </section>
 
         <div className={styles.mapWrapper}>
