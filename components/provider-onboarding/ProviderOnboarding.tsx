@@ -29,12 +29,13 @@ import {
 } from "@/app/lib/api/vendor/vendorProfile";
 import { LocationValues } from "@/app/lib/api/client/location";
 import { useLocationValidation } from "@/hooks/useLocation";
+import SkeletonProfile from "../skeleton/SkeletonProfile";
 
 const STORAGE_KEY = "provider_onboarding_data";
 const LOCATION_STORAGE_KEY = "provider_onboarding_location";
 
 const ProviderOnboarding: React.FC = () => {
-  const { profile, jwt } = useAuth();
+  const { profile, jwt, isLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
@@ -203,11 +204,22 @@ const ProviderOnboarding: React.FC = () => {
   };
 
   useEffect(() => {
-    if (profile?.status === "active" || profile?.status === "reviewing") {
+    if (
+      !isLoading &&
+      (profile?.status === "active" || profile?.status === "in_review")
+    ) {
+      toast("Tu perfil ya está en proceso de revisión.", { icon: "⚠️" });
       router.replace("/profile/vendor");
-      toast.error("Tu perfil ya está en proceso de revisión.");
     }
-  }, [profile, router]);
+  }, [profile, isLoading, router]);
+
+  if (
+    isLoading ||
+    profile?.status === "active" ||
+    profile?.status === "in_review"
+  ) {
+    return <SkeletonProfile />;
+  }
 
   return (
     <div
@@ -281,6 +293,7 @@ const ProviderOnboarding: React.FC = () => {
                   updateFormData={updateFormData}
                   setFormData={handleSetFormData}
                   handleChange={handleChange}
+                  mode="all"
                 />
               )}
             </StepTransition>

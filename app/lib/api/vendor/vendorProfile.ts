@@ -68,7 +68,7 @@ export interface ProviderProfileData {
   updatedAt: string;
   publishedAt: string;
   locale: string | null;
-  phone: string;
+  phoneNumber: string;
   paymentMethods: string[];
   warrantyPolicy: string;
   returnPolicy: string;
@@ -78,11 +78,98 @@ export interface ProviderProfileData {
   nationalCarriers: string[];
 }
 
-// 3. La respuesta completa del API
 export interface UpdateProviderResponse {
   ok: boolean;
   message: string;
   data: ProviderProfileData;
+}
+
+export interface CommercialData {
+  id: number;
+  documentId: string;
+  status: string;
+  username: string;
+  email: string;
+  businessName: string;
+  phoneNumber: string;
+  editableFields: {
+    username: boolean;
+    email: boolean;
+    businessName: boolean;
+    phoneNumber: boolean;
+  };
+}
+
+export interface CommercialDataResponse {
+  ok: boolean;
+  data: CommercialData;
+}
+
+export interface UpdateCommercialDataDTO {
+  businessName: string;
+  phoneNumber: string;
+}
+
+export interface UpdateClassificationDTO {
+  mainCategories: number[];
+  subcategories?: number[];
+  brands: number[];
+}
+
+export interface ClassificationData {
+  id: number;
+  documentId: string;
+  mainCategories: Category[];
+  subcategories?: Category[];
+  brands: BaseEntity[];
+  storefrontPhotos?: string;
+}
+
+export interface ClassificationResponse {
+  ok: boolean;
+  data: ClassificationData;
+}
+
+export interface SalesConditionsData {
+  id: number;
+  documentId: string;
+  paymentMethods: string[];
+  warrantyPolicy: string;
+  returnPolicy: string;
+}
+
+export interface SalesConditionsResponse {
+  ok: boolean;
+  message?: string;
+  data: SalesConditionsData;
+}
+
+export interface UpdateSalesConditionsDTO {
+  paymentMethods: string[];
+  warrantyPolicy: string;
+  returnPolicy: string;
+}
+
+export interface LogisticsData {
+  id: number;
+  documentId: string;
+  hasStorePickup: boolean;
+  hasLocalDelivery: boolean;
+  hasNationalDelivery: boolean;
+  nationalCarriers: string[];
+}
+
+export interface LogisticsResponse {
+  ok: boolean;
+  message?: string;
+  data: LogisticsData;
+}
+
+export interface UpdateLogisticsDTO {
+  hasStorePickup: boolean;
+  hasLocalDelivery: boolean;
+  hasNationalDelivery: boolean;
+  nationalCarriers: string[];
 }
 
 export async function getProviderProfile(
@@ -155,5 +242,147 @@ export async function uploadProviderDocument(
     );
   }
 
+  return data;
+}
+
+export async function getCommercialData(
+  jwt: string
+): Promise<CommercialDataResponse> {
+  const res = await fetch(`${API_URL}/provider-profiles/me/commercial-data`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
+  const data = await res.json();
+  if (!res.ok)
+    throw new Error(
+      data.error?.message || "Error al obtener datos comerciales"
+    );
+  return data;
+}
+
+export async function updateCommercialData(
+  jwt: string,
+  payload: UpdateCommercialDataDTO
+): Promise<CommercialDataResponse> {
+  const res = await fetch(`${API_URL}/provider-profiles/me/commercial-data`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwt}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok)
+    throw new Error(
+      data.error?.message || "Error al actualizar datos comerciales"
+    );
+  return data;
+}
+
+export async function getClassificationData(
+  jwt: string
+): Promise<ClassificationResponse> {
+  const res = await fetch(
+    `${API_URL}/provider-profiles/me/commercial-information`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+    }
+  );
+  const data = await res.json();
+  if (!res.ok)
+    throw new Error(data.error?.message || "Error al obtener clasificación");
+  return data;
+}
+
+export async function updateClassificationData(
+  jwt: string,
+  payload: UpdateClassificationDTO
+): Promise<{ ok: boolean; message?: string }> {
+  const res = await fetch(
+    `${API_URL}/provider-profiles/me/commercial-information`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  const data = await res.json();
+  if (!res.ok)
+    throw new Error(data.error?.message || "Error al actualizar clasificación");
+  return data;
+}
+
+export async function getSalesConditions(
+  jwt: string
+): Promise<SalesConditionsResponse> {
+  const res = await fetch(`${API_URL}/provider-profiles/me/sales-conditions`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
+  const data: SalesConditionsResponse = await res.json();
+  if (!res.ok) throw new Error("Error al obtener condiciones de venta");
+  return data;
+}
+
+export async function updateSalesConditions(
+  jwt: string,
+  payload: UpdateSalesConditionsDTO
+): Promise<SalesConditionsResponse> {
+  const res = await fetch(`${API_URL}/provider-profiles/me/sales-conditions`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwt}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data: SalesConditionsResponse = await res.json();
+  if (!res.ok) throw new Error("Error al actualizar condiciones de venta");
+  return data;
+}
+
+export async function getLogisticsData(
+  jwt: string
+): Promise<LogisticsResponse> {
+  const res = await fetch(`${API_URL}/provider-profiles/me/logistics`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
+  const data: LogisticsResponse = await res.json();
+  if (!res.ok) throw new Error("Error al obtener datos de logística");
+  return data;
+}
+
+export async function updateLogisticsData(
+  jwt: string,
+  payload: UpdateLogisticsDTO
+): Promise<LogisticsResponse> {
+  const res = await fetch(`${API_URL}/provider-profiles/me/logistics`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwt}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data: LogisticsResponse = await res.json();
+  if (!res.ok) throw new Error("Error al actualizar logística");
   return data;
 }

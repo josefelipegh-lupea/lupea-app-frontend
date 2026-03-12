@@ -20,12 +20,28 @@ const MENU_CONFIG_VENDOR: Array<{
       {
         label: "Datos comerciales",
         icon: IconsApp.Personal,
-        href: "/profile/vendor/personal-info",
+        href: "/profile/vendor/basics",
       },
-      { label: "Información comercial", icon: IconsApp.Location },
-      { label: "Ubicaciones", icon: IconsApp.Vehicle },
-      { label: "Condiciones de venta", icon: IconsApp.Vehicle },
-      { label: "Logística y entrega", icon: IconsApp.Vehicle },
+      {
+        label: "Información comercial",
+        href: "/profile/vendor/classification",
+        icon: IconsApp.Location,
+      },
+      {
+        label: "Ubicaciones",
+        href: "/profile/vendor/location",
+        icon: IconsApp.Vehicle,
+      },
+      {
+        label: "Condiciones de venta",
+        href: "/profile/vendor/conditions",
+        icon: IconsApp.Vehicle,
+      },
+      {
+        label: "Logística y entrega",
+        href: "/profile/vendor/logistics",
+        icon: IconsApp.Vehicle,
+      },
     ],
   },
   {

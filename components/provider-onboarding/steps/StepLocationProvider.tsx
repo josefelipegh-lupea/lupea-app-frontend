@@ -68,12 +68,10 @@ export default function StepLocationProvider({
   jwt,
   locationData,
   setLocationData,
-  onSuccess,
 }: StepLocationProviderProps) {
   const [states, setStates] = useState<State[]>([]);
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
   const [parishes, setParishes] = useState<string[]>([]);
-  const [isGeocoding, setIsGeocoding] = useState(false);
 
   // Fuente de verdad: carga inicial del Padre (LocalStorage)
   const [localFormData, setLocalFormData] = useState<LocationValues>(
