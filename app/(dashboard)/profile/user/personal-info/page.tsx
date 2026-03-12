@@ -19,7 +19,7 @@ import { IconsApp } from "@/components/icons/Icons";
 export default function PersonalInfoPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const { profile, role, refreshProfile } = useAuth();
+  const { profile, role, refreshProfile, jwt } = useAuth();
   const { isExpanded } = useSidebar();
 
   const [formData, setFormData] = useState<ProfileValues>({
@@ -58,7 +58,6 @@ export default function PersonalInfoPage() {
   };
 
   const handleSave = async () => {
-    const jwt = localStorage.getItem("jwt");
     if (!jwt) return;
 
     setIsSaving(true);

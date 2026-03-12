@@ -9,6 +9,7 @@ export const basicsSchema = z.object({
   businessName: z.string().min(2, "La razón social es obligatoria"),
   phoneNumber: z
     .string()
-    .min(11, "El número es demasiado corto")
-    .regex(/^\+?[0-9\s\-]+$/, "Formato de teléfono no válido"),
+    .min(13, "El número es demasiado corto")
+    .max(14, "Formato de teléfono no válido")
+    .regex(/^\+[0-9]+$/, "Formato de teléfono no válido"),
 });

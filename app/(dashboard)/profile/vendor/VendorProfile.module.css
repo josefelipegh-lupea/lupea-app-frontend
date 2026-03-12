@@ -3,7 +3,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
+  transition: all 0.3s ease-in-out;
 }
 
 .mainContainer {
@@ -18,7 +18,7 @@
   min-height: 90dvh;
   margin: 0 auto;
   position: relative;
-  padding-bottom: 20px;
+  padding-bottom: 50px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transform: translateZ(0);
