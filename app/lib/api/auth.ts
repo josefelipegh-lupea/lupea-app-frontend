@@ -109,9 +109,8 @@ export async function registerProvider(
   username: string,
   email: string,
   password: string,
-  state: string,
-  city: string,
   mainCategories: number[],
+  subcategories: number[],
   termsAccepted: boolean
 ): Promise<RegisterProviderResponse> {
   const res = await fetch(`${API_URL}/auth/register-provider`, {
@@ -123,9 +122,8 @@ export async function registerProvider(
       username,
       email,
       password,
-      state,
-      city,
       mainCategories,
+      subcategories,
       termsAccepted,
     }),
   });

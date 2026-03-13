@@ -1,9 +1,6 @@
-/* StepCommercialTerms.module.css */
-
 .container {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
   animation: fadeIn 0.4s ease-out;
 }
 
@@ -12,9 +9,8 @@
   flex-direction: column;
   gap: 1.25rem;
   background: #ffffff;
-  padding: 1.5rem;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  /* border: 1px solid #e5e7eb; */
 }
 
 .title {
@@ -24,10 +20,16 @@
   margin-bottom: 0.5rem;
 }
 
+.subTitle {
+  font-size: 0.9rem;
+  color: #111827;
+  font-weight: 600;
+}
+
 .label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  color: #110d35;
   margin-bottom: -0.5rem;
 }
 
@@ -80,20 +82,40 @@
   gap: 0.5rem;
 }
 
+.selectWrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-top: 7px;
+}
+
 .select {
   width: 100%;
-  padding: 0.75rem;
-  border-radius: 8px;
+  height: 54px;
+  padding: 0 16px;
+  border-radius: 16px;
   border: 1px solid #d1d5db;
   background-color: white;
   color: #000;
-  font-size: 0.95rem;
+  font-size: 16px;
   outline: none;
   transition: border-color 0.2s;
+  appearance: none;
 }
 
 .select:focus {
   border-color: var(--primary-color, #f08100);
+}
+
+.iconOverlay {
+  position: absolute;
+  right: 16px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
 }
 
 .checkboxes {

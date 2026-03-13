@@ -16,33 +16,18 @@
   align-items: center;
 }
 
-/* .selectWrapper::after {
-  content: "";
-  font-size: 10px;
-  color: #bdbdbd;
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none; 
-} */
-
-/* Forzamos que el select oculte su flecha nativa en todos los estados */
 .selectWrapper select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  padding-right: 30px; /* Espacio para nuestra flecha */
+  padding-right: 30px;
   padding-left: 14px;
 }
-
-/* Si usas estilos de RegisterUser.module.css (styles.input), 
-   asegúrate de que no tenga un background que tape nuestra flecha */
 
 .iconOverlay {
   position: absolute;
   right: 16px;
-  pointer-events: none; /* ¡Clave! Permite que el click pase a través del icono al select */
+  pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,62 +36,6 @@
 
 .rightColumn {
   margin-top: 20px;
-}
-
-.searchWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  border: 1.5px solid #e0e0e0;
-  border-radius: 15px;
-  padding: 10px 15px;
-  margin-top: 5px;
-  transition: border 0.2s;
-}
-
-.searchWrapper:focus-within {
-  border-color: #ff9100;
-}
-
-.briefcaseIcon {
-  margin-right: 10px;
-  font-size: 1.2rem;
-}
-
-.ghostContainer {
-  position: absolute;
-  left: 45px;
-  color: #d1d5db;
-  pointer-events: none;
-  font-family: inherit;
-  font-size: 1rem;
-}
-
-.searchInput {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  outline: none;
-  width: 100%;
-  font-size: 1rem;
-  color: #181818;
-  z-index: 2;
-}
-
-.searchInput::first-letter {
-  text-transform: uppercase;
-}
-
-.addBtn {
-  background: none;
-  border: none;
-  color: #ff9100;
-  font-size: 1.8rem;
-  font-weight: 300;
-  cursor: pointer;
-  line-height: 1;
 }
 
 .helperText {
@@ -121,10 +50,8 @@
   flex-wrap: wrap;
   align-content: flex-start;
   gap: 8px;
-
-  height: 82px;
+  height: 95px; /* Ajustado un poco para el doble texto */
   overflow-y: auto;
-
   margin: 10px 0;
   padding: 10px;
   background-color: #ff91001b;
@@ -159,13 +86,17 @@
 }
 
 .categoryPill {
-  padding: 8px 16px;
-  border-radius: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 12px;
   border: 1.5px solid #e0e0e0;
   background: #fff;
-  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: fit-content;
 }
 
 .activePill {
@@ -174,36 +105,46 @@
   color: #fff;
 }
 
+.pillContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Clases para la jerarquía dentro de la pill */
+.parentLabel {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.8;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.subLabel {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  white-space: nowrap;
+  color: #fff;
+}
+
 @media (max-height: 800px) and (max-width: 767px) {
-  .searchWrapper {
-    padding: 0px 15px;
-  }
-
-  .searchInput,
-  .ghostContainer {
-    font-size: 13px;
-  }
-
-  .addBtn {
-    font-size: 1.3rem;
-  }
-
   .emptyStateText,
   .helperText {
     font-size: 13px;
   }
 }
 
-/* Solo se activa en Desktop */
 @media (min-width: 768px) {
   .customSheetWidth {
-    max-width: 800px !important; /* Aumentamos el ancho a 950px o lo que prefieras */
+    max-width: 800px !important;
     width: 80% !important;
   }
 
   .gridContainer {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Dos columnas */
+    grid-template-columns: 1fr 1fr;
     column-gap: 50px;
     align-items: start;
   }
@@ -216,7 +157,6 @@
     margin-top: 0;
   }
 
-  /* Centramos el botón que está dentro del fullWidth */
   .fullWidth button {
     margin: 20px auto 0;
     display: block;
