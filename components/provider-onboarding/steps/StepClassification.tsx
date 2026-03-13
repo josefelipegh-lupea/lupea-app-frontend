@@ -8,7 +8,17 @@ import { Category, getCategories } from "@/app/lib/api/getCategories";
 import toast from "react-hot-toast";
 import { getBrands, VehicleItem } from "@/app/lib/api/client/vehicle";
 import { useAuth } from "@/context/AuthContext";
-import { BaseEntity } from "@/app/lib/api/vendor/vendorProfile";
+import {
+  BaseEntity,
+  ClassificationData,
+} from "@/app/lib/api/vendor/vendorProfile";
+
+interface SelectedSub {
+  id: number;
+  documentId: string;
+  name: string;
+  parentName: string;
+}
 
 interface BrandWithId extends VehicleItem {
   id: number;
@@ -26,10 +36,13 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
   const [lastSelectedCatId, setLastSelectedCatId] = useState<string | null>(
     null
   );
-  const { jwt } = useAuth();
 
-  // DERIVACIÓN DE ESTADO (Sin useEffect)
-  // Calculamos las subcategorías al vuelo basándonos en la categoría activa
+  // NUEVO: Estado para evitar re-hidratación al borrar todo
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  const { jwt, profile } = useAuth();
+  const vendor = profile as unknown as ClassificationData;
+
   const currentSubcategories = useMemo(() => {
     if (!lastSelectedCatId) return [];
     const selectedCat = dbCategories.find(
@@ -46,15 +59,12 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
           getCategories(),
           getBrands(jwt),
         ]);
-
         const catsData = Array.isArray(resCats)
           ? resCats
           : (resCats as StrapiResponse<Category>).data || [];
-
         const brandsData = Array.isArray(resBrands)
           ? resBrands
           : (resBrands as StrapiResponse<VehicleItem>).data || [];
-
         setDbCategories(catsData);
         setDbBrands(brandsData);
       } catch (error) {
@@ -63,6 +73,41 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
     };
     fetchData();
   }, [jwt]);
+
+  // EFECTO DE HIDRATACIÓN CORREGIDO
+  useEffect(() => {
+    if (dbCategories.length > 0 && vendor && !isHydrated) {
+      // Solo hidratamos si el formData global está realmente vacío al montar
+      const hasNoData =
+        formData.mainCategories.length === 0 &&
+        formData.subcategories.length === 0;
+
+      if (hasNoData) {
+        setFormData((prev) => ({
+          ...prev,
+          mainCategories: vendor.mainCategories || [],
+          brands: vendor.brands || [],
+          subcategories: (vendor.subcategories || []).map((sub) => {
+            const parent = dbCategories.find((c) =>
+              c.children?.some((child) => child.documentId === sub.documentId)
+            );
+            return {
+              id: sub.id,
+              documentId: sub.documentId,
+              name: sub.name,
+              parentName: parent?.name || "Repuesto",
+            } as SelectedSub;
+          }),
+        }));
+      }
+
+      const timeout = setTimeout(() => {
+        setIsHydrated(true);
+      }, 0);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [dbCategories, vendor, isHydrated, setFormData]);
 
   const handleSelectChange = (
     e: React.ChangeEvent<HTMLSelectElement>,
@@ -94,15 +139,24 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
         const item = currentSubcategories.find(
           (s) => s.id === Number(selectedValue)
         );
+        const parent = dbCategories.find(
+          (c) => c.documentId === lastSelectedCatId
+        );
         if (
           item &&
+          parent &&
           !prev.subcategories.some((s) => s.documentId === item.documentId)
         ) {
           return {
             ...prev,
             subcategories: [
               ...prev.subcategories,
-              { id: item.id, name: item.name, documentId: item.documentId },
+              {
+                id: item.id,
+                documentId: item.documentId,
+                name: item.name,
+                parentName: parent.name,
+              },
             ],
           };
         }
@@ -130,12 +184,7 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
 
   const removeItem = (type: EntityArrayKeys, documentId: string) => {
     if (type === "mainCategories") {
-      // 1. Si la categoría eliminada era la "activa" (la que muestra subcategorías abajo), la reseteamos
-      if (lastSelectedCatId === documentId) {
-        setLastSelectedCatId(null);
-      }
-
-      // 2. Encontramos qué subcategorías (hijos) pertenecen a esta categoría que estamos borrando
+      if (lastSelectedCatId === documentId) setLastSelectedCatId(null);
       const categoryToRemove = dbCategories.find(
         (c) => c.documentId === documentId
       );
@@ -163,9 +212,11 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
 
   return (
     <div className={styles.gridContainer}>
-      {/* SECCIÓN CATEGORÍAS */}
+      {/* CATEGORÍAS */}
       <div className={styles.fullWidth}>
-        <label className={styles.label}>¿Qué repuestos vendes?</label>
+        <label className={styles.label}>
+          Categorías en la que clasifica tu negocio
+        </label>
         <div className={styles.inputWrapper}>
           <span className={styles.icon}>
             <IconsApp.ToolInput />
@@ -197,19 +248,20 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
         </div>
         <div className={styles.tagsScrollContainer}>
           {formData.mainCategories.length === 0 ? (
-            <p className={styles.emptyStateText}>
-              Aquí aparecerán las categorías
-            </p>
+            <p className={styles.emptyStateText}>Categorías vacías</p>
           ) : (
             formData.mainCategories.map((cat) => (
               <button
                 key={cat.documentId}
                 type="button"
-                onClick={() => removeItem("mainCategories", cat.documentId)}
+                onClick={() => {
+                  // IMPORTANTE: Primero removemos, luego la lógica de Step decide si limpia lastSelectedCatId
+                  removeItem("mainCategories", cat.documentId);
+                }}
                 className={`${styles.categoryPill} ${styles.activePill}`}
                 style={
                   lastSelectedCatId === cat.documentId
-                    ? { outline: "2px solid #ff9800" }
+                    ? { outline: "2px solid #ff9100" }
                     : {}
                 }
               >
@@ -220,15 +272,9 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
         </div>
       </div>
 
-      {/* SECCIÓN SUBCATEGORÍAS */}
+      {/* SUBCATEGORÍAS */}
       <div className={styles.fullWidth} style={{ marginTop: "20px" }}>
-        <label className={styles.label}>
-          Especifica los productos{" "}
-          {lastSelectedCatId &&
-            `(${
-              dbCategories.find((c) => c.documentId === lastSelectedCatId)?.name
-            })`}
-        </label>
+        <label className={styles.label}>Subcategorías</label>
         <div className={styles.inputWrapper}>
           <span className={styles.icon}>
             <IconsApp.ToolInput />
@@ -237,14 +283,14 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
             className={`${styles.input} ${styles.selects}`}
             onChange={(e) => handleSelectChange(e, "subcategories")}
             value=""
-            disabled={currentSubcategories.length === 0}
+            disabled={!lastSelectedCatId || currentSubcategories.length === 0}
           >
             <option value="" disabled>
               {!lastSelectedCatId
-                ? "Selecciona una categoría arriba"
+                ? "Selecciona categoría arriba"
                 : currentSubcategories.length === 0
-                ? "Esta categoría no tiene subcategorías"
-                : "Selecciona subcategorías"}
+                ? "No hay subcategorías"
+                : "Selecciona productos"}
             </option>
             {currentSubcategories
               .filter(
@@ -266,26 +312,52 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
         <div className={styles.tagsScrollContainer}>
           {formData.subcategories.length === 0 ? (
             <p className={styles.emptyStateText}>
-              Aquí aparecerán las subcategorías
+              Selecciona tus especialidades
             </p>
           ) : (
-            formData.subcategories.map((sub) => (
+            (formData.subcategories as SelectedSub[]).map((sub) => (
               <button
                 key={sub.documentId}
                 type="button"
                 onClick={() => removeItem("subcategories", sub.documentId)}
                 className={`${styles.categoryPill} ${styles.activePill}`}
+                style={{
+                  height: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  padding: "6px 12px",
+                }}
               >
-                {sub.name} <span className={styles.removeIcon}>×</span>
+                <span
+                  style={{
+                    fontSize: "9px",
+                    textTransform: "uppercase",
+                    fontWeight: "bold",
+                    opacity: 0.8,
+                    lineHeight: "1",
+                  }}
+                >
+                  {sub.parentName ||
+                    dbCategories.find((c) =>
+                      c.children?.some(
+                        (child) => child.documentId === sub.documentId
+                      )
+                    )?.name ||
+                    "Repuesto"}
+                </span>
+                <span style={{ fontSize: "13px" }}>
+                  {sub.name} <span className={styles.removeIcon}>×</span>
+                </span>
               </button>
             ))
           )}
         </div>
       </div>
 
-      {/* SECCIÓN MARCAS */}
+      {/* MARCAS */}
       <div className={styles.fullWidth} style={{ marginTop: "20px" }}>
-        <label className={styles.label}>¿Qué marcas manejas?</label>
+        <label className={styles.label}>Marcas que manejas</label>
         <div className={styles.inputWrapper}>
           <span className={styles.icon}>
             <IconsApp.ToolInput />
@@ -296,7 +368,7 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
             value=""
           >
             <option value="" disabled>
-              Selecciona las marcas
+              Selecciona marcas
             </option>
             {dbBrands
               .filter(
@@ -317,7 +389,7 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
         </div>
         <div className={styles.tagsScrollContainer}>
           {formData.brands.length === 0 ? (
-            <p className={styles.emptyStateText}>Aquí aparecerán las marcas</p>
+            <p className={styles.emptyStateText}>Añade marcas de vehículos</p>
           ) : (
             formData.brands.map((brand) => (
               <button

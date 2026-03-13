@@ -21,6 +21,7 @@ interface MenuItemProps {
   subLabel?: string;
   rightElement?: React.ReactNode;
   href?: string;
+  hasNotification?: boolean;
 }
 
 const MenuItem: React.FC<MenuItemProps> = ({
@@ -29,6 +30,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   icon,
   rightElement,
   href,
+  hasNotification,
 }) => {
   const isStatusActive = subLabel === "Activada" || subLabel === "En revisión";
 
@@ -51,6 +53,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
       </div>
       <div className={styles.menuItemRight}>
         {rightElement ? rightElement : <IconsApp.RightArrow />}
+        {hasNotification && <span className={styles.pulseDot} />}
       </div>
     </div>
   );
@@ -122,6 +125,30 @@ export default function VendorProfilePage() {
     router.replace("/login");
   };
 
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case "in_review":
+        return styles.statusInReview;
+      case "active":
+        return styles.statusActive;
+      default:
+        return styles.statusDefault;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "in_review":
+        return "En revisión";
+      case "active":
+        return "Verificado";
+      case "incomplete":
+        return "Incompleto";
+      default:
+        return status;
+    }
+  };
+
   return (
     <div
       className={`${styles.pageWrapper} ${
@@ -145,7 +172,16 @@ export default function VendorProfilePage() {
                 <h1 className={styles.userName}>
                   {vendorProfile.businessName || "Tu Negocio"}
                 </h1>
-                <p className={styles.userTag}>@{user.username}</p>
+                <div className={styles.statusRow}>
+                  <p className={styles.userTag}>@{user.username}</p>
+                  <span
+                    className={`${styles.statusBadge} ${getStatusBadgeClass(
+                      profile.status || ""
+                    )}`}
+                  >
+                    {getStatusLabel(profile.status || "")}
+                  </span>
+                </div>
               </div>
             </section>
           </div>
@@ -175,6 +211,7 @@ export default function VendorProfilePage() {
                       key={item.label}
                       label={item.label}
                       href={item.href}
+                      hasNotification={item.label === "Completar perfil"}
                       subLabel={
                         item.label === "Notificaciones"
                           ? isNotifEnabled

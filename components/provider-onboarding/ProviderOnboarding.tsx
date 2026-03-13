@@ -35,7 +35,7 @@ const STORAGE_KEY = "provider_onboarding_data";
 const LOCATION_STORAGE_KEY = "provider_onboarding_location";
 
 const ProviderOnboarding: React.FC = () => {
-  const { profile, jwt, isLoading } = useAuth();
+  const { profile, jwt, isLoading, refreshProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
@@ -151,6 +151,11 @@ const ProviderOnboarding: React.FC = () => {
       if (!jwt || !locationData) return;
       setIsSaving(true);
       try {
+        for (const type in selectedFiles) {
+          const file = selectedFiles[type];
+          if (file) await uploadProviderDocument(jwt, type, file);
+        }
+
         const profileBody: UpdateProviderProfileDTO = {
           ...formData,
           phoneNumber: formData.phoneNumber,
@@ -173,16 +178,11 @@ const ProviderOnboarding: React.FC = () => {
         };
         await updateProviderProfile(jwt, profileBody);
 
-        // C. Subir documentos
-        for (const type in selectedFiles) {
-          const file = selectedFiles[type];
-          if (file) await uploadProviderDocument(jwt, type, file);
-        }
-
         // Limpieza y redirección
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(LOCATION_STORAGE_KEY);
-        toast.success("¡Registro completado con éxito!");
+        await refreshProfile();
+        toast.success("¡Registro completado con éxito!", { duration: 5000 });
         router.replace("/profile/vendor");
       } catch (error) {
         toast.error("Error al finalizar el registro");
@@ -208,7 +208,10 @@ const ProviderOnboarding: React.FC = () => {
       !isLoading &&
       (profile?.status === "active" || profile?.status === "in_review")
     ) {
-      toast("Tu perfil ya está en proceso de revisión.", { icon: "⚠️" });
+      toast("Tu perfil ya está en proceso de revisión.", {
+        icon: "⚠️",
+        duration: 5000,
+      });
       router.replace("/profile/vendor");
     }
   }, [profile, isLoading, router]);
@@ -310,10 +313,10 @@ const ProviderOnboarding: React.FC = () => {
               disabled={!isCurrentStepValid() || isSaving}
             >
               {isSaving
-                ? "Cargando..."
+                ? "Enviando..."
                 : currentStep === 5
                 ? "Finalizar Registro"
-                : "Siguiente paso"}
+                : "Siguiente"}
             </Button>
             <button className={styles.btnCancel} onClick={() => router.back()}>
               Cancelar

@@ -4,6 +4,7 @@ import React from "react";
 import styles from "./StepCommercialTerms.module.css";
 import InputField from "@/components/input/InputField";
 import { StepProps } from "@/components/provider-onboarding/types";
+import { IconsApp } from "@/components/icons/Icons";
 
 interface ExtendedStepProps extends StepProps {
   mode?: "sales" | "logistics" | "all";
@@ -38,11 +39,16 @@ export default function StepCommercialTerms({
   };
 
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      style={{ gap: mode === "all" ? "30px" : "0" }}
+    >
       {/* SECCIÓN: CONDICIONES DE VENTA */}
       {(mode === "all" || mode === "sales") && (
         <section className={styles.section}>
-          <h3 className={styles.title}>Condiciones de Venta</h3>
+          {mode === "all" && (
+            <h3 className={styles.title}>Condiciones de Venta</h3>
+          )}
 
           <label className={styles.label}>Métodos de pago aceptados *</label>
           <div className={styles.chips}>
@@ -71,17 +77,22 @@ export default function StepCommercialTerms({
           <div className={styles.row}>
             <div className={styles.inputGroup}>
               <label className={styles.label}>Garantía General</label>
-              <select
-                className={styles.select}
-                name="warrantyPolicy"
-                value={formData.warrantyPolicy}
-                onChange={handleChange}
-              >
-                <option value="Sin garantía">Sin garantía</option>
-                <option value="3 meses">3 meses</option>
-                <option value="6 meses">6 meses</option>
-                <option value="12 meses">12 meses</option>
-              </select>
+              <div className={styles.selectWrapper}>
+                <select
+                  className={styles.select}
+                  name="warrantyPolicy"
+                  value={formData.warrantyPolicy}
+                  onChange={handleChange}
+                >
+                  <option value="Sin garantía">Sin garantía</option>
+                  <option value="3 meses">3 meses</option>
+                  <option value="6 meses">6 meses</option>
+                  <option value="12 meses">12 meses</option>
+                </select>
+                <div className={styles.iconOverlay}>
+                  <IconsApp.DownArrow />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -98,7 +109,11 @@ export default function StepCommercialTerms({
       {/* SECCIÓN: LOGÍSTICA */}
       {(mode === "all" || mode === "logistics") && (
         <section className={styles.section}>
-          <h3 className={styles.title}>Logística y Entrega</h3>
+          {mode === "all" && (
+            <h3 className={styles.title}>Logística y Entrega</h3>
+          )}
+
+          <h4 className={styles.subTitle}>Método de envío</h4>
 
           <div className={styles.checkboxes}>
             <label className={styles.checkItem}>
@@ -135,7 +150,7 @@ export default function StepCommercialTerms({
 
           <label className={styles.label}>Agencias de envío</label>
           <div className={styles.chips}>
-            {["MRW", "Zoom", "Tealca", "Domesa", "Liberty Express"].map((c) => (
+            {["MRW", "Zoom", "Tealca", "Domesa", "Agencia propia"].map((c) => (
               <button
                 key={c}
                 type="button"
