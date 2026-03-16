@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
@@ -12,11 +12,17 @@ import { PriceCard } from "@/components/price-card/PriceCard";
 import { OrderCard } from "@/components/order-card/OrderCard";
 import Button from "@/components/button/Button";
 import { useRouter } from "next/navigation";
+import { getMyRequests, QuoteRequest } from "@/app/lib/api/client/home/request";
+import { useAuth } from "@/context/AuthContext";
 
 export default function HomePage() {
+  const { jwt } = useAuth();
   const { isExpanded } = useSidebar();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("COTIZACIONES");
+
+  const [requests, setRequests] = useState<QuoteRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const solicitudesEjemplo = [
     {
@@ -166,27 +172,61 @@ export default function HomePage() {
     },
   ] as const;
 
+  useEffect(() => {
+    const fetchRequests = async () => {
+      if (!jwt) return;
+
+      try {
+        setLoading(true);
+        const res = await getMyRequests(jwt);
+        if (res.ok) {
+          setRequests(res.data.requests);
+        }
+      } catch (error) {
+        console.error("Error cargando solicitudes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, []);
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "COTIZACIONES":
         return solicitudesEjemplo
           .slice(0, 3)
-          .map((solicitud) => <PriceCard key={solicitud.id} {...solicitud} />);
+          .map((s) => <PriceCard key={s.id} {...s} />);
+
       case "SOLICITUDES":
-        return solicitudesEjemplo
-          .slice(0, 3)
-          .map((sol) => (
-            <RequestCard
-              key={sol.id}
-              id={sol.id}
-              fecha={sol.fecha}
-              items={sol.items}
-            />
-          ));
+        if (loading)
+          return <p className={styles.loadingText}>Cargando solicitudes...</p>;
+        if (requests.length === 0)
+          return (
+            <p className={styles.emptyText}>No tienes solicitudes activas.</p>
+          );
+
+        return requests.slice(0, 3).map((sol) => (
+          <RequestCard
+            key={sol.documentId}
+            id={sol.id.toString().padStart(5, "0")}
+            fecha={new Date(sol.createdAt).toLocaleDateString("es-ES")}
+            items={sol.items.map((item) => ({
+              nombre: item.productName,
+              modelo: `${sol.vehicle.brand} ${sol.vehicle.model}`,
+              tipo:
+                item.conditionPreferred === "no_importa"
+                  ? "Cualquiera"
+                  : item.conditionPreferred,
+            }))}
+          />
+        ));
+
       case "ÓRDENES":
         return ordenesEjemplo
           .slice(0, 3)
-          .map((orden) => <OrderCard key={orden.id} {...orden} />);
+          .map((o) => <OrderCard key={o.id} {...o} />);
       default:
         return null;
     }
