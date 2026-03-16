@@ -9,22 +9,23 @@ import {
   createVehicle,
   getModelsByBrand,
 } from "@/app/lib/api/client/vehicle";
-import { FormData } from "@/app/(dashboard)/home/user/request/page";
 import StepTransition from "../provider-onboarding/step-transition/StepTransition";
 import toast from "react-hot-toast";
 import { VERSIONS } from "@/app/(dashboard)/profile/user/vehicle/page";
+import { QuoteRequestFormData } from "@/hooks/useRequesFormAutoSave";
 
 interface VehicleStepProps {
   jwt: string;
   userVehicles: Vehicle[];
   brands: VehicleItem[];
   engines: VehicleItem[];
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  formData: QuoteRequestFormData;
+  setFormData: React.Dispatch<React.SetStateAction<QuoteRequestFormData>>;
   loadingInitial: boolean;
   contentRef: React.RefObject<HTMLDivElement | null>;
   refreshVehicles: () => Promise<Vehicle[] | undefined>;
   isCompleted: boolean;
+  saveDraft: (data: QuoteRequestFormData) => void;
 }
 
 export default function VehicleStep({
@@ -38,6 +39,7 @@ export default function VehicleStep({
   contentRef,
   refreshVehicles,
   isCompleted,
+  saveDraft,
 }: VehicleStepProps) {
   const years = Array.from({ length: 30 }, (_, i) => (2025 - i).toString());
   const [models, setModels] = useState<VehicleItem[]>([]);
@@ -93,14 +95,19 @@ export default function VehicleStep({
       const modelObj = fetchedModels.find((m) => m.name === vehicle.model);
       const engineObj = engines.find((e) => e.name === vehicle.engine);
 
-      setFormData({
+      const updatedData: QuoteRequestFormData = {
         ...formData,
         userVehicle: vehicle.id.toString(),
         brand: brandObj.documentId,
         model: modelObj?.documentId || "",
         year: vehicle.year,
         engine: engineObj?.documentId || "",
-      });
+        version: vehicle.version || "-",
+      };
+
+      setFormData(updatedData);
+
+      saveDraft(updatedData);
     }
   };
 
@@ -192,20 +199,17 @@ export default function VehicleStep({
         setFormData((prev) => ({
           ...prev,
           userVehicle: mostRecentId,
+          brand: formData.brand,
+          model: formData.model,
+          year: formData.year,
+          engine: formData.engine,
+          version: formData.version,
         }));
       }
 
-      // setFormData((prev) => ({
-      //   ...prev,
-      //   brand: "",
-      //   model: "",
-      //   year: 0,
-      //   engine: "",
-      // }));
-
       goToList();
       toast.success(
-        "Vehículo agregado con éxito. Puede ver su lista actualizada de sus vehículos en la sección Vehículos de su perfil",
+        `Vehículo agregado con éxito. Puede ver su lista actualizada de vehículos en la sección "Vehículos" de su perfil`,
         { duration: 10000 }
       );
     } catch (error) {

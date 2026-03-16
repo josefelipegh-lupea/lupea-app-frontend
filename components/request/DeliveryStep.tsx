@@ -2,15 +2,16 @@
 
 import { IconsApp } from "@/components/icons/Icons";
 import styles from "../../app/(dashboard)/home/user/request/Request.module.css";
-import { FormData } from "@/app/(dashboard)/home/user/request/page";
-import { Location } from "@/app/lib/api/client/location";
+import { Location, State } from "@/app/lib/api/client/location";
+import { QuoteRequestFormData } from "@/hooks/useRequesFormAutoSave";
 
 interface DeliveryStepProps {
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  states: { id: number; name: string }[];
+  formData: QuoteRequestFormData;
+  setFormData: React.Dispatch<React.SetStateAction<QuoteRequestFormData>>;
+  states: State[];
   isCompleted: boolean;
   locations: Location[];
+  saveDraft: (data: QuoteRequestFormData) => void;
 }
 
 export default function DeliveryStep({
@@ -19,26 +20,41 @@ export default function DeliveryStep({
   states,
   isCompleted,
   locations,
+  saveDraft,
 }: DeliveryStepProps) {
-  const handleMethodChange = (method: "retiro" | "envio") => {
-    setFormData((prev) => ({
-      ...prev,
+  const handleMethodChange = (method: "retiro" | "delivery") => {
+    const updatedData = {
+      ...formData,
       deliveryMethod: method,
-    }));
+      deliveryCity: "",
+    };
+
+    setFormData(updatedData);
+    saveDraft(updatedData);
   };
 
   const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      deliveryCity: e.target.value,
-    }));
+    const value = e.target.value;
+
+    const updatedData = {
+      ...formData,
+      deliveryCity: value,
+    };
+
+    setFormData(updatedData);
+    saveDraft(updatedData);
   };
+
+  const isRetiro = formData.deliveryMethod === "retiro";
+  const selectLabel = isRetiro ? "Estado" : "Mis ubicaciones";
+  const placeholder = isRetiro
+    ? "Seleccione un estado"
+    : "Seleccione una dirección";
 
   return (
     <section className={styles.card}>
       <div className={styles.cardHeader}>
         <div className={styles.iconBox}>
-          {/* Aquí puedes usar un icono de camión de tu IconsApp */}
           <div className={styles.iconWrapper}>
             <IconsApp.Truck color="#f58220" />
           </div>
@@ -53,8 +69,7 @@ export default function DeliveryStep({
       <div className={styles.divider} />
 
       <div className={styles.cardBody}>
-        {/* Selector de Ciudad / Comuna */}
-        <div className={styles.field}>
+        {/* <div className={styles.field}>
           <label>Estado</label>
           <div className={styles.selectWrapper}>
             <div
@@ -80,13 +95,48 @@ export default function DeliveryStep({
               <IconsApp.DownArrow />
             </div>
           </div>
+        </div> */}
+
+        <div className={styles.field} style={{ marginTop: "20px" }}>
+          <label>{selectLabel}</label>
+          <div className={styles.selectWrapper}>
+            <div
+              className={styles.iconOverlay}
+              style={{ left: "16px", right: "auto" }}
+            >
+              <IconsApp.Pin />
+            </div>
+            <select
+              style={{ paddingLeft: "45px" }}
+              name="deliveryCity"
+              value={formData.deliveryCity}
+              onChange={handleCityChange}
+            >
+              <option value="">{placeholder}</option>
+
+              {isRetiro
+                ? states.map((state) => (
+                    <option key={`state-${state.id}`} value={state.id}>
+                      {state.name}
+                    </option>
+                  ))
+                : locations.map((loc) => (
+                    <option key={`loc-${loc.id}`} value={loc.id}>
+                      {loc.name} - {loc.state}
+                    </option>
+                  ))}
+            </select>
+            <div className={styles.iconOverlay}>
+              <IconsApp.DownArrow />
+            </div>
+          </div>
         </div>
 
         <div className={styles.deliveryToggleGroup}>
           {/* Esta es la cápsula blanca que se desliza */}
           <div
             className={`${styles.slider} ${
-              formData.deliveryMethod === "envio"
+              formData.deliveryMethod === "delivery"
                 ? styles.sliderRight
                 : styles.sliderLeft
             }`}
@@ -105,13 +155,19 @@ export default function DeliveryStep({
           <button
             type="button"
             className={`${styles.toggleBtn} ${
-              formData.deliveryMethod === "envio" ? styles.activeText : ""
+              formData.deliveryMethod === "delivery" ? styles.activeText : ""
             }`}
-            onClick={() => handleMethodChange("envio")}
+            onClick={() => handleMethodChange("delivery")}
           >
             Envío a domicilio
           </button>
         </div>
+
+        {!isRetiro && locations.length === 0 && (
+          <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "8px" }}>
+            * No tienes direcciones guardadas. Ve a tu perfil para agregar una.
+          </p>
+        )}
       </div>
     </section>
   );

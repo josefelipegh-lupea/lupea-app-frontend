@@ -30,6 +30,7 @@ import {
 import { LocationValues } from "@/app/lib/api/client/location";
 import { useLocationValidation } from "@/hooks/useLocation";
 import SkeletonProfile from "../skeleton/SkeletonProfile";
+import { IconsApp } from "../icons/Icons";
 
 const STORAGE_KEY = "provider_onboarding_data";
 const LOCATION_STORAGE_KEY = "provider_onboarding_location";
@@ -209,7 +210,7 @@ const ProviderOnboarding: React.FC = () => {
       (profile?.status === "active" || profile?.status === "in_review")
     ) {
       toast("Tu perfil ya está en proceso de revisión.", {
-        icon: "⚠️",
+        icon: <IconsApp.Warning />,
         duration: 5000,
       });
       router.replace("/profile/vendor");
