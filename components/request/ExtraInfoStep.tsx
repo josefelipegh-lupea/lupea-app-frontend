@@ -2,25 +2,27 @@
 
 import { IconsApp } from "@/components/icons/Icons";
 import styles from "../../app/(dashboard)/home/user/request/Request.module.css";
-import { FormData } from "@/app/(dashboard)/home/user/request/page";
 import { useRef, useState } from "react";
 import { toast } from "react-hot-toast";
-import Image from "next/image"; // Importa el componente Image de Next.js
+import Image from "next/image";
 import {
   deleteQuoteItemImage,
   uploadQuoteItemImage,
 } from "@/app/lib/api/request/request";
+import { QuoteRequestFormData } from "@/hooks/useRequesFormAutoSave";
 
 interface ExtraInfoStepProps {
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  jwt: string; // Necesitamos el JWT para la subida
+  formData: QuoteRequestFormData;
+  setFormData: React.Dispatch<React.SetStateAction<QuoteRequestFormData>>;
+  jwt: string;
+  saveDraft: (data: QuoteRequestFormData) => void;
 }
 
 export default function ExtraInfoStep({
   formData,
   setFormData,
   jwt,
+  saveDraft,
 }: ExtraInfoStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -39,18 +41,20 @@ export default function ExtraInfoStep({
       setLoadingMessage("Subiendo imagen...");
       setIsUploading(true);
 
-      // 1. Llamada al servicio que creamos
       const res = await uploadQuoteItemImage(jwt, file);
 
-      // 2. Actualizamos el formData con la URL o ID que devuelve la API
-      setFormData((prev) => ({
-        ...prev,
-        photo: file, // Guardamos el file para la UI
-        photoUrl: res.data.image.url, // Guardamos la URL para el envío final
-        photoId: res.data.image.id, // Guardamos el ID por si lo necesitas
-      }));
+      // Creamos el objeto actualizado
+      const updatedData = {
+        ...formData,
+        photo: file, // El file vive en memoria
+        photoUrl: res.data.image.url,
+        photoId: res.data.image.id,
+      };
 
-      // 3. Toast de éxito de 10 segundos
+      setFormData(updatedData);
+      // Guardamos en borrador (saveDraft ya limpia el objeto 'photo' internamente)
+      saveDraft(updatedData);
+
       toast.success(res.message, { duration: 10000 });
     } catch (error: unknown) {
       const msg =
@@ -58,42 +62,42 @@ export default function ExtraInfoStep({
       toast.error(msg, { duration: 8000 });
     } finally {
       setIsUploading(false);
-      // Limpiamos el input para poder subir la misma foto si se desea
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, extraInfo: e.target.value }));
+    const value = e.target.value;
+    const updatedData = { ...formData, extraInfo: value };
+
+    setFormData(updatedData);
+    saveDraft(updatedData);
   };
 
   const handleRemovePhoto = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evita que se dispare el click del input
-
+    e.stopPropagation();
     if (!formData.photoId || !jwt) return;
 
     try {
       setLoadingMessage("Eliminando imagen...");
-      setIsUploading(true); // Reutilizamos el estado de carga para bloquear acciones
+      setIsUploading(true);
 
-      // 1. Llamada a la API de eliminación
       const res = await deleteQuoteItemImage(jwt, formData.photoId);
 
-      // 2. Limpiamos los campos relacionados en el FormData
-      setFormData((prev) => ({
-        ...prev,
+      const updatedData = {
+        ...formData,
         photo: null,
         photoUrl: undefined,
         photoId: undefined,
-      }));
+      };
 
-      // 3. Toast de éxito de 10 segundos
+      setFormData(updatedData);
+      saveDraft(updatedData);
+
       toast.success(res.message, { duration: 10000 });
     } catch (error: unknown) {
       const msg =
-        error instanceof Error
-          ? error.message
-          : "No se pudo eliminar la imagen";
+        error instanceof Error ? error.message : "No se pudo eliminar";
       toast.error(msg, { duration: 8000 });
     } finally {
       setIsUploading(false);
@@ -114,8 +118,6 @@ export default function ExtraInfoStep({
       <div className={styles.divider} />
 
       <div className={styles.cardBody}>
-        {/* Añadimos una clase de loading si está subiendo */}
-
         <input
           type="file"
           ref={fileInputRef}
@@ -138,7 +140,6 @@ export default function ExtraInfoStep({
               <span className={styles.loaderSmall} />
             </div>
           ) : formData.photoUrl ? (
-            /* MINIATURA GRANDE */
             <div className={styles.thumbnailContainer}>
               <Image
                 src={formData.photoUrl}
@@ -156,22 +157,19 @@ export default function ExtraInfoStep({
               </button>
             </div>
           ) : (
-            /* ICONO INICIAL */
             <div className={styles.uploadIconCircle}>
               <IconsApp.CameraPlus color="#9CA3AF" />
             </div>
           )}
 
-          {/* TÍTULO: Se muestra siempre, pero cambia el texto */}
           <p className={styles.uploadTitle}>
             {isUploading
               ? loadingMessage
               : formData.photoUrl
-              ? formData.photo?.name
+              ? "Imagen cargada correctamente" // Cambiado porque el File name se pierde al recargar borrador
               : "Subir foto de referencia"}
           </p>
 
-          {/* SUBTÍTULO: Solo se muestra si NO hay foto y NO está subiendo */}
           {!formData.photoUrl && !isUploading && (
             <p className={styles.uploadSubtitle}>
               Ayuda a identificar la pieza exacta
@@ -180,7 +178,7 @@ export default function ExtraInfoStep({
         </div>
 
         <div className={styles.field} style={{ marginTop: "20px" }}>
-          <label>Nombre del repuesto</label>
+          <label>Notas adicionales</label>
           <textarea
             className={styles.textarea}
             placeholder="Ej: Necesito que sea compatible con la versión Sport..."

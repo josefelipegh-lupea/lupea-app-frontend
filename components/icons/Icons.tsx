@@ -790,4 +790,20 @@ export const IconsApp = {
       </svg>
     );
   },
+  Warning: ({ width = "24", height = "24", color = "#fbbf24" }: IconProps) => {
+    return (
+      <svg
+        width={width}
+        height={height}
+        viewBox="0 0 13 13"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M6.5 0C2.91015 0 0 2.91015 0 6.5C0 10.0899 2.91015 13 6.5 13C10.0899 13 13 10.0899 13 6.5C13 2.91015 10.0899 0 6.5 0ZM7.15 9.75H5.85V8.45H7.15V9.75ZM7.15 7.15H5.85V3.25H7.15V7.15Z"
+          fill="#F08400"
+        />
+      </svg>
+    );
+  },
 };

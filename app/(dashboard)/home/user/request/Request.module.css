@@ -52,6 +52,7 @@
 .cardHeader {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -76,6 +77,7 @@
   font-size: 16px;
   font-weight: 500;
   color: #111827;
+  flex: 1;
 }
 
 .stepCompletedBadge {
@@ -149,6 +151,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: 10px;
   margin-bottom: 20px;
 }
 
@@ -247,6 +250,31 @@
   background: #f2f2f7;
 }
 
+.sparePartItem {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 24px;
+  border: 1px solid #f2f2f7;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.sparePartItem:hover,
+.vehicleItem:hover {
+  background: #f2f2f7;
+}
+
+.miniPreview {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
 .fadeOut {
   opacity: 0;
   transform: translateX(100%); /* Un pequeño desplazamiento a la derecha */
@@ -313,7 +341,9 @@
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
+  flex: 1;
   gap: 4px;
+  cursor: pointer;
 }
 
 .vName {
@@ -430,6 +460,23 @@
   width: 15px;
   height: 15px;
   margin-right: 8px;
+}
+
+.statusIndicator {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.autoSaveSuccess,
+.autoSaveWarning {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  color: #f58220;
+  gap: 10px;
 }
 
 .saveDraft {

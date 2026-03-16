@@ -3,24 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 import { IconsApp } from "@/components/icons/Icons";
 import styles from "../../app/(dashboard)/home/user/request/Request.module.css";
-import { FormData } from "@/app/(dashboard)/home/user/request/page";
 import StepTransition from "../provider-onboarding/step-transition/StepTransition";
 import { Category } from "@/app/lib/api/getCategories";
-
-export interface SparePart {
-  category: string;
-  partName: string;
-  oemCode: string;
-  quantity: number;
-  condition: string;
-}
+import { QuoteRequestFormData, SparePart } from "@/hooks/useRequesFormAutoSave";
+import Image from "next/image";
+import { toast } from "react-hot-toast";
+import {
+  uploadQuoteItemImage,
+  deleteQuoteItemImage,
+} from "@/app/lib/api/request/request";
 
 interface SparePartsStepProps {
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  formData: QuoteRequestFormData;
+  setFormData: React.Dispatch<React.SetStateAction<QuoteRequestFormData>>;
   contentRef: React.RefObject<HTMLDivElement | null>;
   categories: Category[];
   isCompleted: boolean;
+  saveDraft: (data: QuoteRequestFormData) => void;
+  jwt: string;
 }
 
 export default function SparePartsStep({
@@ -28,20 +28,27 @@ export default function SparePartsStep({
   setFormData,
   categories,
   isCompleted,
+  saveDraft,
+  jwt,
 }: SparePartsStepProps) {
   const [showForm, setShowForm] = useState(false);
   const [direction, setDirection] = useState(1);
   const cardRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const [showScrollArrow, setShowScrollArrow] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  // const categories = [
-  //   "Suspensión y Dirección",
-  //   "Motor",
-  //   "Frenos",
-  //   "Transmisión",
-  // ];
+  const [localPart, setLocalPart] = useState<SparePart>({
+    category: "",
+    partName: "",
+    oemCode: "",
+    quantity: 1,
+    condition: "no_importa",
+    description: "",
+  });
+
   const conditions = [
     { id: "no_importa", label: "Cualquiera" },
     { id: "original", label: "Original" },
@@ -50,9 +57,8 @@ export default function SparePartsStep({
   ];
 
   const selectedCategoryObj = categories.find(
-    (c) => c.name === formData.category
+    (c) => c.name === localPart.category
   );
-  console.log(categories);
   const subCategories = selectedCategoryObj?.children || [];
 
   const scrollToCard = () => {
@@ -70,34 +76,62 @@ export default function SparePartsStep({
   const goToList = () => {
     setDirection(-1);
     setShowForm(false);
+    resetLocalForm();
     scrollToCard();
   };
 
-  const checkScroll = () => {
-    const el = listRef.current;
-    if (el) {
-      const isScrollable = el.scrollHeight > el.clientHeight;
-      const isAtBottom = el.scrollHeight - el.scrollTop <= el.clientHeight + 5;
-      setShowScrollArrow(isScrollable && !isAtBottom);
+  const resetLocalForm = () => {
+    setLocalPart({
+      category: "",
+      partName: "",
+      oemCode: "",
+      quantity: 1,
+      condition: "no_importa",
+      description: "",
+    });
+    setEditingIndex(null);
+  };
+
+  // --- Lógica de Imágenes ---
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !jwt) return;
+
+    try {
+      setIsUploading(true);
+      const res = await uploadQuoteItemImage(jwt, file);
+      setLocalPart((prev) => ({
+        ...prev,
+        photoId: res.data.image.id,
+        photoUrl: res.data.image.url,
+      }));
+      toast.success("Imagen cargada");
+    } catch (error) {
+      toast.error("Error al subir imagen");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  const scrollToNextSparePart = () => {
-    const el = listRef.current;
-    if (!el) return;
+  const handleRemovePhoto = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!localPart.photoId || !jwt) return;
 
-    const items = el.querySelectorAll(`.${styles.vehicleItem}`);
-    if (!items.length) return;
-
-    const itemHeight = (items[0] as HTMLElement).offsetHeight;
-
-    const currentIndex = Math.round(el.scrollTop / itemHeight);
-    const nextIndex = Math.min(currentIndex + 1, items.length - 1);
-
-    el.scrollTo({
-      top: nextIndex * itemHeight,
-      behavior: "smooth",
-    });
+    try {
+      setIsUploading(true);
+      await deleteQuoteItemImage(jwt, localPart.photoId);
+      setLocalPart((prev) => ({
+        ...prev,
+        photoId: undefined,
+        photoUrl: undefined,
+      }));
+      toast.success("Imagen eliminada");
+    } catch (error) {
+      toast.error("No se pudo eliminar la imagen");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // --- Lógica de Edición y Eliminación ---
@@ -105,60 +139,67 @@ export default function SparePartsStep({
     e.stopPropagation();
     setDeletingIndex(index);
 
-    // 2. Esperamos a que termine el CSS (300ms)
     setTimeout(() => {
-      setFormData((prev) => ({
-        ...prev,
-        spareParts: prev.spareParts.filter((_, i) => i !== index),
-      }));
-      // 3. Limpiamos el índice que se estaba borrando
+      const updatedParts = formData.spareParts.filter((_, i) => i !== index);
+      const updatedData = { ...formData, spareParts: updatedParts };
+      setFormData(updatedData);
+      saveDraft(updatedData);
       setDeletingIndex(null);
     }, 300);
   };
 
   const handleEdit = (index: number) => {
     const partToEdit = formData.spareParts[index];
-    setFormData((prev) => ({
-      ...prev,
+    setLocalPart({
       category: partToEdit.category,
       partName: partToEdit.partName,
-      oemCode: partToEdit.oemCode,
+      oemCode: partToEdit.oemCode || "",
       quantity: partToEdit.quantity,
       condition: partToEdit.condition,
-      spareParts: prev.spareParts.filter((_, i) => i !== index),
-    }));
+      description: partToEdit.description || "",
+      photoId: partToEdit.photoId,
+      photoUrl: partToEdit.photoUrl,
+    });
+
+    setEditingIndex(index);
     goToForm();
   };
 
-  // --- Handlers del Formulario ---
   const handleAddSparePart = () => {
-    if (!formData.partName) return;
-    setFormData((prev) => ({
-      ...prev,
-      spareParts: [
-        ...prev.spareParts,
-        {
-          category: prev.category,
-          partName: prev.partName,
-          oemCode: prev.oemCode,
-          quantity: prev.quantity,
-          condition: prev.condition,
-        },
-      ],
-      category: "",
-      partName: "",
-      oemCode: "",
-      quantity: 1,
-      condition: "no_importa",
-    }));
+    if (!localPart.partName || !localPart.category) return;
+
+    let updatedParts: SparePart[];
+
+    if (editingIndex !== null) {
+      // EDITAR: Creamos una copia de la lista y reemplazamos solo el índice editado
+      updatedParts = [...formData.spareParts];
+      updatedParts[editingIndex] = { ...localPart };
+    } else {
+      // NUEVO: Añadimos al final
+      updatedParts = [...formData.spareParts, localPart];
+    }
+
+    const updatedData: QuoteRequestFormData = {
+      ...formData,
+      spareParts: updatedParts,
+    };
+
+    // Actualizamos el estado global (esto dispara el borrador automáticamente si tienes un useEffect)
+    setFormData(updatedData);
+    saveDraft(updatedData);
+
+    // Limpiamos y volvemos a la lista
+    resetLocalForm();
     goToList();
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+    e: React.ChangeEvent<
+      HTMLSelectElement | HTMLInputElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setLocalPart((prev) => ({
       ...prev,
       [name]: value,
       ...(name === "category" ? { partName: "" } : {}),
@@ -166,23 +207,11 @@ export default function SparePartsStep({
   };
 
   const handleQuantity = (val: number) => {
-    setFormData((prev) => ({
+    setLocalPart((prev) => ({
       ...prev,
       quantity: Math.max(1, prev.quantity + val),
     }));
   };
-
-  const handleCondition = (id: string) => {
-    setFormData((prev) => ({ ...prev, condition: id }));
-  };
-
-  useEffect(() => {
-    const frameId = requestAnimationFrame(() => {
-      checkScroll();
-    });
-
-    return () => cancelAnimationFrame(frameId);
-  }, [setShowForm, formData.spareParts]);
 
   return (
     <section
@@ -196,14 +225,12 @@ export default function SparePartsStep({
             <IconsApp.Gear color="#f58220" />
           </div>
         </div>
-
         <h2 className={styles.cardTitle}>Datos del Repuesto</h2>
         {isCompleted && (
           <div className={styles.stepCompletedBadge}>
             <IconsApp.Check />
           </div>
         )}
-
         {showForm && (
           <button type="button" className={styles.backBtn} onClick={goToList}>
             Ver Lista
@@ -216,16 +243,11 @@ export default function SparePartsStep({
       <div className={styles.cardBody}>
         <StepTransition stepKey={showForm ? 2 : 1} direction={direction}>
           {!showForm ? (
-            /* ===== VISTA 1: LISTA ===== */
             <div className={styles.subStepContainer}>
               <div className={styles.field}>
                 <label>Repuestos solicitados</label>
                 <div className={styles.listWrapper}>
-                  <div
-                    className={styles.vehicleList}
-                    ref={listRef}
-                    onScroll={checkScroll}
-                  >
+                  <div className={styles.vehicleList} ref={listRef}>
                     {formData.spareParts.length === 0 ? (
                       <div className={styles.noVehicles}>
                         No hay repuestos aún
@@ -234,14 +256,26 @@ export default function SparePartsStep({
                       formData.spareParts.map((part, index) => (
                         <div
                           key={index}
-                          className={`${styles.vehicleItem} ${
+                          className={`${styles.sparePartItem} ${
                             deletingIndex === index ? styles.fadeOut : ""
                           }`}
                         >
+                          {part.photoUrl && (
+                            <div className={styles.miniPreview}>
+                              <Image
+                                src={part.photoUrl}
+                                alt="part"
+                                fill
+                                style={{
+                                  objectFit: "cover",
+                                  borderRadius: "4px",
+                                }}
+                              />
+                            </div>
+                          )}
                           <div
                             className={styles.vehicleInfo}
                             onClick={() => handleEdit(index)}
-                            style={{ cursor: "pointer" }}
                           >
                             <span className={styles.vName}>
                               {part.partName}
@@ -265,15 +299,6 @@ export default function SparePartsStep({
                       ))
                     )}
                   </div>
-                  {showScrollArrow && (
-                    <button
-                      type="button"
-                      className={styles.scrollIndicator}
-                      onClick={scrollToNextSparePart}
-                    >
-                      <IconsApp.DownArrow />
-                    </button>
-                  )}
                 </div>
               </div>
 
@@ -286,21 +311,23 @@ export default function SparePartsStep({
                   <IconsApp.PlusAddNew />
                 </div>
                 <span>
-                  Agregar {formData.spareParts.length > 0 ? "otro" : "un"}{" "}
-                  repuesto
+                  {editingIndex !== null
+                    ? "Guardar cambios"
+                    : `Agregar ${
+                        formData.spareParts.length > 0 ? "otro" : "un"
+                      } repuesto`}
                 </span>
                 <IconsApp.RightArrow className={styles.arrowRight} />
               </button>
             </div>
           ) : (
-            /* ===== VISTA 2: FORMULARIO ===== */
             <div className={styles.subStepContainer}>
               <div className={styles.field}>
                 <label>Categoría</label>
                 <div className={styles.selectWrapper}>
                   <select
                     name="category"
-                    value={formData.category}
+                    value={localPart.category}
                     onChange={handleChange}
                   >
                     <option value="">Seleccionar Categoría</option>
@@ -321,16 +348,15 @@ export default function SparePartsStep({
                 <div className={styles.selectWrapper}>
                   <select
                     name="partName"
-                    value={formData.partName}
+                    value={localPart.partName}
                     onChange={handleChange}
-                    disabled={!formData.category}
+                    disabled={!localPart.category}
                   >
                     <option value="">
-                      {!formData.category
+                      {!localPart.category
                         ? "Selecciona primero una categoría"
                         : "Seleccionar Repuesto"}
                     </option>
-
                     {subCategories.map((sub) => (
                       <option key={sub.id} value={sub.name}>
                         {sub.name}
@@ -345,13 +371,11 @@ export default function SparePartsStep({
 
               <div className={styles.rowSparParts}>
                 <div className={`${styles.field} ${styles.flex2}`}>
-                  <label>
-                    Referencia / OEM <span className={styles.infoIcon}>?</span>
-                  </label>
+                  <label>Referencia / OEM</label>
                   <input
                     type="text"
                     name="oemCode"
-                    value={formData.oemCode}
+                    value={localPart.oemCode}
                     onChange={handleChange}
                     placeholder="Opcional"
                     className={styles.input}
@@ -363,7 +387,7 @@ export default function SparePartsStep({
                     <button type="button" onClick={() => handleQuantity(-1)}>
                       −
                     </button>
-                    <span>{formData.quantity}</span>
+                    <span>{localPart.quantity}</span>
                     <button type="button" onClick={() => handleQuantity(1)}>
                       +
                     </button>
@@ -371,7 +395,6 @@ export default function SparePartsStep({
                 </div>
               </div>
 
-              {/* AQUÍ ESTÁ LA CONDICIÓN :) */}
               <div className={styles.field}>
                 <label>Condición preferida</label>
                 <div className={styles.conditionGroup}>
@@ -380,11 +403,13 @@ export default function SparePartsStep({
                       key={c.id}
                       type="button"
                       className={`${styles.conditionBtn} ${
-                        formData.condition === c.id
+                        localPart.condition === c.id
                           ? styles.activeCondition
                           : ""
                       }`}
-                      onClick={() => handleCondition(c.id)}
+                      onClick={() =>
+                        setLocalPart((p) => ({ ...p, condition: c.id }))
+                      }
                     >
                       {c.label}
                     </button>
@@ -392,11 +417,90 @@ export default function SparePartsStep({
                 </div>
               </div>
 
+              {/* ===== SECCIÓN DE NOTAS Y FOTO (DISEÑO ORIGINAL REPLICADO) ===== */}
+
+              <div className={styles.field}>
+                <label>Foto de referencia (Opcional)</label>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  style={{ display: "none" }}
+                  accept="image/*"
+                  disabled={isUploading}
+                />
+
+                <div
+                  className={`${styles.uploadArea} ${
+                    isUploading ? styles.uploading : ""
+                  }`}
+                  onClick={
+                    localPart.photoUrl || isUploading
+                      ? undefined
+                      : () => fileInputRef.current?.click()
+                  }
+                >
+                  {isUploading ? (
+                    <div className={styles.uploadIconCircle}>
+                      <span className={styles.loaderSmall} />
+                    </div>
+                  ) : localPart.photoUrl ? (
+                    <div className={styles.thumbnailContainer}>
+                      <Image
+                        src={localPart.photoUrl}
+                        alt="Vista previa"
+                        className={styles.thumbnailPreview}
+                        fill
+                        sizes="250px"
+                      />
+                      <button
+                        className={styles.removePhotoBadge}
+                        onClick={handleRemovePhoto}
+                        type="button"
+                      >
+                        <IconsApp.Trash color="#ef4444" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className={styles.uploadIconCircle}>
+                      <IconsApp.CameraPlus color="#9CA3AF" />
+                    </div>
+                  )}
+
+                  <p className={styles.uploadTitle}>
+                    {isUploading
+                      ? "Subiendo imagen..."
+                      : localPart.photoUrl
+                      ? "Imagen cargada correctamente"
+                      : "Subir foto de referencia"}
+                  </p>
+
+                  {!localPart.photoUrl && !isUploading && (
+                    <p className={styles.uploadSubtitle}>
+                      Ayuda a identificar la pieza exacta
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.field} style={{ marginTop: "10px" }}>
+                <label>Notas del repuesto (Opcional)</label>
+                <textarea
+                  name="description"
+                  className={styles.textarea}
+                  placeholder="Ej: Lado derecho, compatible con..."
+                  value={localPart.description}
+                  onChange={handleChange}
+                  style={{ minHeight: "80px" }}
+                />
+              </div>
+
               <button
                 type="button"
                 className={styles.addVehicleBtn}
                 onClick={handleAddSparePart}
-                disabled={!formData.partName}
+                disabled={!localPart.partName || isUploading}
+                style={{ marginTop: "20px" }}
               >
                 <div className={styles.addIconCircle}>
                   <IconsApp.PlusAddNew />

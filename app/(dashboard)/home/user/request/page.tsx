@@ -12,10 +12,9 @@ import {
   VehicleItem,
 } from "@/app/lib/api/client/vehicle";
 import VehicleStep from "@/components/request/VehicleStep";
-import SparePartsStep, { SparePart } from "@/components/request/SparePartsStep";
+import SparePartsStep from "@/components/request/SparePartsStep";
 import DeliveryStep from "@/components/request/DeliveryStep";
 import { IconsApp } from "@/components/icons/Icons";
-import ExtraInfoStep from "@/components/request/ExtraInfoStep";
 import Button from "@/components/button/Button";
 import { useSidebar } from "@/context/SidebarContext";
 import { Category, getCategories } from "@/app/lib/api/getCategories";
@@ -29,95 +28,60 @@ import {
   getClientLocations,
   getStates,
   Location,
+  State,
 } from "@/app/lib/api/client/location";
-
-export interface FormData {
-  userVehicle?: string;
-  brand: string;
-  model: string;
-  year: number;
-  engine: string;
-  version: string;
-  category: string;
-  partName: string;
-  oemCode: string;
-  quantity: number;
-  condition: string;
-  spareParts: SparePart[];
-  deliveryCity: string;
-  deliveryMethod: string;
-  extraInfo: string;
-  photo: File | null;
-  photoUrl?: string;
-  photoId?: number;
-}
+import { useRequestForm } from "@/hooks/useRequesFormAutoSave";
 
 export default function RequestPage() {
   const router = useRouter();
   const { jwt } = useAuth();
 
+  const [allStates, setAllStates] = useState<State[]>([]);
   const [savedLocations, setSavedLocations] = useState<Location[]>([]);
   const [userVehicles, setUserVehicles] = useState<Vehicle[]>([]);
   const [brands, setBrands] = useState<VehicleItem[]>([]);
   const [engines, setEngines] = useState<VehicleItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [states, setStates] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const { isExpanded } = useSidebar();
   const contentRef = useRef<HTMLDivElement>(null);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<FormData>({
-    brand: "",
-    model: "",
-    year: 0,
-    engine: "",
-    version: "",
-    category: "",
-    partName: "",
-    oemCode: "",
-    quantity: 1,
-    condition: "no_importa",
-
-    spareParts: [],
-
-    deliveryCity: "3",
-    deliveryMethod: "retiro",
-    extraInfo: "",
-    photo: null,
-  });
+  const { formData, setFormData, isValid, saveDraft, clearDraft } =
+    useRequestForm({
+      brand: "",
+      model: "",
+      year: 0,
+      engine: "",
+      version: "",
+      spareParts: [],
+      deliveryCity: "",
+      deliveryMethod: "retiro",
+      extraInfo: "",
+      photo: null,
+    });
 
   const refreshVehicles = async () => {
-    if (!jwt) {
-      return;
-    }
-
+    if (!jwt) return;
     const res = await getClientVehicles(jwt);
     if (res.data) {
       setUserVehicles(res.data);
       return res.data;
     }
+    return [];
   };
 
   const handleSubmit = async () => {
-    // if (!isFormValid()) {
-    //   toast.error("Por favor, completa todos los campos obligatorios.");
-    //   return;
-    // }
+    if (!isValid || !jwt) {
+      toast.error("Por favor, completa todos los campos obligatorios.");
+      return;
+    }
 
     setIsSubmitting(true);
 
-    if (!formData.userVehicle) return toast.error("Selecciona un vehículo");
-    if (formData.spareParts.length === 0)
-      return toast.error("Agrega al menos un repuesto");
-    if (!jwt) return;
-
-    setIsSubmitting(true);
     try {
       const itemsPayload = formData.spareParts.map((part) => {
         let foundCategoryId: number | undefined;
-
         categories.forEach((cat) => {
           const sub = cat.children?.find((s) => s.name === part.partName);
           if (sub) foundCategoryId = sub.id;
@@ -127,10 +91,11 @@ export default function RequestPage() {
           categoryId: foundCategoryId || 0,
           productName: part.partName,
           quantity: part.quantity,
-          oemCode: part.oemCode,
+          oemCode: part.oemCode || "",
           conditionPreferred: part.condition,
-          description: formData.extraInfo,
-          imageId: formData.photoId,
+          preferredBrand: part.condition === "original" ? "Original" : "",
+          description: part.description || "", // Ahora viene del repuesto
+          imageId: part.photoId, // Ahora viene del repuesto
         };
       });
 
@@ -145,12 +110,12 @@ export default function RequestPage() {
       const res = await createQuoteRequest(jwt, payload);
 
       if (res.ok) {
+        clearDraft();
         toast.success("¡Solicitud enviada con éxito!");
-        router.push("/home/user");
+        setTimeout(() => router.push("/home/user"), 1500);
       }
-    } catch (error: unknown) {
-      if (error instanceof Error)
-        toast.error(error.message || "Error al enviar la solicitud");
+    } catch (error) {
+      toast.error("Error al enviar la solicitud");
     } finally {
       setIsSubmitting(false);
     }
@@ -159,26 +124,33 @@ export default function RequestPage() {
   const isVehicleReady = !!formData.userVehicle;
   const isSparePartsReady = formData.spareParts.length > 0;
   const isDeliveryReady = !!formData.deliveryCity;
-
   const isFormValid = isVehicleReady && isSparePartsReady && isDeliveryReady;
+
+  useEffect(() => {
+    if (isVehicleReady || isSparePartsReady || isDeliveryReady) {
+      saveDraft(formData);
+    }
+  }, [formData]);
 
   useEffect(() => {
     const initLoad = async () => {
       if (!jwt) return;
       try {
         setLoading(true);
-        const [vRes, bRes, eRes, cRes, lRes] = await Promise.all([
+        const [vRes, bRes, eRes, cRes, lRes, sRes] = await Promise.all([
           getClientVehicles(jwt),
           getBrands(jwt),
           getEngineTypes(jwt),
           getCategories(),
           getClientLocations(jwt),
+          getStates(jwt),
         ]);
         setUserVehicles(vRes.data || []);
         setBrands(bRes.data || []);
         setEngines(eRes.data || []);
         setCategories(cRes.data || []);
         setSavedLocations(lRes.data || []);
+        setAllStates(sRes.data || []);
       } finally {
         setLoading(false);
       }
@@ -207,33 +179,30 @@ export default function RequestPage() {
             contentRef={contentRef}
             refreshVehicles={refreshVehicles}
             isCompleted={isVehicleReady}
+            saveDraft={saveDraft}
           />
 
           <SparePartsStep
+            jwt={jwt!}
             formData={formData}
             setFormData={setFormData}
             contentRef={contentRef}
             categories={categories}
             isCompleted={isSparePartsReady}
+            saveDraft={saveDraft}
           />
+
           <DeliveryStep
             formData={formData}
             setFormData={setFormData}
-            states={states}
+            states={allStates}
             isCompleted={isDeliveryReady}
             locations={savedLocations}
-          />
-          <ExtraInfoStep
-            jwt={jwt!}
-            formData={formData}
-            setFormData={setFormData}
+            saveDraft={saveDraft}
           />
         </div>
-        <footer
-          className={styles.footer}
-          onPointerMove={(e) => e.stopPropagation()}
-          onWheel={(e) => e.preventDefault()}
-        >
+
+        <footer className={styles.footer}>
           <Button
             className={styles.saveButton}
             onClick={handleSubmit}
@@ -247,7 +216,17 @@ export default function RequestPage() {
               </>
             )}
           </Button>
-          <button className={styles.saveDraft}>Guardar borrador</button>
+          <div className={styles.statusIndicator}>
+            {isValid ? (
+              <span className={styles.autoSaveSuccess}>
+                <IconsApp.Check /> Guardado automático
+              </span>
+            ) : (
+              <span className={styles.autoSaveWarning}>
+                <IconsApp.Warning /> Progreso guardado
+              </span>
+            )}
+          </div>
         </footer>
       </div>
     </div>
