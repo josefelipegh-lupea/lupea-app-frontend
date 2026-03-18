@@ -15,9 +15,19 @@ interface RequestProps {
   id: string;
   fecha: string;
   items: Item[];
+  documentId?: string;
+  onVerOfertas?: (documentId: string) => void;
+  isProvider?: boolean;
 }
 
-export const RequestCard: React.FC<RequestProps> = ({ id, fecha, items }) => {
+export const RequestCard: React.FC<RequestProps> = ({ 
+  id, 
+  fecha, 
+  items, 
+  documentId, 
+  onVerOfertas, 
+  isProvider = false 
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [maxHeight, setMaxHeight] = useState("0px");
   const [collapsedHeight, setCollapsedHeight] = useState("0px");
@@ -122,8 +132,11 @@ export const RequestCard: React.FC<RequestProps> = ({ id, fecha, items }) => {
         )}
 
         <div className={styles.actionsSingle}>
-          <button className={styles.btnVerOfertas}>
-            Ver ofertas disponibles
+          <button 
+            className={styles.btnVerOfertas}
+            onClick={() => documentId && onVerOfertas?.(documentId)}
+          >
+            {isProvider ? "Ver detalles de solicitud" : "Ver ofertas disponibles"}
           </button>
         </div>
       </div>

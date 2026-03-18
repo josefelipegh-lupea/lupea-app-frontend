@@ -16,6 +16,11 @@
   position: relative;
 }
 
+.mainContainer.noFooter {
+  min-height: 100dvh;
+  height: 100dvh;
+}
+
 .content {
   flex: 1;
   overflow-y: auto;

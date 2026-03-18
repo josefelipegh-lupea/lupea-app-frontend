@@ -19,6 +19,11 @@
   box-shadow: 0 0 0 100px #f2f2f2;
 }
 
+.mainContent.noFooterRadius {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .mobileFooterWrapper {
   flex-shrink: 0;
   height: 90px;
