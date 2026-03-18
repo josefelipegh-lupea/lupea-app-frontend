@@ -6,25 +6,47 @@ import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
 import StarRating from "@/components/star-rating/StarRating";
 
+import styles from "./Home.module.css";
 import { RequestCard } from "@/components/request-card/RequestCard";
 import { PriceCard } from "@/components/price-card/PriceCard";
 import { OrderCard } from "@/components/order-card/OrderCard";
-import Button from "@/components/button/Button";
 import { useRouter } from "next/navigation";
-import { getMyRequests, QuoteRequest } from "@/app/lib/api/client/home/request";
 import { useAuth } from "@/context/AuthContext";
-import styles from "./Home.module.css";
+import {
+  getProviderRequests,
+  ProviderQuoteRequest,
+} from "@/app/lib/api/provider/home/request";
 
 export default function HomePage() {
   const { jwt } = useAuth();
   const { isExpanded } = useSidebar();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("COTIZACIONES");
+  const [activeTab, setActiveTab] = useState("SOLICITUDES");
 
-  const [requests, setRequests] = useState<QuoteRequest[]>([]);
+  const [requests, setRequests] = useState<ProviderQuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const solicitudesEjemplo = [
+  useEffect(() => {
+    const fetchRequests = async () => {
+      if (!jwt) return;
+
+      try {
+        setLoading(true);
+        const res = await getProviderRequests(jwt);
+        if (res.ok) {
+          setRequests(res.data.requests);
+        }
+      } catch (error) {
+        console.error("Error cargando solicitudes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, [jwt]);
+
+  const solicitudesMock = [
     {
       id: "00125",
       fecha: "20/05/2024",
@@ -34,7 +56,7 @@ export default function HomePage() {
       tiempo: "24 Horas",
       items: [
         {
-          nombre: "Pastillas de frenos delantera",
+          nombre: "Pastillas de frenos delantea",
           modelo: "Toyota Corolla 2022",
           tipo: "Original",
         },
@@ -70,76 +92,9 @@ export default function HomePage() {
         },
       ],
     },
-    {
-      id: "00127",
-      fecha: "22/05/2024",
-      taller: "Frenos Santiago",
-      monto: "42.000",
-      reputacion: 2.8,
-      tiempo: "12 Horas",
-      items: [
-        {
-          nombre: "Líquido de frenos Dot4",
-          modelo: "Universal",
-          tipo: "Original",
-        },
-        { nombre: "Bomba de agua", modelo: "Chevrolet Sail", tipo: "OEM" },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-      ],
-    },
-    {
-      id: "00130",
-      fecha: "22/05/2024",
-      taller: "Frenos Santiago",
-      monto: "42.000",
-      reputacion: 5,
-      tiempo: "12 Horas",
-      items: [
-        {
-          nombre: "Líquido de frenos Dot4",
-          modelo: "Universal",
-          tipo: "Original",
-        },
-        { nombre: "Bomba de agua", modelo: "Chevrolet Sail", tipo: "OEM" },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-      ],
-    },
   ];
 
-  const ordenesEjemplo = [
+  const ordenesMock = [
     {
       id: "88420",
       title: "Taller Mecánico 'El Rayo'",
@@ -158,44 +113,12 @@ export default function HomePage() {
       cantidadRepuestos: 5,
       status: "COMPLETADA",
     },
-    {
-      id: "88423",
-      title: "Taller Mecánico 'El Rayo'",
-      cantidadRepuestos: 12,
-      status: "ACTIVA",
-    },
-    {
-      id: "88424",
-      title: "Taller Mecánico 'El Rayo'",
-      cantidadRepuestos: 2,
-      status: "COMPLETADA",
-    },
   ] as const;
-
-  useEffect(() => {
-    const fetchRequests = async () => {
-      if (!jwt) return;
-
-      try {
-        setLoading(true);
-        const res = await getMyRequests(jwt);
-        if (res.ok) {
-          setRequests(res.data.requests);
-        }
-      } catch (error) {
-        console.error("Error cargando solicitudes:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRequests();
-  }, []);
 
   const renderTabContent = () => {
     switch (activeTab) {
       case "COTIZACIONES":
-        return solicitudesEjemplo
+        return solicitudesMock
           .slice(0, 3)
           .map((s) => <PriceCard key={s.id} {...s} />);
 
@@ -204,7 +127,7 @@ export default function HomePage() {
           return <p className={styles.loadingText}>Cargando solicitudes...</p>;
         if (requests.length === 0)
           return (
-            <p className={styles.emptyText}>No tienes solicitudes activas.</p>
+            <p className={styles.emptyText}>No tienes solicitudes nuevas.</p>
           );
 
         return requests.slice(0, 3).map((sol) => (
@@ -212,9 +135,12 @@ export default function HomePage() {
             key={sol.documentId}
             id={sol.id.toString().padStart(5, "0")}
             fecha={new Date(sol.createdAt).toLocaleDateString("es-ES")}
-            items={sol.items.map((item) => ({
+            documentId={sol.documentId}
+            onVerOfertas={(docId) => router.push(`/home/vendor/${docId}`)}
+            isProvider={true}
+            items={sol.request.items.map((item) => ({
               nombre: item.productName,
-              modelo: `${sol.vehicle.brand} ${sol.vehicle.model}`,
+              modelo: `${sol.request.vehicle.brand} ${sol.request.vehicle.model} ${sol.request.vehicle.year}`,
               tipo:
                 item.conditionPreferred === "no_importa"
                   ? "Cualquiera"
@@ -224,7 +150,7 @@ export default function HomePage() {
         ));
 
       case "ÓRDENES":
-        return ordenesEjemplo
+        return ordenesMock
           .slice(0, 3)
           .map((o) => <OrderCard key={o.id} {...o} />);
       default:
@@ -239,7 +165,6 @@ export default function HomePage() {
       }`}
     >
       <div className={styles.mainContainer}>
-        {/* 1. CARD DE LUPAS */}
         <div className={styles.leftSection}>
           <section className={styles.summaryCard}>
             <p className={styles.summaryLabel}>MIS LUPAS DISPONIBLES</p>
@@ -265,24 +190,9 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* BOTÓN NUEVA SOLICITUD */}
-          <Button
-            className={styles.btnNuevaSolicitud}
-            onClick={() => {
-              router.push("/home/user/request");
-            }}
-          >
-            <span className={styles.plusIcon}>
-              <IconsApp.Plus />
-            </span>{" "}
-            Nueva solicitud
-          </Button>
-
-          {/* 3. MÉTRICAS */}
           <section className={styles.metricsContainer}>
             <h3 className={styles.title}>Mis Métricas</h3>
             <div className={styles.metricsGrid}>
-              {/* Gráfico */}
               <div className={styles.metricCardPurple}>
                 <div className={styles.chartBars}>
                   <div className={styles.barContainer}>
@@ -314,7 +224,6 @@ export default function HomePage() {
                 <p className={styles.metricSmallText}>Consultas realizadas</p>
               </div>
 
-              {/* Columna derecha de métricas */}
               <div className={styles.metricsStack}>
                 <div className={styles.metricCardGreen}>
                   <div className={styles.metricHeader}>
@@ -338,11 +247,10 @@ export default function HomePage() {
             </div>
           </section>
         </div>
-        {/* 2. OFERTAS RECIENTES */}
         <div className={styles.rightSection}>
           <section className={styles.ofertasContainer}>
             <nav className={styles.tabs}>
-              {["COTIZACIONES", "SOLICITUDES", "ÓRDENES"].map((tab) => (
+              {["SOLICITUDES", "COTIZACIONES", "ÓRDENES"].map((tab) => (
                 <button
                   key={tab}
                   className={
@@ -358,13 +266,15 @@ export default function HomePage() {
             <div className={styles.sectionHeader}>
               <h3 className={styles.title}>
                 {activeTab === "COTIZACIONES"
-                  ? "Ofertas Recientes"
+                  ? "Ofertas Recibidas"
                   : activeTab === "SOLICITUDES"
-                  ? "Mis solicitudes"
+                  ? "Solicitudes nuevas"
                   : "Órdenes generadas"}
               </h3>
-              {activeTab === "COTIZACIONES" && (
-                <span className={styles.badgeNuevas}>3 Nuevas</span>
+              {activeTab === "SOLICITUDES" && requests.length > 0 && (
+                <span className={styles.badgeNuevas}>
+                  {requests.length} Nuevas
+                </span>
               )}
             </div>
 

@@ -45,3 +45,113 @@
   height: 3rem;
   margin-top: 1rem;
 }
+
+/* Skeleton RequestDetail */
+.backButtonSkeleton {
+  width: 80px;
+  height: 30px;
+  margin-bottom: 15px;
+  background-color: #e2e8f0;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.backButtonSkeleton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 2s infinite;
+}
+
+.headerSkeleton {
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  height: 20px;
+  margin-bottom: 16px;
+  width: 35%;
+}
+
+.vehicleRow {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.iconCircle {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.vehicleText {
+  flex: 1;
+}
+
+.textSmall {
+  height: 14px;
+  margin-top: 4px;
+}
+
+.locationRow {
+  display: flex;
+  gap: 12px;
+}
+
+.smallIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.locationText {
+  flex: 1;
+}
+
+.itemRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.itemIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.itemText {
+  flex: 1;
+}
+
+.criteriaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.criteriaItem {
+  height: 60px;
+  border-radius: 12px;
+}
+
+.actionsContainer {
+  margin-top: 20px;
+  padding-bottom: 30px;
+}

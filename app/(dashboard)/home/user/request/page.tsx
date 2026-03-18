@@ -31,6 +31,7 @@ import {
   State,
 } from "@/app/lib/api/client/location";
 import { useRequestForm } from "@/hooks/useRequesFormAutoSave";
+import { useFooterVisibility } from "@/context/FooterVisibilityContext";
 
 export default function RequestPage() {
   const router = useRouter();
@@ -44,6 +45,7 @@ export default function RequestPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const { isExpanded } = useSidebar();
+  const { isFooterVisible } = useFooterVisibility();
   const contentRef = useRef<HTMLDivElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -164,7 +166,7 @@ export default function RequestPage() {
         !isExpanded ? styles.sidebarCollapsed : ""
       }`}
     >
-      <div className={styles.mainContainer}>
+      <div className={`${styles.mainContainer} ${!isFooterVisible ? styles.noFooter : ""}`}>
         <Header title="Buscar repuesto" />
 
         <div className={styles.content} ref={contentRef}>
