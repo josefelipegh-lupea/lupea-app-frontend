@@ -806,4 +806,68 @@ export const IconsApp = {
       </svg>
     );
   },
+  BackArrow: ({ color = "black" }: IconProps) => {
+    return (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M19 12H5M5 12L12 19M5 12L12 5"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  },
+  Close: ({ color = "black" }: IconProps) => {
+    return (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 14 14"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M1 1L13 13M13 1L1 13"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  },
+  StarFilled: ({ color = "#F08400" }: IconProps) => {
+    return (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill={color}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+      </svg>
+    );
+  },
+  Clock: ({ color = "#777777" }: IconProps) => {
+    return (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 14 14"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M7 0C3.13401 0 0 3.13401 0 7C0 10.866 3.13401 14 7 14C10.866 14 14 10.866 14 7C14 3.13401 10.866 0 7 0ZM7 12.6667C4.05401 12.6667 1.66667 10.2793 1.66667 7.33333C1.66667 4.38735 4.05401 2 7 2C9.94599 2 12.3333 4.38735 12.3333 7.33333C12.3333 10.2793 9.94599 12.6667 7 12.6667ZM7.58333 4.66667H6.41667V7.58333L9.55 9.69167L10.0833 8.80833L7.58333 7.175V4.66667Z" />
+      </svg>
+    );
+  },
 };

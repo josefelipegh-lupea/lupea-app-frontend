@@ -86,120 +86,126 @@ export default function RequestDetailPage() {
       >
         <div className={styles.mainContainer}>
           <Header title="Detalle de Solictud" />
-
-          <section className={styles.headerSection}>
-            <div className={styles.headerTop}>
-              <div className={styles.idBadge}>
-                <IconsApp.Document />
-                <span>Solicitud {request.id.toString().padStart(5, "0")}</span>
+          <div className={styles.content}>
+            <section className={styles.headerSection}>
+              <div className={styles.headerTop}>
+                <div className={styles.idBadge}>
+                  <IconsApp.Document />
+                  <span>
+                    Solicitud {request.id.toString().padStart(5, "0")}
+                  </span>
+                </div>
+                <span className={styles.statusBadge}>{request.status}</span>
               </div>
-              <span className={styles.statusBadge}>{request.status}</span>
-            </div>
-            <p className={styles.dateText}>
-              Fecha:{" "}
-              {new Date(request.createdAt).toLocaleDateString("es-ES", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-          </section>
+              <p className={styles.dateText}>
+                Fecha:{" "}
+                {new Date(request.createdAt).toLocaleDateString("es-ES", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            </section>
 
-          <section className={styles.card}>
-            <h3 className={styles.cardTitle}>Vehículo</h3>
-            <div className={styles.vehicleInfo}>
-              <div className={styles.iconCircle}>
-                <IconsApp.Car />
-              </div>
-              <div className={styles.vehicleDetails}>
-                <h4 className={styles.vehicleName}>{vehicleInfo}</h4>
-                <p className={styles.vehicleExtra}>
-                  {request.request.vehicle.version} •{" "}
-                  {request.request.vehicle.engine}
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className={styles.card}>
-            <h3 className={styles.cardTitle}>Ubicación del cliente</h3>
-            <div className={styles.locationInfo}>
-              <div className={styles.locationRow}>
-                <IconsApp.Location />
-                <div>
-                  <p className={styles.locationName}>{locationInfo.name}</p>
-                  <p className={styles.locationAddress}>
-                    {locationInfo.address}
-                  </p>
-                  <p className={styles.locationParish}>
-                    {locationInfo.parish}, {locationInfo.municipality},{" "}
-                    {locationInfo.state}
+            <section className={styles.card}>
+              <h3 className={styles.cardTitle}>Vehículo</h3>
+              <div className={styles.vehicleInfo}>
+                <div className={styles.iconCircle}>
+                  <IconsApp.Car />
+                </div>
+                <div className={styles.vehicleDetails}>
+                  <h4 className={styles.vehicleName}>{vehicleInfo}</h4>
+                  <p className={styles.vehicleExtra}>
+                    {request.request.vehicle.version} •{" "}
+                    {request.request.vehicle.engine}
                   </p>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <section className={styles.card}>
-            <h3 className={styles.cardTitle}>
-              Repuestos solicitados ({request.request.items.length})
-            </h3>
-            <div className={styles.itemsList}>
-              {request.request.items.map((item, index) => (
-                <div key={index} className={styles.itemRow}>
-                  <div className={styles.itemIcon}>
-                    <IconsApp.Gear />
-                  </div>
-                  <div className={styles.itemInfo}>
-                    <h4 className={styles.itemName}>{item.productName}</h4>
-                    <p className={styles.itemDetail}>
-                      Cantidad: {item.quantity}
+            <section className={styles.card}>
+              <h3 className={styles.cardTitle}>Ubicación del cliente</h3>
+              <div className={styles.locationInfo}>
+                <div className={styles.locationRow}>
+                  <IconsApp.Location />
+                  <div>
+                    <p className={styles.locationName}>{locationInfo.name}</p>
+                    <p className={styles.locationAddress}>
+                      {locationInfo.address}
                     </p>
-                    <p className={styles.itemCondition}>
-                      Condición preferida:{" "}
-                      {item.conditionPreferred === "no_importa"
-                        ? "Cualquiera"
-                        : item.conditionPreferred}
+                    <p className={styles.locationParish}>
+                      {locationInfo.parish}, {locationInfo.municipality},{" "}
+                      {locationInfo.state}
                     </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
+              </div>
+            </section>
 
-          <section className={styles.card}>
-            <h3 className={styles.cardTitle}>Criterios de coincidencia</h3>
-            <div className={styles.criteriaGrid}>
-              <div className={styles.criteriaItem}>
-                <span className={styles.criteriaLabel}>Score</span>
-                <span className={styles.criteriaValue}>{request.score}%</span>
+            <section className={styles.card}>
+              <h3 className={styles.cardTitle}>
+                Repuestos solicitados ({request.request.items.length})
+              </h3>
+              <div className={styles.itemsList}>
+                {request.request.items.map((item, index) => (
+                  <div key={index} className={styles.itemRow}>
+                    <div className={styles.itemIcon}>
+                      <IconsApp.Gear />
+                    </div>
+                    <div className={styles.itemInfo}>
+                      <h4 className={styles.itemName}>{item.productName}</h4>
+                      <p className={styles.itemDetail}>
+                        Cantidad: {item.quantity}
+                      </p>
+                      <p className={styles.itemCondition}>
+                        Condición preferida:{" "}
+                        {item.conditionPreferred === "no_importa"
+                          ? "Cualquiera"
+                          : item.conditionPreferred}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className={styles.criteriaItem}>
-                <span className={styles.criteriaLabel}>Coincidencias</span>
-                <span className={styles.criteriaValue}>
-                  {request.criteria.matchedItemCount} de{" "}
-                  {request.criteria.totalItems}
-                </span>
-              </div>
-              <div className={styles.criteriaItem}>
-                <span className={styles.criteriaLabel}>Categorías</span>
-                <span className={styles.criteriaValue}>
-                  {request.criteria.matchedCategoryNames.join(", ")}
-                </span>
-              </div>
-              <div className={styles.criteriaItem}>
-                <span className={styles.criteriaLabel}>Entrega</span>
-                <span className={styles.criteriaValue}>
-                  {request.criteria.logistics.deliveryPreference === "delivery"
-                    ? "Delivery"
-                    : "Retiro en tienda"}
-                </span>
-              </div>
-            </div>
-          </section>
+            </section>
 
-          <div className={styles.actionsContainer}>
-            <Button className={styles.btnPrimary}>Enviar cotización</Button>
+            <section className={styles.card}>
+              <h3 className={styles.cardTitle}>Criterios de coincidencia</h3>
+              <div className={styles.criteriaGrid}>
+                <div className={styles.criteriaItem}>
+                  <span className={styles.criteriaLabel}>Score</span>
+                  <span className={styles.criteriaValue}>{request.score}%</span>
+                </div>
+                <div className={styles.criteriaItem}>
+                  <span className={styles.criteriaLabel}>Coincidencias</span>
+                  <span className={styles.criteriaValue}>
+                    {request.criteria.matchedItemCount} de{" "}
+                    {request.criteria.totalItems}
+                  </span>
+                </div>
+                <div className={styles.criteriaItem}>
+                  <span className={styles.criteriaLabel}>Categorías</span>
+                  <span className={styles.criteriaValue}>
+                    {request.criteria.matchedCategoryNames.join(", ")}
+                  </span>
+                </div>
+                <div className={styles.criteriaItem}>
+                  <span className={styles.criteriaLabel}>Entrega</span>
+                  <span className={styles.criteriaValue}>
+                    {request.criteria.logistics.deliveryPreference ===
+                    "delivery"
+                      ? "Delivery"
+                      : "Retiro en tienda"}
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            {request.status === "pending" && (
+              <div className={styles.actionsContainer}>
+                <Button className={styles.btnPrimary}>Enviar cotización</Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

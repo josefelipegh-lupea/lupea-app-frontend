@@ -3,7 +3,10 @@ import detailStyles from "../../app/(dashboard)/home/vendor/[id]/RequestDetail.m
 
 export const SkeletonRequestDetail = () => {
   return (
-    <div className={detailStyles.pageWrapper}>
+    <div
+      className={detailStyles.pageWrapper}
+      style={{ padding: "24px", backgroundColor: "white" }}
+    >
       <div className={detailStyles.mainContainer}>
         <div className={styles.backButtonSkeleton} />
 
@@ -52,7 +55,10 @@ export const SkeletonRequestDetail = () => {
           <div className={`${styles.skeleton} ${styles.cardTitle}`} />
           <div className={styles.criteriaGrid}>
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className={`${styles.skeleton} ${styles.criteriaItem}`} />
+              <div
+                key={i}
+                className={`${styles.skeleton} ${styles.criteriaItem}`}
+              />
             ))}
           </div>
         </div>

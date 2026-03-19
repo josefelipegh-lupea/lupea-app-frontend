@@ -1,0 +1,534 @@
+.pageWrapper {
+  min-height: 100dvh;
+  padding-bottom: 0;
+}
+
+.mainContainer {
+  max-width: 480px;
+  margin: 0 auto;
+  border-radius: 0 0 40px 40px;
+  min-height: calc(100dvh - 160px);
+}
+
+.mainContainer.noFooter {
+  min-height: 100dvh;
+  height: 100dvh;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  gap: 15px;
+  background-color: #fff;
+}
+
+.headerTitle {
+  font-size: 19px;
+  font-weight: 600;
+  color: #1a1a3d;
+  background-color: #fff;
+}
+
+/* Request Selector Row */
+.requestSelectorRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  color: #1a1a3d;
+  background-color: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  border-bottom-left-radius: 19px;
+  border-bottom-right-radius: 19px;
+}
+
+.selectorItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.quoteCount {
+  font-size: 13px;
+  color: #1a1a3d;
+  font-weight: 500;
+}
+
+/* Search Row */
+.searchFilterRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #fff;
+  margin: 10px 20px;
+  border-radius: 19px;
+}
+
+.searchLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.searchBadge {
+  background-color: #f1f0f7;
+  padding: 8px 15px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #1a1a3d;
+  font-weight: 600;
+}
+
+.closeSearch {
+  opacity: 0.5;
+}
+
+/* Info Box */
+.infoBox {
+  background-color: #fff5ed;
+  margin: 0 20px 20px;
+  padding: 18px;
+  padding-right: 40px;
+  border-radius: 28px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+}
+
+.infoIcon {
+  /* background: #f08100; */
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.infoContent {
+  flex: 1;
+}
+
+.infoBox p {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.closeInfo {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Cards */
+.quoteCard {
+  border: 1px solid #eee;
+  border-radius: 19px;
+  margin: 0 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  margin-bottom: 10px;
+}
+
+.quotesList {
+  padding-bottom: 10px;
+}
+
+.cardHeader {
+  background-color: #1a1a3d;
+  color: #fff;
+  padding: 10px 25px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.cardBody {
+  background-color: #fff;
+  padding: 10px 20px;
+}
+
+.providerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.providerInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolIcon {
+  background: #f1f1f1;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+}
+
+.providerName {
+  font-size: 17px;
+  font-weight: 700;
+  color: #000;
+}
+
+.ratingBadge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  color: #000;
+}
+
+.partsCount {
+  font-size: 13px;
+  color: #000;
+  margin-bottom: 15px;
+}
+
+/* Items List */
+.partItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 10px;
+  border-radius: 15px;
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.checked {
+  background-color: #717171;
+  border-color: #717171;
+}
+
+.partName {
+  font-weight: 600;
+  font-size: 15px;
+  color: #000;
+  margin: 0;
+}
+
+.partSub {
+  font-size: 12px;
+  color: #000;
+  margin: 2px 0 0;
+}
+
+.partPrice {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a1a3d;
+  margin-left: 12px;
+  padding-right: 8px;
+  flex-shrink: 0;
+  width: 40px;
+  text-align: right;
+}
+
+.partContent {
+  flex: 1;
+  border-right: 1px solid #18144033;
+  padding-right: 12px;
+}
+
+/* Footer Card */
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  padding-bottom: 20px;
+  /* margin: 20px 0; */
+  border-top: 1px solid #18144033;
+  /* border-bottom: 1px solid #18144033; */
+}
+
+.deliveryTime {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.cardTotal {
+  font-weight: 700;
+  font-size: 24px;
+  color: #1a1a3d;
+}
+
+.cardTotal strong {
+  font-size: 24px;
+  font-weight: 800;
+  margin-left: 5px;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 15px;
+  width: calc(100% + 40px);
+  margin-left: -20px;
+  border-top: 1px solid #18144033;
+  border-bottom: 1px solid #18144033;
+}
+
+.btnAcceptCompleteOffer {
+  width: 80%;
+  background: #f1f1f7;
+  color: #1a1a3d;
+  border: none;
+  border-radius: 14px;
+  height: 36px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.btnAcceptCompleteOffer:hover {
+  color: #fff;
+}
+
+.selectionSummary {
+  display: flex;
+  justify-content: space-between;
+  color: #f08100;
+  font-weight: 700;
+  font-size: 14px;
+  padding-top: 10px;
+  /* border-top: 1px solid #18144033; */
+}
+
+/* Footer Sticky */
+.stickyFooter {
+  position: sticky;
+  bottom: 0;
+  background-color: #ffffff;
+  border-radius: 30px 30px 0 0;
+  padding: 20px 24px 30px 24px;
+  gap: 12px;
+  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  touch-action: none;
+  overflow: hidden;
+  overscroll-behavior: none;
+  user-select: none;
+}
+
+.footerCount {
+  font-size: 14px;
+  color: #1a1a3d;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.footerActionRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.totalFinal {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a3d;
+  flex: 1;
+  text-align: center;
+}
+
+.btnGenerar {
+  flex: 1;
+  background-color: #f08100;
+  color: white;
+  border-radius: 14px;
+  height: 52px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(240, 129, 0, 0.3);
+}
+
+.btnGenerar:disabled {
+  background-color: #ccc;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.footerSub {
+  font-size: 12px;
+  color: #aaa;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.successMessage {
+  background-color: #34d99f;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 14px;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 15px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Skeleton Styles */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.headerSkeleton {
+  width: 150px;
+  height: 24px;
+}
+
+.selectorSkeleton {
+  width: 120px;
+  height: 20px;
+}
+
+.countSkeleton {
+  width: 80px;
+  height: 20px;
+}
+
+.searchSkeleton {
+  width: 100px;
+  height: 36px;
+  border-radius: 25px;
+}
+
+.filterSkeleton {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.infoIconSkeleton {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.textSkeleton {
+  width: 100%;
+  height: 16px;
+  margin-bottom: 8px;
+}
+
+.textSkeletonShort {
+  width: 70%;
+  height: 16px;
+}
+
+.cardHeaderSkeleton {
+  width: 100px;
+  height: 14px;
+}
+
+.providerSkeleton {
+  width: 120px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.ratingSkeleton {
+  width: 60px;
+  height: 24px;
+  border-radius: 12px;
+}
+
+.checkboxSkeleton {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  margin-right: 15px;
+}
+
+.partContentSkeleton {
+  flex: 1;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.priceSkeleton {
+  width: 50px;
+  height: 24px;
+  border-radius: 8px;
+}
+
+.timeSkeleton {
+  width: 80px;
+  height: 20px;
+}
+
+.totalSkeleton {
+  width: 60px;
+  height: 24px;
+}
+
+.buttonSkeleton {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+}

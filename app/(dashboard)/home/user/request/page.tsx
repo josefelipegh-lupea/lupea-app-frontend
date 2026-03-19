@@ -166,7 +166,11 @@ export default function RequestPage() {
         !isExpanded ? styles.sidebarCollapsed : ""
       }`}
     >
-      <div className={`${styles.mainContainer} ${!isFooterVisible ? styles.noFooter : ""}`}>
+      <div
+        className={`${styles.mainContainer} ${
+          !isFooterVisible ? styles.noFooter : ""
+        }`}
+      >
         <Header title="Buscar repuesto" />
 
         <div className={styles.content} ref={contentRef}>

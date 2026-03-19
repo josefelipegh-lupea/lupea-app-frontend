@@ -6,27 +6,27 @@ import { IconsApp } from "../icons/Icons";
 import styles from "./RequestCard.module.css";
 
 interface Item {
-  nombre: string;
-  modelo: string;
-  tipo: string;
+  name: string;
+  model: string;
+  type: string;
 }
 
 interface RequestProps {
   id: string;
-  fecha: string;
+  date: string;
   items: Item[];
   documentId?: string;
-  onVerOfertas?: (documentId: string) => void;
+  onViewOffers?: (documentId: string) => void;
   isProvider?: boolean;
 }
 
-export const RequestCard: React.FC<RequestProps> = ({ 
-  id, 
-  fecha, 
-  items, 
-  documentId, 
-  onVerOfertas, 
-  isProvider = false 
+export const RequestCard: React.FC<RequestProps> = ({
+  id,
+  date,
+  items,
+  documentId,
+  onViewOffers,
+  isProvider = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [maxHeight, setMaxHeight] = useState("0px");
@@ -96,12 +96,12 @@ export const RequestCard: React.FC<RequestProps> = ({
           <IconsApp.Document />
           <span>Solicitud {id}</span>
         </div>
-        <span className={styles.headerDate}>{fecha}</span>
+        <span className={styles.headerDate}>{date}</span>
       </div>
 
       <div className={styles.body}>
         <p className={styles.repuestosResumen}>
-          {formatNumber(items.length)} Repuestos solicitados
+          {formatNumber(items.length)} repuestos solicitados
         </p>
 
         <div className={styles.itemsContainer} style={{ maxHeight }}>
@@ -112,9 +112,9 @@ export const RequestCard: React.FC<RequestProps> = ({
                   <IconsApp.Gear />
                 </div>
                 <div className={styles.itemInfo}>
-                  <h4 className={styles.itemName}>{item.nombre}</h4>
+                  <h4 className={styles.itemName}>{item.name}</h4>
                   <p className={styles.itemDetail}>
-                    {item.modelo} • {item.tipo}
+                    {item.model} • {item.type}
                   </p>
                 </div>
               </div>
@@ -132,11 +132,13 @@ export const RequestCard: React.FC<RequestProps> = ({
         )}
 
         <div className={styles.actionsSingle}>
-          <button 
+          <button
             className={styles.btnVerOfertas}
-            onClick={() => documentId && onVerOfertas?.(documentId)}
+            onClick={() => documentId && onViewOffers?.(documentId)}
           >
-            {isProvider ? "Ver detalles de solicitud" : "Ver ofertas disponibles"}
+            {isProvider
+              ? "Ver detalles de solicitud"
+              : "Ver ofertas disponibles"}
           </button>
         </div>
       </div>

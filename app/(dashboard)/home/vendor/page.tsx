@@ -16,6 +16,10 @@ import {
   getProviderRequests,
   ProviderQuoteRequest,
 } from "@/app/lib/api/provider/home/request";
+import {
+  getProviderQuotes,
+  ProviderQuote,
+} from "@/app/lib/api/provider/home/quote";
 
 export default function HomePage() {
   const { jwt } = useAuth();
@@ -24,77 +28,36 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState("SOLICITUDES");
 
   const [requests, setRequests] = useState<ProviderQuoteRequest[]>([]);
+  const [quotes, setQuotes] = useState<ProviderQuote[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRequests = async () => {
+    const fetchHomeData = async () => {
       if (!jwt) return;
 
       try {
         setLoading(true);
-        const res = await getProviderRequests(jwt);
-        if (res.ok) {
-          setRequests(res.data.requests);
+        const [requestsRes, quotesRes] = await Promise.all([
+          getProviderRequests(jwt),
+          getProviderQuotes(jwt),
+        ]);
+        if (requestsRes.ok) {
+          setRequests(requestsRes.data.requests);
+        }
+        if (quotesRes.ok) {
+          setQuotes(quotesRes.data.quotes);
         }
       } catch (error) {
-        console.error("Error cargando solicitudes:", error);
+        console.error("Error loading data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRequests();
+    fetchHomeData();
   }, [jwt]);
 
-  const solicitudesMock = [
-    {
-      id: "00125",
-      fecha: "20/05/2024",
-      taller: "Taller Mecánico 'El Rayo'",
-      reputacion: 3.5,
-      monto: "150.000",
-      tiempo: "24 Horas",
-      items: [
-        {
-          nombre: "Pastillas de frenos delantea",
-          modelo: "Toyota Corolla 2022",
-          tipo: "Original",
-        },
-        {
-          nombre: "Kit Distribución",
-          modelo: "Volkswagen Golf VII",
-          tipo: "OEM",
-        },
-        {
-          nombre: "Kit Distribución",
-          modelo: "Volkswagen Golf VII",
-          tipo: "OEM",
-        },
-        {
-          nombre: "Kit Distribución",
-          modelo: "Volkswagen Golf VII",
-          tipo: "OEM",
-        },
-      ],
-    },
-    {
-      id: "00126",
-      fecha: "21/05/2024",
-      taller: "Servicio Autorizado Bosch",
-      monto: "85.500",
-      reputacion: 5,
-      tiempo: "48 Horas",
-      items: [
-        {
-          nombre: "Amortiguadores traseros",
-          modelo: "Ford Ranger 2019",
-          tipo: "Alternativo",
-        },
-      ],
-    },
-  ];
-
-  const ordenesMock = [
+  const mockOrders = [
     {
       id: "88420",
       title: "Taller Mecánico 'El Rayo'",
@@ -118,30 +81,54 @@ export default function HomePage() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "COTIZACIONES":
-        return solicitudesMock
-          .slice(0, 3)
-          .map((s) => <PriceCard key={s.id} {...s} />);
+        if (loading)
+          return <p className={styles.loadingText}>Cargando cotizaciones...</p>;
+        if (quotes.length === 0)
+          return (
+            <p className={styles.emptyText}>No has enviado cotizaciones aún</p>
+          );
+
+        return quotes.slice(0, 3).map((quote) => {
+          const quoteCodeShort = quote.quoteCode.split("-").slice(2).join("-");
+          return (
+            <PriceCard
+              key={quote.documentId}
+              id={quoteCodeShort}
+              date={new Date(quote.createdAt).toLocaleDateString("es-ES")}
+              workshop={quote.request.client.username}
+              amount={quote.priceTotal.toFixed(2)}
+              time={quote.deliveryTime}
+              items={quote.items.map((item) => ({
+                name: item.productName,
+                model: `${quote.request.vehicle.brand} ${quote.request.vehicle.model} ${quote.request.vehicle.year}`,
+                type: item.availability,
+              }))}
+              totalSolicitados={quote.request.items.length}
+              isProvider={true}
+              documentId={quote.documentId}
+              onViewQuote={(docId) => router.push(`/home/vendor/quotes/${docId}`)}
+            />
+          );
+        });
 
       case "SOLICITUDES":
         if (loading)
           return <p className={styles.loadingText}>Cargando solicitudes...</p>;
         if (requests.length === 0)
-          return (
-            <p className={styles.emptyText}>No tienes solicitudes nuevas.</p>
-          );
+          return <p className={styles.emptyText}>No hay solicitudes aún</p>;
 
-        return requests.slice(0, 3).map((sol) => (
+        return requests.slice(0, 3).map((req) => (
           <RequestCard
-            key={sol.documentId}
-            id={sol.id.toString().padStart(5, "0")}
-            fecha={new Date(sol.createdAt).toLocaleDateString("es-ES")}
-            documentId={sol.documentId}
-            onVerOfertas={(docId) => router.push(`/home/vendor/${docId}`)}
+            key={req.documentId}
+            id={req.id.toString().padStart(5, "0")}
+            date={new Date(req.createdAt).toLocaleDateString("es-ES")}
+            documentId={req.documentId}
+            onViewOffers={(docId) => router.push(`/home/vendor/${docId}`)}
             isProvider={true}
-            items={sol.request.items.map((item) => ({
-              nombre: item.productName,
-              modelo: `${sol.request.vehicle.brand} ${sol.request.vehicle.model} ${sol.request.vehicle.year}`,
-              tipo:
+            items={req.request.items.map((item) => ({
+              name: item.productName,
+              model: `${req.request.vehicle.brand} ${req.request.vehicle.model} ${req.request.vehicle.year}`,
+              type:
                 item.conditionPreferred === "no_importa"
                   ? "Cualquiera"
                   : item.conditionPreferred,
@@ -150,7 +137,7 @@ export default function HomePage() {
         ));
 
       case "ÓRDENES":
-        return ordenesMock
+        return mockOrders
           .slice(0, 3)
           .map((o) => <OrderCard key={o.id} {...o} />);
       default:
@@ -266,7 +253,7 @@ export default function HomePage() {
             <div className={styles.sectionHeader}>
               <h3 className={styles.title}>
                 {activeTab === "COTIZACIONES"
-                  ? "Ofertas Recibidas"
+                  ? "Cotizaciones enviadas"
                   : activeTab === "SOLICITUDES"
                   ? "Solicitudes nuevas"
                   : "Órdenes generadas"}
