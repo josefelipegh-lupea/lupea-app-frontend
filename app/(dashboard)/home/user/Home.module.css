@@ -9,7 +9,6 @@
   padding: 20px;
   max-width: 480px;
   margin: 0 auto;
-  border-radius: 50px;
   background-color: #fff;
 }
 
@@ -363,6 +362,7 @@
     width: 90%;
     max-width: 500px;
     gap: 20px;
+    border-radius: 50px;
   }
 
   .tabs {

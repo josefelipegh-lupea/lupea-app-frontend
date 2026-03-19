@@ -23,7 +23,7 @@ export interface ProviderQuoteRequestResponse {
 export interface ProviderQuoteRequest {
   id: number;
   documentId: string;
-  status: "pending" | "accepted" | "rejected" | "expired";
+  status: "pending" | "quoted" | "accepted" | "rejected" | "expired";
   score: number;
   locationScope: string;
   criteria: {

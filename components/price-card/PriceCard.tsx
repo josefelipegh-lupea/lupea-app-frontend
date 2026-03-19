@@ -5,31 +5,39 @@ import { IconsApp } from "../icons/Icons";
 import styles from "./PriceCard.module.css";
 
 interface Item {
-  nombre: string;
-  modelo: string;
-  tipo: string;
+  name: string;
+  model: string;
+  type: string;
 }
 
 interface PriceProps {
   id: string;
-  fecha: string;
-  taller: string;
-  reputacion: number;
-  monto: string;
-  tiempo: string;
+  date: string;
+  workshop: string;
+  rating?: number;
+  amount: string;
+  time: string;
   items: Item[];
   totalSolicitados?: number;
+  isProvider?: boolean;
+  onViewQuote?: (documentId: string) => void;
+  onCompare?: (documentId: string) => void;
+  documentId?: string;
 }
 
 export const PriceCard: React.FC<PriceProps> = ({
   id,
-  fecha,
-  taller,
-  reputacion,
-  monto,
-  tiempo,
+  date,
+  workshop,
+  rating,
+  amount,
+  time,
   items,
   totalSolicitados = 7,
+  isProvider = false,
+  onViewQuote,
+  onCompare,
+  documentId,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -96,7 +104,7 @@ export const PriceCard: React.FC<PriceProps> = ({
     <div ref={cardRef} className={styles.card}>
       <div className={styles.header}>
         <span>Solicitud {id}</span>
-        <span>{fecha}</span>
+        <span>{date}</span>
       </div>
 
       <div className={styles.body}>
@@ -105,18 +113,18 @@ export const PriceCard: React.FC<PriceProps> = ({
             <div className={styles.iconBox}>
               <IconsApp.Tool />
             </div>
-            <span className={styles.tallerName}>{taller}</span>
+            <span className={styles.tallerName}>{workshop}</span>
           </div>
 
           <div className={styles.reputation}>
-            <IconsApp.Star />{" "}
-            <span className={styles.ratingValue}>{reputacion}</span>
+            {rating && <IconsApp.Star />}
+            <span className={styles.ratingValue}>{rating}</span>
           </div>
         </div>
 
         <p className={styles.repuestosResumen}>
           {formatNumber(items.length)} de {formatNumber(totalSolicitados)}{" "}
-          Repuestos solicitados
+          repuestos solicitados
         </p>
 
         <div className={styles.itemsContainer} style={{ maxHeight }}>
@@ -127,9 +135,9 @@ export const PriceCard: React.FC<PriceProps> = ({
                   <IconsApp.Gear />
                 </div>
                 <div className={styles.itemInfo}>
-                  <h4 className={styles.itemName}>{item.nombre}</h4>
+                  <h4 className={styles.itemName}>{item.name}</h4>
                   <p className={styles.itemDetail}>
-                    {item.modelo} • {item.tipo}
+                    {item.model} • {item.type}
                   </p>
                 </div>
               </div>
@@ -151,14 +159,30 @@ export const PriceCard: React.FC<PriceProps> = ({
             <span className={styles.clockIcon}>
               <IconsApp.GreenClock />
             </span>
-            {tiempo}
+            {time}
           </div>
-          <div className={styles.monto}>${monto}</div>
+          <div className={styles.monto}>${amount}</div>
         </div>
 
         <div className={styles.actions}>
-          <button className={styles.btnVer}>Ver oferta</button>
-          <button className={styles.btnComparar}>Comparar</button>
+          {isProvider ? (
+            <button
+              className={styles.btnVer}
+              onClick={() => documentId && onViewQuote?.(documentId)}
+            >
+              Ver detalle de cotización
+            </button>
+          ) : (
+            <>
+              <button className={styles.btnVer}>Ver Oferta</button>
+              <button
+                className={styles.btnComparar}
+                onClick={() => documentId && onCompare?.(documentId)}
+              >
+                Comparar
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

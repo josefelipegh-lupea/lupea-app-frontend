@@ -11,9 +11,21 @@ import { PriceCard } from "@/components/price-card/PriceCard";
 import { OrderCard } from "@/components/order-card/OrderCard";
 import Button from "@/components/button/Button";
 import { useRouter } from "next/navigation";
-import { getMyRequests, QuoteRequest } from "@/app/lib/api/client/home/request";
+import {
+  getMyRequests,
+  QuoteRequest,
+} from "@/app/lib/api/client/home/request";
+import {
+  getClientRequestQuotes,
+  ClientQuote,
+} from "@/app/lib/api/client/home/quote";
 import { useAuth } from "@/context/AuthContext";
 import styles from "./Home.module.css";
+
+interface FeaturedQuoteData {
+  request: QuoteRequest;
+  featuredQuote: ClientQuote;
+}
 
 export default function HomePage() {
   const { jwt } = useAuth();
@@ -22,124 +34,10 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState("COTIZACIONES");
 
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
+  const [featuredQuotes, setFeaturedQuotes] = useState<FeaturedQuoteData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const solicitudesEjemplo = [
-    {
-      id: "00125",
-      fecha: "20/05/2024",
-      taller: "Taller Mecánico 'El Rayo'",
-      reputacion: 3.5,
-      monto: "150.000",
-      tiempo: "24 Horas",
-      items: [
-        {
-          nombre: "Pastillas de frenos delantera",
-          modelo: "Toyota Corolla 2022",
-          tipo: "Original",
-        },
-        {
-          nombre: "Kit Distribución",
-          modelo: "Volkswagen Golf VII",
-          tipo: "OEM",
-        },
-        {
-          nombre: "Kit Distribución",
-          modelo: "Volkswagen Golf VII",
-          tipo: "OEM",
-        },
-        {
-          nombre: "Kit Distribución",
-          modelo: "Volkswagen Golf VII",
-          tipo: "OEM",
-        },
-      ],
-    },
-    {
-      id: "00126",
-      fecha: "21/05/2024",
-      taller: "Servicio Autorizado Bosch",
-      monto: "85.500",
-      reputacion: 5,
-      tiempo: "48 Horas",
-      items: [
-        {
-          nombre: "Amortiguadores traseros",
-          modelo: "Ford Ranger 2019",
-          tipo: "Alternativo",
-        },
-      ],
-    },
-    {
-      id: "00127",
-      fecha: "22/05/2024",
-      taller: "Frenos Santiago",
-      monto: "42.000",
-      reputacion: 2.8,
-      tiempo: "12 Horas",
-      items: [
-        {
-          nombre: "Líquido de frenos Dot4",
-          modelo: "Universal",
-          tipo: "Original",
-        },
-        { nombre: "Bomba de agua", modelo: "Chevrolet Sail", tipo: "OEM" },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-      ],
-    },
-    {
-      id: "00130",
-      fecha: "22/05/2024",
-      taller: "Frenos Santiago",
-      monto: "42.000",
-      reputacion: 5,
-      tiempo: "12 Horas",
-      items: [
-        {
-          nombre: "Líquido de frenos Dot4",
-          modelo: "Universal",
-          tipo: "Original",
-        },
-        { nombre: "Bomba de agua", modelo: "Chevrolet Sail", tipo: "OEM" },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-        {
-          nombre: "Correa de accesorios",
-          modelo: "Chevrolet Sail",
-          tipo: "Original",
-        },
-      ],
-    },
-  ];
-
-  const ordenesEjemplo = [
+  const mockOrders = [
     {
       id: "88420",
       title: "Taller Mecánico 'El Rayo'",
@@ -173,7 +71,7 @@ export default function HomePage() {
   ] as const;
 
   useEffect(() => {
-    const fetchRequests = async () => {
+    const fetchData = async () => {
       if (!jwt) return;
 
       try {
@@ -181,23 +79,79 @@ export default function HomePage() {
         const res = await getMyRequests(jwt);
         if (res.ok) {
           setRequests(res.data.requests);
+
+          const requestsWithQuotes = res.data.requests.filter(
+            (r) => r.quotesReceived > 0
+          );
+
+          const featuredData = await Promise.all(
+            requestsWithQuotes.slice(0, 3).map(async (request) => {
+              const quotesRes = await getClientRequestQuotes(
+                jwt,
+                request.documentId
+              );
+              if (quotesRes.ok && quotesRes.data.featuredQuote) {
+                return {
+                  request,
+                  featuredQuote: quotesRes.data.featuredQuote,
+                };
+              }
+              return null;
+            })
+          );
+
+          setFeaturedQuotes(
+            featuredData.filter((d): d is FeaturedQuoteData => d !== null)
+          );
         }
       } catch (error) {
-        console.error("Error cargando solicitudes:", error);
+        console.error("Error loading data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRequests();
-  }, []);
+    fetchData();
+  }, [jwt]);
 
   const renderTabContent = () => {
     switch (activeTab) {
       case "COTIZACIONES":
-        return solicitudesEjemplo
-          .slice(0, 3)
-          .map((s) => <PriceCard key={s.id} {...s} />);
+        if (loading)
+          return <p className={styles.loadingText}>Cargando cotizaciones...</p>;
+        if (featuredQuotes.length === 0)
+          return (
+            <p className={styles.emptyText}>
+              No tienes cotizaciones todavía.
+            </p>
+          );
+
+        return featuredQuotes.slice(0, 3).map((data) => {
+          const quoteCodeShort = data.featuredQuote.quoteCode
+            .split("-")
+            .slice(2)
+            .join("-");
+          return (
+            <PriceCard
+              key={data.featuredQuote.documentId}
+              id={quoteCodeShort}
+              date={new Date(
+                data.featuredQuote.createdAt
+              ).toLocaleDateString("es-ES")}
+              workshop={data.featuredQuote.provider.businessName}
+              amount={data.featuredQuote.priceTotal.toFixed(2)}
+              time={data.featuredQuote.deliveryTime}
+              items={data.featuredQuote.items.map((item) => ({
+                name: item.productName,
+                model: `${data.request.vehicle.brand} ${data.request.vehicle.model} ${data.request.vehicle.year}`,
+                type: item.availability,
+              }))}
+              totalSolicitados={data.request.items.length}
+              documentId={data.request.documentId}
+              onCompare={(docId) => router.push(`/home/user/request/${docId}/comparison`)}
+            />
+          );
+        });
 
       case "SOLICITUDES":
         if (loading)
@@ -207,15 +161,15 @@ export default function HomePage() {
             <p className={styles.emptyText}>No tienes solicitudes activas.</p>
           );
 
-        return requests.slice(0, 3).map((sol) => (
+        return requests.slice(0, 3).map((req) => (
           <RequestCard
-            key={sol.documentId}
-            id={sol.id.toString().padStart(5, "0")}
-            fecha={new Date(sol.createdAt).toLocaleDateString("es-ES")}
-            items={sol.items.map((item) => ({
-              nombre: item.productName,
-              modelo: `${sol.vehicle.brand} ${sol.vehicle.model}`,
-              tipo:
+            key={req.documentId}
+            id={req.id.toString().padStart(5, "0")}
+            date={new Date(req.createdAt).toLocaleDateString("es-ES")}
+            items={req.items.map((item) => ({
+              name: item.productName,
+              model: `${req.vehicle.brand} ${req.vehicle.model}`,
+              type:
                 item.conditionPreferred === "no_importa"
                   ? "Cualquiera"
                   : item.conditionPreferred,
@@ -224,7 +178,7 @@ export default function HomePage() {
         ));
 
       case "ÓRDENES":
-        return ordenesEjemplo
+        return mockOrders
           .slice(0, 3)
           .map((o) => <OrderCard key={o.id} {...o} />);
       default:
