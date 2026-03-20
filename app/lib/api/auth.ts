@@ -15,6 +15,14 @@ export type LoginResponse = {
     id: number;
     displayName: string;
     tokensAvailable: number;
+    tokensTotal: number;
+    tokensPurchasedThisMonth: number;
+    freeTokensGrantedThisMonth: number;
+    monthlyConsumption: {
+      usedTokens: number;
+      percentage: number;
+    };
+    tokenMetricsMonth: string;
     tokensLastRenewal: string;
     privacyLevel: string;
   };

@@ -16,6 +16,22 @@ export type ClientProfileResponse = {
   avatar: AvatarData | null;
 };
 
+export type ClientProfileWithTokensResponse = {
+  id: number;
+  displayName: string;
+  tokensAvailable: number;
+  tokensTotal: number;
+  tokensPurchasedThisMonth: number;
+  freeTokensGrantedThisMonth: number;
+  monthlyConsumption: {
+    usedTokens: number;
+    percentage: number;
+  };
+  tokenMetricsMonth: string;
+  tokensLastRenewal: string;
+  privacyLevel: string;
+};
+
 export type AvatarData = {
   id: number;
   url: string;

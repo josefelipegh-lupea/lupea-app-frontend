@@ -45,12 +45,6 @@ export default function DeliveryStep({
     saveDraft(updatedData);
   };
 
-  const isRetiro = formData.deliveryMethod === "retiro";
-  const selectLabel = isRetiro ? "Estado" : "Mis ubicaciones";
-  const placeholder = isRetiro
-    ? "Seleccione un estado"
-    : "Seleccione una dirección";
-
   return (
     <section className={styles.card}>
       <div className={styles.cardHeader}>
@@ -69,8 +63,8 @@ export default function DeliveryStep({
       <div className={styles.divider} />
 
       <div className={styles.cardBody}>
-        {/* <div className={styles.field}>
-          <label>Estado</label>
+        <div className={styles.field} style={{ marginTop: "20px" }}>
+          <label>Ubicación</label>
           <div className={styles.selectWrapper}>
             <div
               className={styles.iconOverlay}
@@ -84,9 +78,18 @@ export default function DeliveryStep({
               value={formData.deliveryCity}
               onChange={handleCityChange}
             >
-              <option value="">Seleccione una ubicación</option>
+              <option value="">Selecciona una ubicación</option>
+
+              {/* {isRetiro
+                ? states.map((state) => (
+                    <option key={`state-${state.id}`} value={state.id}>
+                      {state.name}
+                    </option>
+                  ))
+                :  */}
+
               {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
+                <option key={`loc-${loc.id}`} value={loc.id}>
                   {loc.name} - {loc.state}
                 </option>
               ))}
@@ -95,45 +98,9 @@ export default function DeliveryStep({
               <IconsApp.DownArrow />
             </div>
           </div>
-        </div> */}
-
-        <div className={styles.field} style={{ marginTop: "20px" }}>
-          <label>{selectLabel}</label>
-          <div className={styles.selectWrapper}>
-            <div
-              className={styles.iconOverlay}
-              style={{ left: "16px", right: "auto" }}
-            >
-              <IconsApp.Pin />
-            </div>
-            <select
-              style={{ paddingLeft: "45px" }}
-              name="deliveryCity"
-              value={formData.deliveryCity}
-              onChange={handleCityChange}
-            >
-              <option value="">{placeholder}</option>
-
-              {isRetiro
-                ? states.map((state) => (
-                    <option key={`state-${state.id}`} value={state.id}>
-                      {state.name}
-                    </option>
-                  ))
-                : locations.map((loc) => (
-                    <option key={`loc-${loc.id}`} value={loc.id}>
-                      {loc.name} - {loc.state}
-                    </option>
-                  ))}
-            </select>
-            <div className={styles.iconOverlay}>
-              <IconsApp.DownArrow />
-            </div>
-          </div>
         </div>
 
-        <div className={styles.deliveryToggleGroup}>
-          {/* Esta es la cápsula blanca que se desliza */}
+        {/* <div className={styles.deliveryToggleGroup}>
           <div
             className={`${styles.slider} ${
               formData.deliveryMethod === "delivery"
@@ -161,10 +128,10 @@ export default function DeliveryStep({
           >
             Envío a domicilio
           </button>
-        </div>
+        </div> */}
 
-        {!isRetiro && locations.length === 0 && (
-          <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "8px" }}>
+        {locations.length === 0 && (
+          <p style={{ fontSize: "12px", color: "#f97316", marginTop: "8px" }}>
             * No tienes direcciones guardadas. Ve a tu perfil para agregar una.
           </p>
         )}

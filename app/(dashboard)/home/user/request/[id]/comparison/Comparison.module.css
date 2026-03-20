@@ -6,7 +6,7 @@
 .mainContainer {
   max-width: 480px;
   margin: 0 auto;
-  border-radius: 0 0 40px 40px;
+  border-radius: 0 0;
   min-height: calc(100dvh - 160px);
 }
 
@@ -150,6 +150,21 @@
   margin-bottom: 10px;
 }
 
+.quoteCardDisabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.quoteCardDisabled .cardBody {
+  background-color: #f9f9f9;
+}
+
+.quoteCardDisabled .providerName,
+.quoteCardDisabled .ratingBadge,
+.quoteCardDisabled .partsCount {
+  opacity: 0.6;
+}
+
 .quotesList {
   padding-bottom: 10px;
 }
@@ -234,6 +249,24 @@
 .checked {
   background-color: #717171;
   border-color: #717171;
+}
+
+.checkboxDisabled {
+  background-color: #e0e0e0;
+  border-color: #ccc;
+  cursor: not-allowed;
+}
+
+.itemDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+}
+
+.itemDisabled .partName,
+.itemDisabled .partSub,
+.itemDisabled .partPrice {
+  color: #999;
 }
 
 .partName {

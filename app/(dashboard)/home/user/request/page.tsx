@@ -135,6 +135,13 @@ export default function RequestPage() {
   }, [formData]);
 
   useEffect(() => {
+    document.body.classList.add("request-page");
+    return () => {
+      document.body.classList.remove("request-page");
+    };
+  }, []);
+
+  useEffect(() => {
     const initLoad = async () => {
       if (!jwt) return;
       try {

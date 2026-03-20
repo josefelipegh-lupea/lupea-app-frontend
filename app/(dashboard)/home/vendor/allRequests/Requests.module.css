@@ -1,0 +1,50 @@
+.pageWrapper {
+  min-height: 100dvh;
+  background-color: #fff;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a3d;
+  margin: 0;
+}
+
+.spacer {
+  width: 40px;
+}
+
+.content {
+  padding: 20px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.emptyText {
+  text-align: center;
+  color: #f97316;
+  padding: 40px 20px;
+  font-size: 15px;
+}

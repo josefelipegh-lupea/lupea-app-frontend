@@ -1,0 +1,80 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { IconsApp } from "@/components/icons/Icons";
+import { RequestCard } from "@/components/request-card/RequestCard";
+import { SkeletonComparison } from "@/components/skeleton/SkeletonComparison";
+import {
+  getProviderRequests,
+  ProviderQuoteRequest,
+} from "@/app/lib/api/provider/home/request";
+import styles from "./Requests.module.css";
+import Header from "@/components/header/Header";
+
+export default function AllVendorRequestsPage() {
+  const { jwt } = useAuth();
+  const router = useRouter();
+  const [requests, setRequests] = useState<ProviderQuoteRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!jwt) return;
+
+      try {
+        setLoading(true);
+        const res = await getProviderRequests(jwt);
+        if (res.ok) {
+          setRequests(res.data.requests);
+        }
+      } catch (error) {
+        console.error("Error loading requests:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [jwt]);
+
+  if (loading) {
+    return (
+      <div className={styles.pageWrapper}>
+        <SkeletonComparison />
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.pageWrapper}>
+      <Header title="Solicitudes" />
+
+      <div className={styles.content}>
+        {requests.length === 0 ? (
+          <p className={styles.emptyText}>No hay solicitudes aún.</p>
+        ) : (
+          requests.map((req) => (
+            <RequestCard
+              key={req.documentId}
+              id={req.id.toString().padStart(5, "0")}
+              date={new Date(req.createdAt).toLocaleDateString("es-ES")}
+              documentId={req.documentId}
+              onViewOffers={(docId) => router.push(`/home/vendor/${docId}`)}
+              isProvider={true}
+              items={req.request.items.map((item) => ({
+                name: item.productName,
+                model: `${req.request.vehicle.brand} ${req.request.vehicle.model} ${req.request.vehicle.year}`,
+                type:
+                  item.conditionPreferred === "no_importa"
+                    ? "Cualquiera"
+                    : item.conditionPreferred,
+              }))}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

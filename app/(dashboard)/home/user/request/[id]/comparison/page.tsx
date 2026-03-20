@@ -9,7 +9,7 @@ import {
 } from "@/app/lib/api/client/home/comparison";
 import {
   createOrdersFromComparison,
-  OrderItem,
+  SelectedItem,
 } from "@/app/lib/api/client/home/order";
 import { IconsApp } from "@/components/icons/Icons";
 import Button from "@/components/button/Button";
@@ -17,6 +17,7 @@ import { PageAnimation } from "@/components/page-animation/PageAnimation";
 import { SkeletonComparison } from "@/components/skeleton/SkeletonComparison";
 import styles from "./Comparison.module.css";
 import Header from "@/components/header/Header";
+import toast from "react-hot-toast";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -42,7 +43,15 @@ export default function ComparisonPage({ params }: PageProps) {
       try {
         setLoading(true);
         const res = await getClientRequestComparison(jwt, id);
-        if (res.ok) setComparisonData(res.data.quotes);
+        if (res.ok) {
+          const requestStatus = res.data.request.status;
+          if (requestStatus === "ordered") {
+            toast.error("Esta cotización ya tiene una orden generada");
+            router.push("/home/user");
+            return;
+          }
+          setComparisonData(res.data.quotes);
+        }
       } catch (error) {
         console.error("Error loading comparison:", error);
       } finally {
@@ -50,7 +59,7 @@ export default function ComparisonPage({ params }: PageProps) {
       }
     };
     fetchComparison();
-  }, [jwt, id]);
+  }, [jwt, id, router]);
 
   const toggleItem = (quoteId: number, productId: number) => {
     setSelectedItems((prev) => {
@@ -94,12 +103,64 @@ export default function ComparisonPage({ params }: PageProps) {
     return total;
   };
 
+  const getSelectedRequestItemIds = (): Set<number> => {
+    const selectedIds = new Set<number>();
+    selectedItems.forEach((productIds, quoteId) => {
+      const quote = comparisonData.find((q) => q.id === quoteId);
+      if (!quote) return;
+      productIds.forEach((productId) => {
+        const product = quote.products.find((p) => p.id === productId);
+        if (product) selectedIds.add(product.requestItemId);
+      });
+    });
+    return selectedIds;
+  };
+
+  const isQuoteFullySelected = (quoteId: number): boolean => {
+    const quote = comparisonData.find((q) => q.id === quoteId);
+    if (!quote) return false;
+    const selected = selectedItems.get(quoteId);
+    if (!selected) return false;
+    return quote.products.every((p) => selected.has(p.id));
+  };
+
+  const getFullySelectedQuoteId = (): number | null => {
+    for (const [quoteId] of selectedItems) {
+      if (isQuoteFullySelected(quoteId)) return quoteId;
+    }
+    return null;
+  };
+
+  const isQuoteDisabled = (quoteId: number): boolean => {
+    const fullySelectedQuoteId = getFullySelectedQuoteId();
+    if (fullySelectedQuoteId === null) return false;
+    return fullySelectedQuoteId !== quoteId;
+  };
+
+  const isItemDisabledFromOtherProvider = (
+    productRequestItemId: number,
+    currentQuoteId: number
+  ): boolean => {
+    const selectedIds = getSelectedRequestItemIds();
+    if (!selectedIds.has(productRequestItemId)) return false;
+
+    const isSelectedInCurrentQuote =
+      selectedItems.get(currentQuoteId)?.size &&
+      Array.from(selectedItems.get(currentQuoteId) || []).some((id) => {
+        const quote = comparisonData.find((q) => q.id === currentQuoteId);
+        const product = quote?.products.find((p) => p.id === id);
+        return product?.requestItemId === productRequestItemId;
+      });
+
+    return !isSelectedInCurrentQuote;
+  };
+
   const handleGenerateOrders = async () => {
     if (selectedItems.size === 0 || !jwt) return;
 
     setIsGenerating(true);
     try {
-      const items: OrderItem[] = [];
+      const selectedItemsList: SelectedItem[] = [];
       selectedItems.forEach((productIds, quoteId) => {
         const quote = comparisonData.find((q) => q.id === quoteId);
         if (!quote) return;
@@ -107,33 +168,24 @@ export default function ComparisonPage({ params }: PageProps) {
         productIds.forEach((productId) => {
           const product = quote.products.find((p) => p.id === productId);
           if (product) {
-            items.push({
-              quoteId: quote.id,
-              quoteDocumentId: quote.documentId,
-              productId: product.id,
-              productDocumentId: product.documentId,
-              requestItemId: product.requestItemId,
-              quantity: product.quantity,
-              price: product.price,
+            selectedItemsList.push({
+              quoteItemId: product.id,
             });
           }
         });
       });
 
-      const res = await createOrdersFromComparison(jwt, {
-        requestDocumentId: id,
-        items,
-      });
+      const res = await createOrdersFromComparison(jwt, id, selectedItemsList);
 
       if (res.ok) {
         setOrderSuccess(true);
+        toast.success("Orden generada con éxito");
         setTimeout(() => {
           router.push("/home/user");
         }, 2000);
       }
     } catch (error) {
-      console.error("Error generating orders:", error);
-      alert("Error al generar las órdenes. Intenta de nuevo.");
+      toast.error("Error al generar las órdenes. Intenta de nuevo.");
     } finally {
       setIsGenerating(false);
     }
@@ -198,8 +250,10 @@ export default function ComparisonPage({ params }: PageProps) {
           )}
 
           <div className={styles.quotesList}>
-            {comparisonData.map((quote) => (
-              <div key={quote.id} className={styles.quoteCard}>
+            {comparisonData.map((quote) => {
+              const isCardDisabled = isQuoteDisabled(quote.id);
+              return (
+              <div key={quote.id} className={`${styles.quoteCard} ${isCardDisabled ? styles.quoteCardDisabled : ""}`}>
                 <div className={styles.cardHeader}>
                   <span>Solicitud {id.slice(0, 5)}</span>
                   <span>
@@ -242,18 +296,24 @@ export default function ComparisonPage({ params }: PageProps) {
                       const isSelected = selectedItems
                         .get(quote.id)
                         ?.has(product.id);
+                      const isDisabled = isItemDisabledFromOtherProvider(
+                        product.requestItemId,
+                        quote.id
+                      );
                       return (
                         <div
                           key={product.id}
                           className={`${styles.partItem} ${
                             isSelected ? styles.itemActive : ""
-                          }`}
-                          onClick={() => toggleItem(quote.id, product.id)}
+                          } ${isDisabled ? styles.itemDisabled : ""}`}
+                          onClick={() =>
+                            !isDisabled && toggleItem(quote.id, product.id)
+                          }
                         >
                           <div
                             className={`${styles.checkbox} ${
                               isSelected ? styles.checked : ""
-                            }`}
+                            } ${isDisabled ? styles.checkboxDisabled : ""}`}
                           >
                             {isSelected && <IconsApp.Check color="white" />}
                           </div>
@@ -308,7 +368,8 @@ export default function ComparisonPage({ params }: PageProps) {
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className={styles.stickyFooter}>
