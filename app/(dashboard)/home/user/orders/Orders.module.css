@@ -1,0 +1,426 @@
+.pageWrapper {
+  min-height: 100dvh;
+  background-color: #f5f5f7;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: #fff;
+  border-bottom: none;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #000;
+  margin: 0;
+}
+
+.container {
+  padding: 20px;
+  /* max-width: 480px; */
+  margin: 0 auto;
+}
+
+.summaryText {
+  font-size: 13px;
+  font-weight: 400;
+  color: #323232;
+  text-align: center;
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.noteBox {
+  background-color: #fdf8f3;
+  border-radius: 14px;
+  padding: 20px 10px;
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  margin-bottom: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.02);
+}
+
+.noteText {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.6;
+  margin: 0 10px;
+  padding-right: 15px;
+}
+
+.noteText strong {
+  font-weight: 700;
+  color: #000;
+}
+
+.closeNote {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  color: #000;
+}
+
+.card {
+  background: white;
+  border-radius: 28px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f1f1;
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+}
+
+.iconWrapper {
+  height: 40px;
+  width: 40px;
+  background-color: #f3f4f6;
+  padding: 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.providerInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconWrench {
+  font-size: 20px;
+}
+
+.providerName {
+  font-weight: 500;
+  font-size: 16px;
+  color: #000;
+  margin-left: 0;
+}
+
+.arrowIcon {
+  color: #9ca3af;
+}
+
+.arrowIconRotated {
+  transform: rotate(180deg);
+}
+
+.cardBody {
+  padding: 20px 20px 0;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.orderMainRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #fff;
+}
+
+.orderLeft,
+.orderRight {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.orderNumber {
+  font-weight: 600;
+  font-size: 15px;
+  color: #1a1a3d;
+}
+
+.badgeActive {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.dateText {
+  font-weight: 600;
+  font-size: 15px;
+  color: #1a1a3d;
+}
+
+.itemCountText {
+  font-size: 14px;
+  color: #000;
+  font-weight: 400;
+}
+
+.cardDivider {
+  height: 1px;
+  background-color: #18144033;
+  margin: 16px 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.priceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.timeText {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.green {
+  color: #2e7d32;
+}
+
+.orange {
+  color: #f08100;
+}
+
+.totalText {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a3d;
+}
+
+.divider {
+  height: 1px;
+  width: 87%;
+  margin: 0 auto;
+  background: #18144033;
+}
+
+/* Expanded Content with Animation - usando grid para transicion nativa */
+.expandedWrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s ease;
+}
+
+.expandedWrapperOpen {
+  grid-template-rows: 1fr;
+}
+
+.expandedContent {
+  overflow: hidden;
+  padding: 0 20px 20px;
+  background: #fff;
+}
+
+/* Items List */
+.itemList {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.itemMainInfo {
+  flex: 1;
+  border-right: 1px solid #18144033;
+}
+
+.itemName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 4px 0;
+}
+
+.itemSubText {
+  font-size: 14px;
+  font-weight: 400;
+  color: #000;
+  margin: 0;
+}
+
+/* Línea vertical antes del precio */
+.itemPriceWrapper {
+  padding-left: 10px;
+  min-width: 20px;
+  text-align: right;
+}
+
+.itemPrice {
+  font-weight: 500;
+  font-size: 16px;
+  color: #1a1a3d;
+}
+
+/* Subtotal Section */
+.subtotalContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-top: 1px solid #18144033;
+  border-bottom: 1px solid #18144033;
+  margin-bottom: 24px;
+}
+
+.subtotalLabel {
+  font-weight: 600;
+  font-size: 15px;
+  color: #1a1a3d;
+}
+
+.subtotalValue {
+  font-weight: 600;
+  font-size: 18px;
+  color: #1a1a3d;
+}
+
+/* Títulos de sección */
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a3d;
+  margin: 24px 0 12px 0;
+}
+
+/* Tarjetas de Condiciones */
+.conditionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.conditionCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid #f1f1f1;
+  border-radius: 16px;
+}
+
+.condIconBox {
+  width: 40px;
+  height: 40px;
+  background: #fdf8f3;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.condText small {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  color: #000;
+  margin-bottom: 2px;
+}
+
+.condText p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #000;
+}
+
+/* Caja de Contacto */
+.contactContainer {
+  border: 1px solid #f1f1f1;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.contactRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.contactInfoText small {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  color: #000;
+  margin-bottom: 2px;
+}
+
+.contactInfoText p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+}
+
+/* Botones */
+.btnChat {
+  width: 100%;
+  background-color: #e9e9f0;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 14px;
+  color: #1a1a3d;
+  font-weight: 500;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.btnCancel {
+  width: 100%;
+  background-color: #fee2e2;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 14px;
+  color: #ef4444;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+}

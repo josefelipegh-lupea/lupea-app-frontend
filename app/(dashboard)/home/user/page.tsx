@@ -11,15 +11,13 @@ import { PriceCard } from "@/components/price-card/PriceCard";
 import { OrderCard } from "@/components/order-card/OrderCard";
 import Button from "@/components/button/Button";
 import { useRouter } from "next/navigation";
-import {
-  getMyRequests,
-  QuoteRequest,
-} from "@/app/lib/api/client/home/request";
+import { getMyRequests, QuoteRequest } from "@/app/lib/api/client/home/request";
 import {
   getClientRequestQuotes,
   ClientQuote,
 } from "@/app/lib/api/client/home/quote";
 import { useAuth } from "@/context/AuthContext";
+import { getMyClientOrders } from "@/app/lib/api/client/home/order";
 import styles from "./Home.module.css";
 
 interface FeaturedQuoteData {
@@ -27,48 +25,34 @@ interface FeaturedQuoteData {
   featuredQuote: ClientQuote;
 }
 
+interface HomeOrder {
+  id: string;
+  title: string;
+  cantidadRepuestos: number;
+  status: "ACTIVA" | "CANCELADA" | "COMPLETADA";
+}
+
 export default function HomePage() {
-  const { jwt } = useAuth();
+  const { jwt, profile, loginProfile } = useAuth();
   const { isExpanded } = useSidebar();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("COTIZACIONES");
 
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [featuredQuotes, setFeaturedQuotes] = useState<FeaturedQuoteData[]>([]);
+  const [orders, setOrders] = useState<HomeOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const mockOrders = [
-    {
-      id: "88420",
-      title: "Taller Mecánico 'El Rayo'",
-      cantidadRepuestos: 7,
-      status: "ACTIVA",
-    },
-    {
-      id: "88421",
-      title: "Servicio Autorizado Bosch",
-      cantidadRepuestos: 3,
-      status: "CANCELADA",
-    },
-    {
-      id: "88422",
-      title: "Frenos Santiago",
-      cantidadRepuestos: 5,
-      status: "COMPLETADA",
-    },
-    {
-      id: "88423",
-      title: "Taller Mecánico 'El Rayo'",
-      cantidadRepuestos: 12,
-      status: "ACTIVA",
-    },
-    {
-      id: "88424",
-      title: "Taller Mecánico 'El Rayo'",
-      cantidadRepuestos: 2,
-      status: "COMPLETADA",
-    },
-  ] as const;
+  const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
+  const tokensTotal = loginProfile?.tokensTotal ?? 0;
+  const tokensPercentage = loginProfile?.monthlyConsumption?.percentage ?? 0;
+  const tokensLastRenewal = loginProfile?.tokensLastRenewal
+    ? new Date(loginProfile.tokensLastRenewal).toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "N/A";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,8 +85,21 @@ export default function HomePage() {
           );
 
           setFeaturedQuotes(
-            featuredData.filter((d): d is FeaturedQuoteData => d !== null)
+            featuredData.filter((d) => d !== null) as FeaturedQuoteData[]
           );
+        }
+
+        const ordersRes = await getMyClientOrders(jwt);
+        if (ordersRes.ok) {
+          const mappedOrders: HomeOrder[] = ordersRes.data.orders.map((o) => ({
+            id: o.documentId,
+            title: o.provider.businessName,
+            cantidadRepuestos: o.items.length,
+            status: (o.status === "active" ? "ACTIVA" : 
+                     o.status === "cancelled" ? "CANCELADA" : 
+                     "COMPLETADA") as "ACTIVA" | "CANCELADA" | "COMPLETADA",
+          }));
+          setOrders(mappedOrders);
         }
       } catch (error) {
         console.error("Error loading data:", error);
@@ -121,9 +118,7 @@ export default function HomePage() {
           return <p className={styles.loadingText}>Cargando cotizaciones...</p>;
         if (featuredQuotes.length === 0)
           return (
-            <p className={styles.emptyText}>
-              No tienes cotizaciones todavía.
-            </p>
+            <p className={styles.emptyText}>No tienes cotizaciones todavía.</p>
           );
 
         return featuredQuotes.slice(0, 3).map((data) => {
@@ -131,24 +126,31 @@ export default function HomePage() {
             .split("-")
             .slice(2)
             .join("-");
+          const hasOrders = data.featuredQuote.request.status === "ordered";
           return (
             <PriceCard
               key={data.featuredQuote.documentId}
               id={quoteCodeShort}
-              date={new Date(
-                data.featuredQuote.createdAt
-              ).toLocaleDateString("es-ES")}
+              date={new Date(data.featuredQuote.createdAt).toLocaleDateString(
+                "es-ES"
+              )}
               workshop={data.featuredQuote.provider.businessName}
               amount={data.featuredQuote.priceTotal.toFixed(2)}
               time={data.featuredQuote.deliveryTime}
-              items={data.featuredQuote.items.map((item) => ({
+              items={data.request.items.map((item) => ({
                 name: item.productName,
                 model: `${data.request.vehicle.brand} ${data.request.vehicle.model} ${data.request.vehicle.year}`,
-                type: item.availability,
+                type:
+                  item.conditionPreferred === "no_importa"
+                    ? "Cualquiera"
+                    : item.conditionPreferred,
               }))}
               totalSolicitados={data.request.items.length}
               documentId={data.request.documentId}
-              onCompare={(docId) => router.push(`/home/user/request/${docId}/comparison`)}
+              hasOrders={hasOrders}
+              onCompare={(docId) =>
+                router.push(`/home/user/request/${docId}/comparison`)
+              }
             />
           );
         });
@@ -178,9 +180,11 @@ export default function HomePage() {
         ));
 
       case "ÓRDENES":
-        return mockOrders
-          .slice(0, 3)
-          .map((o) => <OrderCard key={o.id} {...o} />);
+        if (loading)
+          return <p className={styles.loadingText}>Cargando órdenes...</p>;
+        if (orders.length === 0)
+          return <p className={styles.emptyText}>No tienes órdenes todavía.</p>;
+        return orders.slice(0, 3).map((o) => <OrderCard key={o.id} {...o} />);
       default:
         return null;
     }
@@ -197,17 +201,23 @@ export default function HomePage() {
         <div className={styles.leftSection}>
           <section className={styles.summaryCard}>
             <p className={styles.summaryLabel}>MIS LUPAS DISPONIBLES</p>
-            <h2 className={styles.summaryValue}>10.583</h2>
-            <p className={styles.summaryTotal}>de 50.000 totales</p>
+            <h2 className={styles.summaryValue}>
+              {tokensAvailable.toLocaleString()}
+            </h2>
+            <p className={styles.summaryTotal}>
+              de {tokensTotal.toLocaleString()} totales
+            </p>
 
             <div className={styles.progressHeader}>
               <span>Consumo del mes</span>
-              <span className={styles.percentaje}>80%</span>
+              <span className={styles.percentaje}>
+                {tokensPercentage.toFixed(2)}%
+              </span>
             </div>
             <div className={styles.progressBar}>
               <div
                 className={styles.progressFill}
-                style={{ width: "80%" }}
+                style={{ width: `${Math.min(tokensPercentage, 100)}%` }}
               ></div>
             </div>
 
@@ -215,7 +225,7 @@ export default function HomePage() {
 
             <div className={styles.renovacionRow}>
               <span className={styles.renovacionLabel}>Renovación mensual</span>
-              <span className={styles.dateText}>01 Feb 2026</span>
+              <span className={styles.dateText}>{tokensLastRenewal}</span>
             </div>
           </section>
 
@@ -324,7 +334,18 @@ export default function HomePage() {
 
             {renderTabContent()}
 
-            <button className={styles.btnVerTodas}>
+            <button
+              className={styles.btnVerTodas}
+              onClick={() => {
+                if (activeTab === "COTIZACIONES") {
+                  router.push("/home/user/quotes");
+                } else if (activeTab === "SOLICITUDES") {
+                  router.push("/home/user/allRequests");
+                } else {
+                  router.push("/home/user/orders");
+                }
+              }}
+            >
               Ver todas{" "}
               <span className={styles.arrowIcon}>
                 <IconsApp.RightArrow height="12" width="7" />

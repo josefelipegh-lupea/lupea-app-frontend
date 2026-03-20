@@ -21,6 +21,7 @@ interface AuthContextType {
   user: LoginResponse["user"] | null;
   jwt: string | null;
   profile: ClientProfileResponse | ProviderProfile | null;
+  loginProfile: LoginResponse["profile"] | null;
   role: "client" | "provider" | null;
   isLoading: boolean;
   login: (data: LoginResponse) => Promise<void>;
@@ -36,6 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<
     ClientProfileResponse | ProviderProfile | null
   >(null);
+  const [loginProfile, setLoginProfile] = useState<LoginResponse["profile"] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const role = user?.role === "provider" ? "provider" : user ? "client" : null;
@@ -57,6 +59,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("userData", JSON.stringify(data.user));
     setUser(data.user);
     setJwt(data.jwt);
+    
+    if (data.profile) {
+      setLoginProfile(data.profile);
+      localStorage.setItem("loginProfile", JSON.stringify(data.profile));
+    }
+    
     await fetchProfileData(data.jwt, data.user.role);
   };
 
@@ -64,11 +72,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const init = async () => {
       const jwt = localStorage.getItem("jwt");
       const savedUser = localStorage.getItem("userData");
+      const savedLoginProfile = localStorage.getItem("loginProfile");
+      const savedProfile = localStorage.getItem("fullProfile");
+      
       if (jwt && savedUser) {
         const parsedUser = JSON.parse(savedUser);
         setJwt(jwt);
         setUser(parsedUser);
-        await fetchProfileData(jwt, parsedUser.role);
+        
+        if (savedLoginProfile) {
+          const parsed = JSON.parse(savedLoginProfile);
+          setLoginProfile(parsed);
+        }
+        
+        if (savedProfile) {
+          const parsedProfile = JSON.parse(savedProfile);
+          setProfile(parsedProfile as ClientProfileResponse);
+        } else {
+          await fetchProfileData(jwt, parsedUser.role);
+        }
       }
       setIsLoading(false);
     };
@@ -80,6 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setJwt(null);
     setProfile(null);
+    setLoginProfile(null);
     window.location.href = "/login";
   };
 
@@ -105,6 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         profile,
+        loginProfile,
         role,
         login,
         jwt,

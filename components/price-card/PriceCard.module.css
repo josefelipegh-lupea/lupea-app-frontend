@@ -187,3 +187,15 @@
   background: #fff3e6;
   color: #f08100;
 }
+
+.btnVerOrden {
+  flex: 1;
+  padding: 7px;
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  background: #34d99f;
+  color: white;
+}

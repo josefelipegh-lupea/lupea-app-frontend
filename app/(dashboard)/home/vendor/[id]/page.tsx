@@ -84,8 +84,8 @@ export default function RequestDetailPage() {
           !isExpanded ? styles.sidebarCollapsed : ""
         }`}
       >
+        <Header title="Detalle de Solictud" />
         <div className={styles.mainContainer}>
-          <Header title="Detalle de Solictud" />
           <div className={styles.content}>
             <section className={styles.headerSection}>
               <div className={styles.headerTop}>

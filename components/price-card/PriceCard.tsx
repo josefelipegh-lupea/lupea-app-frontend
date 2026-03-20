@@ -23,6 +23,8 @@ interface PriceProps {
   onViewQuote?: (documentId: string) => void;
   onCompare?: (documentId: string) => void;
   documentId?: string;
+  hasOrders?: boolean;
+  orderDocumentId?: string;
 }
 
 export const PriceCard: React.FC<PriceProps> = ({
@@ -38,6 +40,8 @@ export const PriceCard: React.FC<PriceProps> = ({
   onViewQuote,
   onCompare,
   documentId,
+  hasOrders = false,
+  orderDocumentId,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -174,12 +178,18 @@ export const PriceCard: React.FC<PriceProps> = ({
             </button>
           ) : (
             <>
-              <button className={styles.btnVer}>Ver Oferta</button>
+              {!hasOrders && <button className={styles.btnVer}>Ver Oferta</button>}
               <button
-                className={styles.btnComparar}
-                onClick={() => documentId && onCompare?.(documentId)}
+                className={hasOrders ? styles.btnVerOrden : styles.btnComparar}
+                onClick={() => {
+                  if (hasOrders && orderDocumentId) {
+                    onCompare?.(orderDocumentId);
+                  } else if (documentId) {
+                    onCompare?.(documentId);
+                  }
+                }}
               >
-                Comparar
+                {hasOrders ? "Ver Orden" : "Comparar"}
               </button>
             </>
           )}

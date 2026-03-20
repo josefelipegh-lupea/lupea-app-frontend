@@ -42,7 +42,7 @@ export const OrderCard: React.FC<OrderProps> = ({
             <IconsApp.Document color="#A1A1A1" />
 
             <div className={styles.headerTitle}>
-              <span className={styles.orderNumber}> Orden #{id}</span>
+              <span className={styles.orderNumber}> Orden #{id.slice(-5)}</span>
 
               <span className={styles.title}>{title}</span>
               <h2 className={styles.repuestosCount}>

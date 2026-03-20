@@ -22,7 +22,7 @@ import {
 } from "@/app/lib/api/provider/home/quote";
 
 export default function HomePage() {
-  const { jwt } = useAuth();
+  const { jwt, loginProfile } = useAuth();
   const { isExpanded } = useSidebar();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("SOLICITUDES");
@@ -30,6 +30,17 @@ export default function HomePage() {
   const [requests, setRequests] = useState<ProviderQuoteRequest[]>([]);
   const [quotes, setQuotes] = useState<ProviderQuote[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
+  const tokensTotal = loginProfile?.tokensTotal ?? 0;
+  const tokensPercentage = loginProfile?.monthlyConsumption?.percentage ?? 0;
+  const tokensLastRenewal = loginProfile?.tokensLastRenewal
+    ? new Date(loginProfile.tokensLastRenewal).toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "N/A";
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -106,7 +117,9 @@ export default function HomePage() {
               totalSolicitados={quote.request.items.length}
               isProvider={true}
               documentId={quote.documentId}
-              onViewQuote={(docId) => router.push(`/home/vendor/quotes/${docId}`)}
+              onViewQuote={(docId) =>
+                router.push(`/home/vendor/quotes/${docId}`)
+              }
             />
           );
         });
@@ -155,17 +168,23 @@ export default function HomePage() {
         <div className={styles.leftSection}>
           <section className={styles.summaryCard}>
             <p className={styles.summaryLabel}>MIS LUPAS DISPONIBLES</p>
-            <h2 className={styles.summaryValue}>10.583</h2>
-            <p className={styles.summaryTotal}>de 50.000 totales</p>
+            <h2 className={styles.summaryValue}>
+              {tokensAvailable.toLocaleString()}
+            </h2>
+            <p className={styles.summaryTotal}>
+              de {tokensTotal.toLocaleString()} totales
+            </p>
 
             <div className={styles.progressHeader}>
               <span>Consumo del mes</span>
-              <span className={styles.percentaje}>80%</span>
+              <span className={styles.percentaje}>
+                {tokensPercentage.toFixed(2)}%
+              </span>
             </div>
             <div className={styles.progressBar}>
               <div
                 className={styles.progressFill}
-                style={{ width: "80%" }}
+                style={{ width: `${Math.min(tokensPercentage, 100)}%` }}
               ></div>
             </div>
 
@@ -173,7 +192,7 @@ export default function HomePage() {
 
             <div className={styles.renovacionRow}>
               <span className={styles.renovacionLabel}>Renovación mensual</span>
-              <span className={styles.dateText}>01 Feb 2026</span>
+              <span className={styles.dateText}>{tokensLastRenewal}</span>
             </div>
           </section>
 
@@ -267,7 +286,18 @@ export default function HomePage() {
 
             {renderTabContent()}
 
-            <button className={styles.btnVerTodas}>
+            <button
+              className={styles.btnVerTodas}
+              onClick={() => {
+                if (activeTab === "COTIZACIONES") {
+                  router.push("/home/vendor/quotes");
+                } else if (activeTab === "SOLICITUDES") {
+                  router.push("/home/vendor/allRequests");
+                } else {
+                  router.push("/home/vendor/orders");
+                }
+              }}
+            >
               Ver todas{" "}
               <span className={styles.arrowIcon}>
                 <IconsApp.RightArrow height="12" width="7" />

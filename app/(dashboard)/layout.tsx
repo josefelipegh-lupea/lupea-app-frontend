@@ -6,6 +6,7 @@ import { SidebarProvider } from "@/context/SidebarContext";
 import { FooterVisibilityProvider, useFooterVisibility } from "@/context/FooterVisibilityContext";
 import { AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 function FooterWrapper() {
   const { isFooterVisible } = useFooterVisibility();
@@ -22,6 +23,15 @@ function FooterWrapper() {
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isFooterVisible } = useFooterVisibility();
   const pathname = usePathname();
+
+  useEffect(() => {
+    const isComparison = pathname.includes("/comparison");
+    if (isComparison) {
+      document.body.classList.add("comparison-page");
+    } else {
+      document.body.classList.remove("comparison-page");
+    }
+  }, [pathname]);
   
   return (
     <div className={styles.container}>
