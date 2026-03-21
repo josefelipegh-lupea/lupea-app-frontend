@@ -28,18 +28,21 @@ export interface CategoriesResponse {
 }
 
 export async function getCategories(): Promise<CategoriesResponse> {
-  const res = await fetch(`${API_URL}/categories?populate=children`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
+  const res = await fetch(
+    `${API_URL}/categories?populate=children&filters[parent][$null]=true`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   const responseData = await res.json();
 
   if (!res.ok) {
     throw new Error(
-      responseData.error?.message || "Error al obtener las categorías"
+      responseData.error?.message || "Error al obtener las categorías",
     );
   }
 
