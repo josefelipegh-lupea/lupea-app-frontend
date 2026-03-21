@@ -1,41 +1,30 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import styles from "./OrderCard.module.css";
 import { IconsApp } from "../icons/Icons";
 
 interface OrderProps {
   id: string;
+  documentId: string;
   title: string;
   cantidadRepuestos: number;
   status: "ACTIVA" | "COMPLETADA" | "CANCELADA";
+  onViewOrder?: (documentId: string) => void;
 }
 
 export const OrderCard: React.FC<OrderProps> = ({
   id,
+  documentId,
   title,
   cantidadRepuestos,
   status,
+  onViewOrder,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const handleViewOrder = () => {
-    cardRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-
-    window.scrollTo({
-      top: cardRef.current?.offsetTop ? cardRef.current.offsetTop - 100 : 0,
-      behavior: "smooth",
-    });
-  };
-
   const formatNumber = (num: number) => (num < 10 ? `0${num}` : num);
 
   return (
-    <div ref={cardRef} className={styles.card}>
+    <div className={styles.card}>
       <div className={styles.body}>
         <div className={styles.mainInfo}>
           <div className={styles.textColumn}>
@@ -58,7 +47,7 @@ export const OrderCard: React.FC<OrderProps> = ({
 
         <div className={styles.divider}></div>
 
-        <button className={styles.btnVerOrden} onClick={handleViewOrder}>
+        <button className={styles.btnVerOrden} onClick={() => onViewOrder?.(documentId)}>
           Ver orden
         </button>
       </div>

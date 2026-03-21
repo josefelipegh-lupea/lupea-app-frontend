@@ -20,6 +20,10 @@ import {
   getProviderQuotes,
   ProviderQuote,
 } from "@/app/lib/api/provider/home/quote";
+import {
+  getProviderOrders,
+  ProviderOrderData,
+} from "@/app/lib/api/provider/home/order";
 
 export default function HomePage() {
   const { jwt, loginProfile } = useAuth();
@@ -29,13 +33,14 @@ export default function HomePage() {
 
   const [requests, setRequests] = useState<ProviderQuoteRequest[]>([]);
   const [quotes, setQuotes] = useState<ProviderQuote[]>([]);
+  const [orders, setOrders] = useState<ProviderOrderData[]>([]);
   const [loading, setLoading] = useState(true);
 
   const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
   const tokensTotal = loginProfile?.tokensTotal ?? 0;
   const tokensPercentage = loginProfile?.monthlyConsumption?.percentage ?? 0;
-  const tokensLastRenewal = loginProfile?.tokensLastRenewal
-    ? new Date(loginProfile.tokensLastRenewal).toLocaleDateString("es-ES", {
+  const tokensNextRenewal = loginProfile?.tokensNextRenewal
+    ? new Date(loginProfile.tokensNextRenewal).toLocaleDateString("es-ES", {
         day: "2-digit",
         month: "short",
         year: "numeric",
@@ -48,15 +53,19 @@ export default function HomePage() {
 
       try {
         setLoading(true);
-        const [requestsRes, quotesRes] = await Promise.all([
+        const [requestsRes, quotesRes, ordersRes] = await Promise.all([
           getProviderRequests(jwt),
           getProviderQuotes(jwt),
+          getProviderOrders(jwt),
         ]);
         if (requestsRes.ok) {
           setRequests(requestsRes.data.requests);
         }
         if (quotesRes.ok) {
           setQuotes(quotesRes.data.quotes);
+        }
+        if (ordersRes.ok) {
+          setOrders(ordersRes.data.orders);
         }
       } catch (error) {
         console.error("Error loading data:", error);
@@ -67,27 +76,6 @@ export default function HomePage() {
 
     fetchHomeData();
   }, [jwt]);
-
-  const mockOrders = [
-    {
-      id: "88420",
-      title: "Taller Mecánico 'El Rayo'",
-      cantidadRepuestos: 7,
-      status: "ACTIVA",
-    },
-    {
-      id: "88421",
-      title: "Servicio Autorizado Bosch",
-      cantidadRepuestos: 3,
-      status: "CANCELADA",
-    },
-    {
-      id: "88422",
-      title: "Frenos Santiago",
-      cantidadRepuestos: 5,
-      status: "COMPLETADA",
-    },
-  ] as const;
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -136,7 +124,9 @@ export default function HomePage() {
             id={req.id.toString().padStart(5, "0")}
             date={new Date(req.createdAt).toLocaleDateString("es-ES")}
             documentId={req.documentId}
-            onViewOffers={(docId) => router.push(`/home/vendor/${docId}`)}
+            onViewOffers={(docId) =>
+              router.push(`/home/vendor/request/${docId}`)
+            }
             isProvider={true}
             items={req.request.items.map((item) => ({
               name: item.productName,
@@ -150,9 +140,31 @@ export default function HomePage() {
         ));
 
       case "ÓRDENES":
-        return mockOrders
+        if (loading)
+          return <p className={styles.loadingText}>Cargando órdenes...</p>;
+        if (orders.length === 0)
+          return <p className={styles.emptyText}>No tienes órdenes todavía.</p>;
+        return orders
           .slice(0, 3)
-          .map((o) => <OrderCard key={o.id} {...o} />);
+          .map((o) => (
+            <OrderCard
+              key={o.documentId}
+              id={o.documentId}
+              documentId={o.documentId}
+              title={`Orden #${o.id}`}
+              cantidadRepuestos={o.items.length}
+              status={
+                (o.status === "active"
+                  ? "ACTIVA"
+                  : o.status === "cancelled"
+                  ? "CANCELADA"
+                  : "COMPLETADA") as "ACTIVA" | "CANCELADA" | "COMPLETADA"
+              }
+              onViewOrder={(docId) =>
+                router.push(`/home/vendor/orders/${docId}`)
+              }
+            />
+          ));
       default:
         return null;
     }
@@ -192,7 +204,7 @@ export default function HomePage() {
 
             <div className={styles.renovacionRow}>
               <span className={styles.renovacionLabel}>Renovación mensual</span>
-              <span className={styles.dateText}>{tokensLastRenewal}</span>
+              <span className={styles.dateText}>{tokensNextRenewal}</span>
             </div>
           </section>
 

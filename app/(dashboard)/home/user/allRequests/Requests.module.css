@@ -1,6 +1,13 @@
 .pageWrapper {
   min-height: 100dvh;
   background-color: #fff;
+  transition: all 0.3s ease-in-out;
+}
+
+.mainContainer {
+  background-color: #ffffff;
+  min-height: 90dvh;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 .header {
@@ -37,9 +44,7 @@
 }
 
 .content {
-  padding: 20px;
-  max-width: 480px;
-  margin: 0 auto;
+  padding: 24px 20px;
 }
 
 .emptyText {
@@ -47,4 +52,35 @@
   color: #f97316;
   padding: 40px 20px;
   font-size: 15px;
+}
+
+@media (min-width: 768px) {
+  .pageWrapper {
+    height: auto;
+    overflow: visible;
+    padding: 40px 0;
+    margin-left: 230px;
+    width: calc(100% - 230px);
+    background-color: #f2f2f2;
+    padding: 40px 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .pageWrapper.sidebarCollapsed {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+  }
+
+  .mainContainer {
+    width: 95%;
+    max-width: 1000px;
+    height: auto;
+    overflow: hidden;
+    padding: 40px clamp(20px, 5vw, 60px);
+    padding-bottom: 30px;
+    border-radius: 50px;
+    margin: 0 auto;
+    box-shadow: 0;
+  }
 }

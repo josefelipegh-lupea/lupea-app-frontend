@@ -1,0 +1,273 @@
+.pageWrapper {
+  min-height: 100dvh;
+  background-color: #f5f5f7;
+  transition: all 0.3s ease-in-out;
+}
+
+.mainContainer {
+  background-color: #ffffff;
+  min-height: 90dvh;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.container {
+  padding: 24px 20px;
+}
+
+.summaryText {
+  font-size: 13px;
+  font-weight: 400;
+  color: #323232;
+  text-align: center;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.summaryText strong {
+  font-weight: 700;
+  color: #000;
+}
+
+.quoteCard {
+  background: white;
+  border-radius: 28px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f1f1;
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.providerInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconWrapper {
+  width: 40px;
+  height: 40px;
+  background-color: #f3f4f6;
+  padding: 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.providerName {
+  font-weight: 600;
+  font-size: 16px;
+  color: #000;
+}
+
+.badge {
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.badgeActive {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badgeAccepted {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.badgeRejected {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.badgeExpired {
+  background: #f5f5f5;
+  color: #757575;
+}
+
+.cardBody {
+  padding: 16px 20px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.quoteCode {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1a1a3d;
+}
+
+.dateText {
+  font-size: 13px;
+  color: #a1a1a1;
+}
+
+.cardDivider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 16px 0;
+}
+
+.itemsPreview {
+  margin-bottom: 8px;
+}
+
+.itemsLabel {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 12px;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f9f9fb;
+  border-radius: 12px;
+}
+
+.itemInfo {
+  flex: 1;
+}
+
+.itemName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a3d;
+  margin: 0 0 4px 0;
+}
+
+.itemSubText {
+  font-size: 13px;
+  color: #a1a1a1;
+  margin: 0;
+}
+
+.itemPrice {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a3d;
+  margin-left: 16px;
+}
+
+.moreItems {
+  font-size: 13px;
+  color: #a1a1a1;
+  text-align: center;
+  margin: 8px 0 0;
+}
+
+.priceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.deliveryTime {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #f08100;
+}
+
+.totalText {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a3d;
+}
+
+.conditionsPreview {
+  margin-bottom: 16px;
+}
+
+.conditionItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.btnVerDetalle {
+  width: 100%;
+  background-color: #1a1a3d;
+  border: none;
+  padding: 14px 16px;
+  border-radius: 14px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #f08100;
+}
+
+.emptyState p {
+  margin-top: 16px;
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .pageWrapper {
+    height: auto;
+    overflow: visible;
+    padding: 40px 0;
+    margin-left: 230px;
+    width: calc(100% - 230px);
+    background-color: #f2f2f2;
+    padding: 40px 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .pageWrapper.sidebarCollapsed {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+  }
+
+  .mainContainer {
+    width: 95%;
+    max-width: 1000px;
+    height: auto;
+    overflow: hidden;
+    padding: 40px clamp(20px, 5vw, 60px);
+    padding-bottom: 30px;
+    border-radius: 50px;
+    margin: 0 auto;
+    box-shadow: 0;
+  }
+}

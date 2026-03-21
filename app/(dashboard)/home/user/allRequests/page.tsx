@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
 import { IconsApp } from "@/components/icons/Icons";
 import { RequestCard } from "@/components/request-card/RequestCard";
@@ -13,6 +14,7 @@ import Header from "@/components/header/Header";
 export default function AllRequestsPage() {
   const { jwt } = useAuth();
   const router = useRouter();
+  const { isExpanded } = useSidebar();
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,37 +40,52 @@ export default function AllRequestsPage() {
 
   if (loading) {
     return (
-      <div className={styles.pageWrapper}>
-        <SkeletonComparison />
+      <div
+        className={`${styles.pageWrapper} ${
+          !isExpanded ? styles.sidebarCollapsed : ""
+        }`}
+      >
+        <main className={styles.mainContainer}>
+          <Header title="Solicitudes" />
+          <div className={styles.content}>
+            <SkeletonComparison />
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className={styles.pageWrapper}>
-      <Header title="Solicitudes" />
+    <div
+      className={`${styles.pageWrapper} ${
+        !isExpanded ? styles.sidebarCollapsed : ""
+      }`}
+    >
+      <main className={styles.mainContainer}>
+        <Header title="Solicitudes" />
 
-      <div className={styles.content}>
-        {requests.length === 0 ? (
-          <p className={styles.emptyText}>No tienes solicitudes todavía.</p>
-        ) : (
-          requests.map((req) => (
-            <RequestCard
-              key={req.documentId}
-              id={req.id.toString().padStart(5, "0")}
-              date={new Date(req.createdAt).toLocaleDateString("es-ES")}
-              items={req.items.map((item) => ({
-                name: item.productName,
-                model: `${req.vehicle.brand} ${req.vehicle.model}`,
-                type:
-                  item.conditionPreferred === "no_importa"
-                    ? "Cualquiera"
-                    : item.conditionPreferred,
-              }))}
-            />
-          ))
-        )}
-      </div>
+        <div className={styles.content}>
+          {requests.length === 0 ? (
+            <p className={styles.emptyText}>No tienes solicitudes todavía.</p>
+          ) : (
+            requests.map((req) => (
+              <RequestCard
+                key={req.documentId}
+                id={req.id.toString().padStart(5, "0")}
+                date={new Date(req.createdAt).toLocaleDateString("es-ES")}
+                items={req.items.map((item) => ({
+                  name: item.productName,
+                  model: `${req.vehicle.brand} ${req.vehicle.model}`,
+                  type:
+                    item.conditionPreferred === "no_importa"
+                      ? "Cualquiera"
+                      : item.conditionPreferred,
+                }))}
+              />
+            ))
+          )}
+        </div>
+      </main>
     </div>
   );
 }

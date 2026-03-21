@@ -22,9 +22,11 @@ interface PriceProps {
   isProvider?: boolean;
   onViewQuote?: (documentId: string) => void;
   onCompare?: (documentId: string) => void;
+  onViewOrder?: (documentId: string) => void;
   documentId?: string;
   hasOrders?: boolean;
   orderDocumentId?: string;
+  quoteDocumentId?: string;
 }
 
 export const PriceCard: React.FC<PriceProps> = ({
@@ -39,9 +41,11 @@ export const PriceCard: React.FC<PriceProps> = ({
   isProvider = false,
   onViewQuote,
   onCompare,
+  onViewOrder,
   documentId,
   hasOrders = false,
   orderDocumentId,
+  quoteDocumentId,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -178,12 +182,19 @@ export const PriceCard: React.FC<PriceProps> = ({
             </button>
           ) : (
             <>
-              {!hasOrders && <button className={styles.btnVer}>Ver Oferta</button>}
+              {!hasOrders && (
+                <button
+                  className={styles.btnVer}
+                  onClick={() => quoteDocumentId && onViewQuote?.(quoteDocumentId)}
+                >
+                  Ver Oferta
+                </button>
+              )}
               <button
                 className={hasOrders ? styles.btnVerOrden : styles.btnComparar}
                 onClick={() => {
-                  if (hasOrders && orderDocumentId) {
-                    onCompare?.(orderDocumentId);
+                  if (hasOrders) {
+                    onViewOrder?.(documentId!);
                   } else if (documentId) {
                     onCompare?.(documentId);
                   }

@@ -23,7 +23,8 @@ export type LoginResponse = {
       percentage: number;
     };
     tokenMetricsMonth: string;
-    tokensLastRenewal: string;
+    tokensLastRenewal?: string;
+    tokensNextRenewal?: string;
     privacyLevel: string;
   };
 };

@@ -17,19 +17,16 @@ import {
   ClientQuote,
 } from "@/app/lib/api/client/home/quote";
 import { useAuth } from "@/context/AuthContext";
-import { getMyClientOrders } from "@/app/lib/api/client/home/order";
+import {
+  getMyClientOrders,
+  getRequestOrders,
+  OrderData,
+} from "@/app/lib/api/client/home/order";
 import styles from "./Home.module.css";
 
 interface FeaturedQuoteData {
   request: QuoteRequest;
   featuredQuote: ClientQuote;
-}
-
-interface HomeOrder {
-  id: string;
-  title: string;
-  cantidadRepuestos: number;
-  status: "ACTIVA" | "CANCELADA" | "COMPLETADA";
 }
 
 export default function HomePage() {
@@ -40,7 +37,7 @@ export default function HomePage() {
 
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [featuredQuotes, setFeaturedQuotes] = useState<FeaturedQuoteData[]>([]);
-  const [orders, setOrders] = useState<HomeOrder[]>([]);
+  const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
 
   const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
@@ -91,15 +88,7 @@ export default function HomePage() {
 
         const ordersRes = await getMyClientOrders(jwt);
         if (ordersRes.ok) {
-          const mappedOrders: HomeOrder[] = ordersRes.data.orders.map((o) => ({
-            id: o.documentId,
-            title: o.provider.businessName,
-            cantidadRepuestos: o.items.length,
-            status: (o.status === "active" ? "ACTIVA" : 
-                     o.status === "cancelled" ? "CANCELADA" : 
-                     "COMPLETADA") as "ACTIVA" | "CANCELADA" | "COMPLETADA",
-          }));
-          setOrders(mappedOrders);
+          setOrders(ordersRes.data.orders);
         }
       } catch (error) {
         console.error("Error loading data:", error);
@@ -151,6 +140,19 @@ export default function HomePage() {
               onCompare={(docId) =>
                 router.push(`/home/user/request/${docId}/comparison`)
               }
+              onViewOrder={async (requestDocId) => {
+                if (!jwt) return;
+                try {
+                  const res = await getRequestOrders(jwt, requestDocId);
+                  if (res.ok && res.data.orders.length > 0) {
+                    router.push(
+                      `/home/user/orders/${res.data.orders[0].documentId}`
+                    );
+                  }
+                } catch (error) {
+                  console.error("Error fetching order:", error);
+                }
+              }}
             />
           );
         });
@@ -176,6 +178,8 @@ export default function HomePage() {
                   ? "Cualquiera"
                   : item.conditionPreferred,
             }))}
+            documentId={req.documentId}
+            onViewOffers={(docId) => router.push(`/home/user/request/${docId}/quotes`)}
           />
         ));
 
@@ -184,7 +188,25 @@ export default function HomePage() {
           return <p className={styles.loadingText}>Cargando órdenes...</p>;
         if (orders.length === 0)
           return <p className={styles.emptyText}>No tienes órdenes todavía.</p>;
-        return orders.slice(0, 3).map((o) => <OrderCard key={o.id} {...o} />);
+        return orders
+          .slice(0, 3)
+          .map((o) => (
+            <OrderCard
+              key={o.documentId}
+              id={o.documentId}
+              documentId={o.documentId}
+              title={o.provider.businessName}
+              cantidadRepuestos={o.items.length}
+              status={
+                (o.status === "active"
+                  ? "ACTIVA"
+                  : o.status === "cancelled"
+                  ? "CANCELADA"
+                  : "COMPLETADA") as "ACTIVA" | "CANCELADA" | "COMPLETADA"
+              }
+              onViewOrder={(docId) => router.push(`/home/user/orders/${docId}`)}
+            />
+          ));
       default:
         return null;
     }

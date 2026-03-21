@@ -52,7 +52,18 @@ export default function RequestDetailPage() {
   if (loading) {
     return (
       <PageAnimation>
-        <SkeletonRequestDetail />
+        <div
+          className={`${styles.pageWrapper} ${
+            !isExpanded ? styles.sidebarCollapsed : ""
+          }`}
+        >
+          <div className={styles.mainContainer}>
+            <Header title="Detalle de Solicitud" />
+            <div className={styles.content}>
+              <SkeletonRequestDetail />
+            </div>
+          </div>
+        </div>
       </PageAnimation>
     );
   }
@@ -84,8 +95,8 @@ export default function RequestDetailPage() {
           !isExpanded ? styles.sidebarCollapsed : ""
         }`}
       >
-        <Header title="Detalle de Solictud" />
         <div className={styles.mainContainer}>
+          <Header title="Detalle de Solictud" />
           <div className={styles.content}>
             <section className={styles.headerSection}>
               <div className={styles.headerTop}>
