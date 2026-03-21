@@ -222,7 +222,20 @@ const ProviderOnboarding: React.FC = () => {
     profile?.status === "active" ||
     profile?.status === "in_review"
   ) {
-    return <SkeletonProfile />;
+    return (
+      <div
+        className={`${styles.pageWrapper} ${
+          !isExpanded ? styles.sidebarCollapsed : ""
+        }`}
+      >
+        <div className={styles.mainContainer} ref={cardRef}>
+          <Header onBack={() => {}} title="Registrando..." />
+          <div className={styles.content}>
+            <SkeletonProfile />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

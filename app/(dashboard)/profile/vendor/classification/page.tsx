@@ -99,7 +99,22 @@ export default function ClassificationEditPage() {
     }
   };
 
-  if (isLoading || !profile) return <SkeletonProfile />;
+  if (isLoading || !profile) {
+    return (
+      <div
+        className={`${stylesBasics.pageWrapper} ${
+          !isExpanded ? stylesBasics.sidebarCollapsed : ""
+        }`}
+      >
+        <main className={stylesBasics.mainContainer}>
+          <Header onBack={() => router.back()} title="Información Comercial" />
+          <div className={stylesBasics.content}>
+            <SkeletonProfile />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div

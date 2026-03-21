@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
+import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
 import {
   getClientRequestComparison,
@@ -27,6 +28,7 @@ export default function ComparisonPage({ params }: PageProps) {
   const { id } = use(params);
   const { jwt } = useAuth();
   const router = useRouter();
+  const { isExpanded } = useSidebar();
   const [loading, setLoading] = useState(true);
   const [comparisonData, setComparisonData] = useState<ComparisonQuote[]>([]);
   const [selectedItems, setSelectedItems] = useState<Map<number, Set<number>>>(
@@ -45,11 +47,11 @@ export default function ComparisonPage({ params }: PageProps) {
         const res = await getClientRequestComparison(jwt, id);
         if (res.ok) {
           const requestStatus = res.data.request.status;
-          if (requestStatus === "ordered") {
-            toast.error("Esta cotización ya tiene una orden generada");
-            router.push("/home/user");
-            return;
-          }
+          // if (requestStatus === "ordered") {
+          //   toast.error("Esta cotización ya tiene una orden generada");
+          //   router.push("/home/user");
+          //   return;
+          // }
           setComparisonData(res.data.quotes);
         }
       } catch (error) {
@@ -177,12 +179,12 @@ export default function ComparisonPage({ params }: PageProps) {
 
       const res = await createOrdersFromComparison(jwt, id, selectedItemsList);
 
-      if (res.ok) {
+      if (res.ok && res.data.orders.length > 0) {
         setOrderSuccess(true);
         toast.success("Orden generada con éxito");
         setTimeout(() => {
-          router.push("/home/user");
-        }, 2000);
+          router.push(`/home/user/orders/${res.data.orders[0].documentId}`);
+        }, 1500);
       }
     } catch (error) {
       toast.error("Error al generar las órdenes. Intenta de nuevo.");
@@ -194,14 +196,29 @@ export default function ComparisonPage({ params }: PageProps) {
   if (loading) {
     return (
       <PageAnimation>
-        <SkeletonComparison />
+        <div
+          className={`${styles.pageWrapper} ${
+            !isExpanded ? styles.sidebarCollapsed : ""
+          }`}
+        >
+          <main className={styles.mainContainer}>
+            <Header title="Comparar cotizaciones" />
+            <div className={styles.container}>
+              <SkeletonComparison />
+            </div>
+          </main>
+        </div>
       </PageAnimation>
     );
   }
 
   return (
     <PageAnimation>
-      <div className={styles.pageWrapper}>
+      <div
+        className={`${styles.pageWrapper} ${
+          !isExpanded ? styles.sidebarCollapsed : ""
+        }`}
+      >
         <div className={styles.mainContainer}>
           <Header title="Comparar cotizaciones" />
 
@@ -253,121 +270,126 @@ export default function ComparisonPage({ params }: PageProps) {
             {comparisonData.map((quote) => {
               const isCardDisabled = isQuoteDisabled(quote.id);
               return (
-              <div key={quote.id} className={`${styles.quoteCard} ${isCardDisabled ? styles.quoteCardDisabled : ""}`}>
-                <div className={styles.cardHeader}>
-                  <span>Solicitud {id.slice(0, 5)}</span>
-                  <span>
-                    {new Date(quote.createdAt).toLocaleDateString("es-ES", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                </div>
-
-                <div className={styles.cardBody}>
-                  <div className={styles.providerRow}>
-                    <div className={styles.providerInfo}>
-                      <div className={styles.toolIcon}>
-                        <IconsApp.Clock />
-                      </div>
-                      <span className={styles.providerName}>
-                        {quote.provider.name}
-                      </span>
-                    </div>
-                    <div className={styles.ratingBadge}>
-                      <IconsApp.StarFilled color="#F08100" />
-                      <span>
-                        {quote.provider.rating
-                          ? quote.provider.rating.toFixed(1)
-                          : "4.9"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className={styles.partsCount}>
-                    {String(quote.products.length).padStart(2, "0")} de{" "}
-                    {String(quote.products.length).padStart(2, "0")} Repuestos
-                    solicitados
-                  </p>
-
-                  <div className={styles.partsList}>
-                    {quote.products.map((product) => {
-                      const isSelected = selectedItems
-                        .get(quote.id)
-                        ?.has(product.id);
-                      const isDisabled = isItemDisabledFromOtherProvider(
-                        product.requestItemId,
-                        quote.id
-                      );
-                      return (
-                        <div
-                          key={product.id}
-                          className={`${styles.partItem} ${
-                            isSelected ? styles.itemActive : ""
-                          } ${isDisabled ? styles.itemDisabled : ""}`}
-                          onClick={() =>
-                            !isDisabled && toggleItem(quote.id, product.id)
-                          }
-                        >
-                          <div
-                            className={`${styles.checkbox} ${
-                              isSelected ? styles.checked : ""
-                            } ${isDisabled ? styles.checkboxDisabled : ""}`}
-                          >
-                            {isSelected && <IconsApp.Check color="white" />}
-                          </div>
-                          <div className={styles.partContent}>
-                            <p className={styles.partName}>
-                              {product.productName}
-                            </p>
-                            <p className={styles.partSub}>
-                              {product.brand} •{" "}
-                              {product.availability || "Original"}
-                            </p>
-                          </div>
-                          <span className={styles.partPrice}>
-                            ${product.price.toFixed(0)}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className={styles.cardFooter}>
-                    <span className={styles.deliveryTime}>
-                      <IconsApp.GreenClock />
-                      <span
-                        style={{
-                          color: "#419700",
-                          fontWeight: 600,
-                          fontSize: 13,
-                        }}
-                      >
-                        Hoy 2:00 PM
-                      </span>
-                    </span>
-                    <div className={styles.cardTotal}>
-                      Total ${getQuoteSelectedTotal(quote.id).toFixed(0)}
-                    </div>
-                  </div>
-
-                  <div className={styles.buttonContainer}>
-                    <Button
-                      className={styles.btnAcceptCompleteOffer}
-                      onClick={() => selectAllFromQuote(quote.id)}
-                    >
-                      Aceptar oferta completa
-                    </Button>
-                  </div>
-                  <div className={styles.selectionSummary}>
+                <div
+                  key={quote.id}
+                  className={`${styles.quoteCard} ${
+                    isCardDisabled ? styles.quoteCardDisabled : ""
+                  }`}
+                >
+                  <div className={styles.cardHeader}>
+                    <span>Solicitud {id.slice(0, 5)}</span>
                     <span>
-                      {selectedItems.get(quote.id)?.size} Seleccionado
+                      {new Date(quote.createdAt).toLocaleDateString("es-ES", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
                     </span>
-                    <span>${getQuoteSelectedTotal(quote.id).toFixed(0)}</span>
+                  </div>
+
+                  <div className={styles.cardBody}>
+                    <div className={styles.providerRow}>
+                      <div className={styles.providerInfo}>
+                        <div className={styles.toolIcon}>
+                          <IconsApp.Clock />
+                        </div>
+                        <span className={styles.providerName}>
+                          {quote.provider.name}
+                        </span>
+                      </div>
+                      <div className={styles.ratingBadge}>
+                        <IconsApp.StarFilled color="#F08100" />
+                        <span>
+                          {quote.provider.rating
+                            ? quote.provider.rating.toFixed(1)
+                            : "4.9"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className={styles.partsCount}>
+                      {String(quote.products.length).padStart(2, "0")} de{" "}
+                      {String(quote.products.length).padStart(2, "0")} Repuestos
+                      solicitados
+                    </p>
+
+                    <div className={styles.partsList}>
+                      {quote.products.map((product) => {
+                        const isSelected = selectedItems
+                          .get(quote.id)
+                          ?.has(product.id);
+                        const isDisabled = isItemDisabledFromOtherProvider(
+                          product.requestItemId,
+                          quote.id
+                        );
+                        return (
+                          <div
+                            key={product.id}
+                            className={`${styles.partItem} ${
+                              isSelected ? styles.itemActive : ""
+                            } ${isDisabled ? styles.itemDisabled : ""}`}
+                            onClick={() =>
+                              !isDisabled && toggleItem(quote.id, product.id)
+                            }
+                          >
+                            <div
+                              className={`${styles.checkbox} ${
+                                isSelected ? styles.checked : ""
+                              } ${isDisabled ? styles.checkboxDisabled : ""}`}
+                            >
+                              {isSelected && <IconsApp.Check color="white" />}
+                            </div>
+                            <div className={styles.partContent}>
+                              <p className={styles.partName}>
+                                {product.productName}
+                              </p>
+                              <p className={styles.partSub}>
+                                {product.brand} •{" "}
+                                {product.availability || "Original"}
+                              </p>
+                            </div>
+                            <span className={styles.partPrice}>
+                              ${product.price.toFixed(0)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className={styles.cardFooter}>
+                      <span className={styles.deliveryTime}>
+                        <IconsApp.GreenClock />
+                        <span
+                          style={{
+                            color: "#419700",
+                            fontWeight: 600,
+                            fontSize: 13,
+                          }}
+                        >
+                          Hoy 2:00 PM
+                        </span>
+                      </span>
+                      <div className={styles.cardTotal}>
+                        Total ${getQuoteSelectedTotal(quote.id).toFixed(0)}
+                      </div>
+                    </div>
+
+                    <div className={styles.buttonContainer}>
+                      <Button
+                        className={styles.btnAcceptCompleteOffer}
+                        onClick={() => selectAllFromQuote(quote.id)}
+                      >
+                        Aceptar oferta completa
+                      </Button>
+                    </div>
+                    <div className={styles.selectionSummary}>
+                      <span>
+                        {selectedItems.get(quote.id)?.size} Seleccionado
+                      </span>
+                      <span>${getQuoteSelectedTotal(quote.id).toFixed(0)}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
               );
             })}
           </div>

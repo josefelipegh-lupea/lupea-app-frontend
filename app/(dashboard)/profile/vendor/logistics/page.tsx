@@ -100,7 +100,22 @@ export default function LogisticsEditPage() {
     }
   };
 
-  if (isLoading || !profile) return <SkeletonProfile />;
+  if (isLoading || !profile) {
+    return (
+      <div
+        className={`${stylesBasics.pageWrapper} ${
+          !isExpanded ? stylesBasics.sidebarCollapsed : ""
+        }`}
+      >
+        <main className={stylesBasics.mainContainer}>
+          <Header onBack={() => router.back()} title="Logística y Entrega" />
+          <div className={stylesBasics.content}>
+            <SkeletonProfile />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div

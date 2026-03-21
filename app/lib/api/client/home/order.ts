@@ -244,3 +244,31 @@ export async function getMyClientOrders(jwt: string): Promise<{
     throw error;
   }
 }
+
+export async function getOrderById(jwt: string, orderId: string): Promise<{
+  ok: boolean;
+  data: {
+    order: OrderData;
+  };
+}> {
+  try {
+    const res = await fetch(`${API_URL}/orders/client/me/${orderId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error?.message || "Error al obtener la orden");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Fetch error in getOrderById:", error);
+    throw error;
+  }
+}

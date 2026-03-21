@@ -12,10 +12,12 @@ import {
 } from "@/app/lib/api/provider/home/request";
 import styles from "./Requests.module.css";
 import Header from "@/components/header/Header";
+import { useSidebar } from "@/context/SidebarContext";
 
 export default function AllVendorRequestsPage() {
   const { jwt } = useAuth();
   const router = useRouter();
+  const { isExpanded } = useSidebar();
   const [requests, setRequests] = useState<ProviderQuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,40 +43,57 @@ export default function AllVendorRequestsPage() {
 
   if (loading) {
     return (
-      <div className={styles.pageWrapper}>
-        <SkeletonComparison />
+      <div
+        className={`${styles.pageWrapper} ${
+          !isExpanded ? styles.sidebarCollapsed : ""
+        }`}
+      >
+        <main className={styles.mainContainer}>
+          <Header title="Solicitudes" />
+          <div className={styles.content}>
+            <SkeletonComparison />
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className={styles.pageWrapper}>
-      <Header title="Solicitudes" />
+    <div
+      className={`${styles.pageWrapper} ${
+        !isExpanded ? styles.sidebarCollapsed : ""
+      }`}
+    >
+      <main className={styles.mainContainer}>
+        <Header title="Solicitudes" />
 
-      <div className={styles.content}>
-        {requests.length === 0 ? (
-          <p className={styles.emptyText}>No hay solicitudes aún.</p>
-        ) : (
-          requests.map((req) => (
-            <RequestCard
-              key={req.documentId}
-              id={req.id.toString().padStart(5, "0")}
-              date={new Date(req.createdAt).toLocaleDateString("es-ES")}
-              documentId={req.documentId}
-              onViewOffers={(docId) => router.push(`/home/vendor/${docId}`)}
-              isProvider={true}
-              items={req.request.items.map((item) => ({
-                name: item.productName,
-                model: `${req.request.vehicle.brand} ${req.request.vehicle.model} ${req.request.vehicle.year}`,
-                type:
-                  item.conditionPreferred === "no_importa"
-                    ? "Cualquiera"
-                    : item.conditionPreferred,
-              }))}
-            />
-          ))
-        )}
-      </div>
+        <div className={styles.content}>
+          {requests.length === 0 ? (
+            <p className={styles.emptyText}>No hay solicitudes aún.</p>
+          ) : (
+            requests.map((req) => (
+              <RequestCard
+                key={req.documentId}
+                id={req.id.toString().padStart(5, "0")}
+                date={new Date(req.createdAt).toLocaleDateString("es-ES")}
+                documentId={req.documentId}
+                onViewOffers={(docId) =>
+                  router.push(`/home/vendor/request/${docId}`)
+                }
+                isProvider={true}
+                items={req.request.items.map((item) => ({
+                  name: item.productName,
+                  model: `${req.request.vehicle.brand} ${req.request.vehicle.model} ${req.request.vehicle.year}`,
+                  type:
+                    item.conditionPreferred === "no_importa"
+                      ? "Cualquiera"
+                      : item.conditionPreferred,
+                }))}
+              />
+            ))
+          )}
+        </div>
+      </main>
     </div>
   );
 }

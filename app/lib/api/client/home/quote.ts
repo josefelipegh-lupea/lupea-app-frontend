@@ -294,3 +294,34 @@ export async function getClientRequestQuotes(
     throw error;
   }
 }
+
+export async function getClientQuoteById(
+  jwt: string,
+  quoteId: string
+): Promise<{ ok: boolean; data: ClientQuote }> {
+  try {
+    const res = await fetch(
+      `${API_URL}/quotes/client/me/${quoteId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        data.error?.message || "Error al obtener la cotización"
+      );
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Fetch error in getClientQuoteById:", error);
+    throw error;
+  }
+}

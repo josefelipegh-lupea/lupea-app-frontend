@@ -114,7 +114,22 @@ export default function BasicsEditPage() {
     }
   };
 
-  if (isLoading || !profile) return <SkeletonProfile />;
+  if (isLoading || !profile) {
+    return (
+      <div
+        className={`${styles.pageWrapper} ${
+          !isExpanded ? styles.sidebarCollapsed : ""
+        }`}
+      >
+        <main className={styles.mainContainer}>
+          <Header onBack={() => router.back()} title="Datos Comerciales" />
+          <div className={styles.content}>
+            <SkeletonProfile />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div

@@ -1,0 +1,320 @@
+import React from "react";
+
+import styles from "../../app/(dashboard)/home/user/orders/Orders.module.css";
+import { IconsApp } from "../icons/Icons";
+
+interface OrderItem {
+  documentId: string;
+  productName: string;
+  brand: string;
+  availability: string;
+  price: number;
+}
+
+interface OrderConditions {
+  paymentMethods: string[];
+  deliveryTime: string;
+  warrantyPolicy: string;
+}
+
+interface OrderProvider {
+  businessName: string;
+  contact: {
+    email: string;
+    phone: string;
+    address: string;
+  };
+}
+
+interface OrderQuote {
+  deliveryTime: string;
+}
+
+interface OrderClient {
+  username: string;
+  contact?: {
+    email: string;
+    phone: string;
+    address: string;
+  };
+}
+
+interface CommonOrderData {
+  id: number;
+  documentId: string;
+  status: string;
+  subtotal: number;
+  createdAt: string;
+  provider: OrderProvider;
+  quote: OrderQuote;
+  conditions: OrderConditions;
+  items: OrderItem[];
+  client?: OrderClient;
+}
+
+interface OrderDetailCardProps {
+  order: CommonOrderData;
+  isProvider?: boolean;
+  isExpanded?: boolean;
+  onToggle?: () => void;
+  onChatClick?: () => void;
+  onCancelClick?: () => void;
+  showExpandButton?: boolean;
+}
+
+const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
+  order,
+  isExpanded = false,
+  onToggle,
+  onChatClick,
+  onCancelClick,
+  showExpandButton = true,
+  isProvider = false,
+}) => {
+  const formatStatus = (
+    status: string
+  ): "ACTIVA" | "CANCELADA" | "COMPLETADA" => {
+    switch (status) {
+      case "active":
+        return "ACTIVA";
+      case "cancelled":
+        return "CANCELADA";
+      case "completed":
+        return "COMPLETADA";
+      default:
+        return "ACTIVA";
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getDeliveryStatus = (deliveryTime: string): "today" | "tomorrow" => {
+    return deliveryTime.toLowerCase().includes("hoy") ? "today" : "tomorrow";
+  };
+
+  const formatPaymentMethods = (methods: string[]) => {
+    return methods.join(", ");
+  };
+
+  return (
+    <section className={styles.card}>
+      <>
+        <div className={styles.cardHeader} onClick={onToggle}>
+          <div className={styles.providerInfo}>
+            <div className={styles.iconWrapper}>
+              <IconsApp.Tool />
+            </div>
+            <span className={styles.providerName}>
+              {order.provider.businessName}
+            </span>
+          </div>
+
+          {showExpandButton && (
+            <div
+              className={`${styles.arrowIcon} ${
+                isExpanded ? styles.arrowIconRotated : ""
+              }`}
+            >
+              <IconsApp.DownArrow />
+            </div>
+          )}
+        </div>
+        <div className={styles.divider} />
+      </>
+
+      <div className={styles.cardBody}>
+        <div className={styles.infoRow}>
+          <span className={styles.orderNumber}>Orden #{order.id}</span>
+          <span className={styles.dateText}>{formatDate(order.createdAt)}</span>
+        </div>
+
+        <div className={styles.infoRow}>
+          <span className={styles.badgeActive}>
+            {formatStatus(order.status)}
+          </span>
+          <span className={styles.itemCountText}>
+            {order.items.length.toString().padStart(2, "0")}{" "}
+            {order.items.length === 1 ? "Repuesto" : "Repuestos"}
+          </span>
+        </div>
+
+        <div className={styles.cardDivider} />
+
+        <div className={styles.priceRow}>
+          <span
+            className={`${styles.timeText} ${
+              getDeliveryStatus(order.quote.deliveryTime) === "today"
+                ? styles.green
+                : styles.orange
+            }`}
+          >
+            {getDeliveryStatus(order.quote.deliveryTime) === "today" ? (
+              <IconsApp.GreenClock />
+            ) : (
+              <IconsApp.OrangeClock />
+            )}
+            {order.quote.deliveryTime}
+          </span>
+          <span className={styles.totalText}>
+            Total ${order.subtotal.toFixed(0)}
+          </span>
+        </div>
+      </div>
+
+      <div
+        className={`${styles.expandedWrapper} ${
+          isExpanded ? styles.expandedWrapperOpen : ""
+        }`}
+      >
+        <div className={styles.expandedContent}>
+          <ul className={styles.itemList}>
+            {isExpanded && <div className={styles.cardDivider} />}
+            {order.items.map((item) => (
+              <li key={item.documentId} className={styles.itemRow}>
+                <div className={styles.itemMainInfo}>
+                  <p className={styles.itemName}>{item.productName}</p>
+                  <p className={styles.itemSubText}>
+                    {item.brand}
+                    {item.brand && item.availability && " • "}
+                    {item.availability}
+                  </p>
+                </div>
+                <div className={styles.itemPriceWrapper}>
+                  <span className={styles.itemPrice}>
+                    ${item.price.toFixed(0)}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className={styles.subtotalContainer}>
+            <span className={styles.subtotalLabel}>Subtotal</span>
+            <span className={styles.subtotalValue}>
+              ${order.subtotal.toFixed(0)}
+            </span>
+          </div>
+
+          <h3 className={styles.sectionTitle}>Condiciones comerciales</h3>
+          <div className={styles.conditionsList}>
+            <ConditionCard
+              icon={<IconsApp.CreditCard />}
+              label="Forma de pago"
+              value={formatPaymentMethods(order.conditions.paymentMethods)}
+            />
+            <ConditionCard
+              icon={<IconsApp.OrangeClock height="20" width="20" />}
+              label="Tiempo de entrega"
+              value={order.conditions.deliveryTime}
+            />
+            <ConditionCard
+              icon={<IconsApp.Shield width="20" height="20" />}
+              label="Garantía"
+              value={order.conditions.warrantyPolicy}
+            />
+          </div>
+
+          <div className={styles.cardDivider} />
+
+          <h3 className={styles.sectionTitle}>
+            {isProvider ? "Información del cliente" : "Información de contacto"}
+          </h3>
+          <div className={styles.contactContainer}>
+            {isProvider && order.client?.contact ? (
+              <>
+                <ContactRow
+                  icon={<IconsApp.Email color="#BEBEBE" width="24" height="24" />}
+                  label="Correo electrónico"
+                  value={order.client.contact.email}
+                />
+                <ContactRow
+                  icon={<IconsApp.Phone />}
+                  label="Teléfono"
+                  value={order.client.contact.phone}
+                />
+                <ContactRow
+                  icon={<IconsApp.Pin width="24" height="24" color="#BEBEBE" />}
+                  label="Dirección"
+                  value={order.client.contact.address}
+                />
+              </>
+            ) : (
+              <>
+                <ContactRow
+                  icon={<IconsApp.Email color="#BEBEBE" width="24" height="24" />}
+                  label="Correo electrónico"
+                  value={order.provider.contact.email}
+                />
+                <ContactRow
+                  icon={<IconsApp.Phone />}
+                  label="Teléfono"
+                  value={order.provider.contact.phone}
+                />
+                <ContactRow
+                  icon={<IconsApp.Pin width="24" height="24" color="#BEBEBE" />}
+                  label="Dirección"
+                  value={order.provider.contact.address}
+                />
+              </>
+            )}
+          </div>
+
+          {onChatClick && (
+            <button className={styles.btnChat} onClick={onChatClick}>
+              <IconsApp.ChatBlue /> Chat con {isProvider ? order.client?.username || "Cliente" : order.provider.businessName}
+            </button>
+          )}
+          {!isProvider && onCancelClick && (
+            <button className={styles.btnCancel} onClick={onCancelClick}>
+              Cancelar orden
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ConditionCard = ({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) => (
+  <div className={styles.conditionCard}>
+    <div className={styles.condIconBox}>{icon}</div>
+    <div className={styles.condText}>
+      <small>{label}</small>
+      <p>{value}</p>
+    </div>
+  </div>
+);
+
+const ContactRow = ({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) => (
+  <div className={styles.contactRow}>
+    <div className={styles.contactIconBox}>{icon}</div>
+    <div className={styles.contactInfoText}>
+      <small>{label}</small>
+      <p>{value}</p>
+    </div>
+  </div>
+);
+
+export default OrderDetailCard;

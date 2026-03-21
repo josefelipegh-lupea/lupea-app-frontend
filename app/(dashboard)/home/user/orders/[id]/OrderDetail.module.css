@@ -1,5 +1,5 @@
 .pageWrapper {
-  min-height: 100dvh;
+  background-color: #f2f2f2;
   transition: all 0.3s ease-in-out;
 }
 
@@ -9,48 +9,15 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  background-color: #fff;
-  border-bottom: 1px solid #eee;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.backButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1a3d;
-  margin: 0;
-}
-
-.spacer {
-  width: 40px;
-}
-
-.content {
+.container {
   padding: 24px 20px;
 }
 
 .emptyText {
   text-align: center;
-  color: #f97316;
-  padding: 40px 20px;
-  font-size: 15px;
+  color: #a1a1a1;
+  font-size: 14px;
+  padding: 40px 0;
 }
 
 @media (min-width: 768px) {
