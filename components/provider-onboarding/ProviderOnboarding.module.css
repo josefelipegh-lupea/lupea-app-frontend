@@ -197,6 +197,33 @@
   appearance: none;
 }
 
+.pillContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.parentLabel {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.8;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.subLabel {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  white-space: nowrap;
+  color: #fff;
+}
+
+.categoryPillSelected {
+  outline: 2px solid #ff9100;
+}
+
 .iconOverlay {
   position: absolute;
   right: 16px;
@@ -420,6 +447,129 @@
 
   .fullWidth {
     grid-column: span 2;
+  }
+
+  /* --- DROPDOWN DE SUBCATEGORÍAS --- */
+  .subcategoryDropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+
+  .dropdownGroup {
+    display: block;
+  }
+
+  .dropdownGroupHeader {
+    padding: 6px 12px;
+    font-weight: bold;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #000;
+    border-bottom: 1px solid #eee;
+  }
+
+  .dropdownItem {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    color: #000;
+    transition: background 0.2s;
+  }
+
+  .dropdownItem:hover {
+    background: #f5f5f5;
+  }
+
+  .clearSearch {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 16px;
+    color: #ff9100;
+  }
+
+.subcategoryInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  border: 1.5px solid #e0e0e0;
+  border-radius: 15px;
+  padding: 10px 15px;
+  margin-top: 5px;
+  transition: border 0.2s;
+  background-color: #fff;
+}
+
+.subcategoryInputWrapper:focus-within {
+  border-color: #ff9100;
+}
+
+.subcategoryInputWrapper .input {
+  padding: 0 10px;
+}
+
+  .subcategoryPill {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 6px 12px;
+  }
+
+  .subcategoryPillLabel {
+    font-size: 9px;
+    text-transform: uppercase;
+    font-weight: bold;
+    opacity: 0.8;
+    line-height: 1;
+  }
+
+  .subcategoryPillName {
+    font-size: 13px;
+  }
+
+  .pillContainer {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .parentLabel {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.8;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+
+  .subLabel {
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    white-space: nowrap;
+    color: #fff;
+  }
+
+  .categoryPillSelected {
+    outline: 2px solid #ff9100;
+  }
+
+  .sectionMarginTop {
+    margin-top: 20px;
   }
 
   .btnSubmit {

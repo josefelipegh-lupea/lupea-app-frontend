@@ -18,6 +18,12 @@ interface SelectedSub {
   parentName: string;
 }
 
+interface SelectedMainCategory {
+  id: number;
+  name: string;
+  documentId: string;
+}
+
 export default function VendorRegisterPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -28,21 +34,59 @@ export default function VendorRegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [dbCategories, setDbCategories] = useState<Category[]>([]);
-  const [lastSelectedCatId, setLastSelectedCatId] = useState<string | null>(
-    null
-  );
+  const [selectedMainCategories, setSelectedMainCategories] = useState<
+    SelectedMainCategory[]
+  >([]);
   const [selectedSubs, setSelectedSubs] = useState<SelectedSub[]>([]);
+  const [subcategorySearch, setSubcategorySearch] = useState("");
+  const [subcategoryDropdownOpen, setSubcategoryDropdownOpen] = useState(false);
+
+  const allSubcategoriesFromSelected = useMemo(() => {
+    if (selectedMainCategories.length === 0) return [];
+    return [...selectedMainCategories]
+      .reverse()
+      .map((selectedCat) => {
+        const category = dbCategories.find(
+          (c) => c.documentId === selectedCat.documentId
+        );
+        if (!category || !category.children) return null;
+        return {
+          categoryName: category.name,
+          categoryDocId: category.documentId,
+          subcategories: category.children as Category[],
+        };
+      })
+      .filter(
+        (
+          item
+        ): item is {
+          categoryName: string;
+          categoryDocId: string;
+          subcategories: Category[];
+        } => item !== null
+      );
+  }, [selectedMainCategories, dbCategories]);
+
+  const filteredSubcategories = useMemo(() => {
+    if (!subcategorySearch.trim()) return allSubcategoriesFromSelected;
+    const searchLower = subcategorySearch.toLowerCase();
+    return allSubcategoriesFromSelected
+      .map((group) => ({
+        ...group,
+        subcategories: group.subcategories.filter((sub) =>
+          sub.name.toLowerCase().includes(searchLower)
+        ),
+      }))
+      .filter((group) => group.subcategories.length > 0);
+  }, [allSubcategoriesFromSelected, subcategorySearch]);
+
+  const flatFilteredSubcategories = useMemo(() => {
+    return filteredSubcategories.flatMap((group) => group.subcategories);
+  }, [filteredSubcategories]);
 
   const parentIds = useMemo(() => {
-    return Array.from(
-      new Set(
-        selectedSubs.map((s) => {
-          const parent = dbCategories.find((cat) => cat.name === s.parentName);
-          return parent?.id;
-        })
-      )
-    ).filter((id): id is number => !!id);
-  }, [selectedSubs, dbCategories]);
+    return selectedMainCategories.map((c) => c.id);
+  }, [selectedMainCategories]);
 
   const subIds = useMemo(() => selectedSubs.map((s) => s.id), [selectedSubs]);
 
@@ -69,39 +113,55 @@ export default function VendorRegisterPage() {
     fetchData();
   }, []);
 
-  const currentSubcategories = useMemo(() => {
-    if (!lastSelectedCatId) return [];
-    const selectedCat = dbCategories.find(
-      (c) => c.documentId === lastSelectedCatId
-    );
-    return selectedCat?.children || [];
-  }, [lastSelectedCatId, dbCategories]);
+  const handleMainCategorySelect = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const selectedValue = e.target.value;
+    if (!selectedValue) return;
 
-  const handleSubcategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const subId = Number(e.target.value);
-    if (!subId || !lastSelectedCatId) return;
-
-    // Buscamos el objeto en las subcategorías actuales
-    const subObj = currentSubcategories.find((s) => s.id === subId);
-    // Buscamos el nombre del padre para la pill
-    const parentObj = dbCategories.find(
-      (c) => c.documentId === lastSelectedCatId
-    );
-
-    if (subObj && parentObj && !selectedSubs.find((s) => s.id === subId)) {
-      setSelectedSubs((prev) => [
+    const category = dbCategories.find((c) => c.documentId === selectedValue);
+    if (
+      category &&
+      !selectedMainCategories.some((c) => c.documentId === selectedValue)
+    ) {
+      setSelectedMainCategories((prev) => [
         ...prev,
         {
-          id: subObj.id,
-          documentId: subObj.documentId,
-          name: subObj.name,
-          parentName: parentObj.name,
+          id: category.id,
+          name: category.name,
+          documentId: category.documentId,
         },
       ]);
     }
-
-    // ESTO ES LO QUE HACE QUE EL SELECT VUELVA A MOSTRAR EL "Selecciona subcategorías"
     e.target.value = "";
+  };
+
+  const removeMainCategory = (documentId: string) => {
+    const categoryToRemove = dbCategories.find(
+      (c) => c.documentId === documentId
+    );
+    const subcategoryIdsToRemove =
+      categoryToRemove?.children?.map((sub) => sub.id) || [];
+
+    setSelectedMainCategories((prev) =>
+      prev.filter((c) => c.documentId !== documentId)
+    );
+    setSelectedSubs((prev) =>
+      prev.filter((sub) => !subcategoryIdsToRemove.includes(sub.id))
+    );
+  };
+
+  const handleSubcategorySelect = (sub: Category, categoryName: string) => {
+    if (selectedSubs.some((s) => s.documentId === sub.documentId)) return;
+    setSelectedSubs((prev) => [
+      ...prev,
+      {
+        id: sub.id,
+        documentId: sub.documentId,
+        name: sub.name,
+        parentName: categoryName,
+      },
+    ]);
   };
 
   const removeSub = (id: number) => {
@@ -213,51 +273,113 @@ export default function VendorRegisterPage() {
             <div className={vendorStyles.selectWrapper}>
               <select
                 className={styles.input}
-                onChange={(e) => setLastSelectedCatId(e.target.value)}
-                value={lastSelectedCatId || ""}
+                onChange={handleMainCategorySelect}
+                value=""
               >
                 <option value="" disabled>
                   Selecciona categorías
                 </option>
-                {dbCategories.map((cat) => (
-                  <option key={cat.documentId} value={cat.documentId}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-              <div className={vendorStyles.iconOverlay}>
-                <IconsApp.DownArrow />
-              </div>
-            </div>
-
-            <label className={styles.label} style={{ marginTop: "15px" }}>
-              Especifica las subcategorías
-            </label>
-            <div className={vendorStyles.selectWrapper}>
-              <select
-                className={styles.input}
-                onChange={handleSubcategoryChange}
-                value=""
-                disabled={currentSubcategories.length === 0}
-              >
-                <option value="" disabled>
-                  {!lastSelectedCatId
-                    ? "Selecciona una categoría arriba"
-                    : currentSubcategories.length === 0
-                    ? "Esta categoría no tiene subcategorías"
-                    : "Selecciona subcategorías"}
-                </option>
-                {currentSubcategories
-                  .filter((sub) => !selectedSubs.some((s) => s.id === sub.id))
-                  .map((sub) => (
-                    <option key={sub.documentId} value={sub.id}>
-                      {sub.name}
+                {dbCategories
+                  .filter(
+                    (cat) =>
+                      !selectedMainCategories.some(
+                        (c) => c.documentId === cat.documentId
+                      )
+                  )
+                  .map((cat) => (
+                    <option key={cat.documentId} value={cat.documentId}>
+                      {cat.name}
                     </option>
                   ))}
               </select>
               <div className={vendorStyles.iconOverlay}>
                 <IconsApp.DownArrow />
               </div>
+            </div>
+
+            <div className={vendorStyles.tagsScrollContainer}>
+              {selectedMainCategories.length === 0 ? (
+                <p className={vendorStyles.emptyStateText}>
+                  Aquí aparecerán las categorías
+                </p>
+              ) : (
+                selectedMainCategories.map((cat) => (
+                  <button
+                    key={cat.documentId}
+                    type="button"
+                    onClick={() => removeMainCategory(cat.documentId)}
+                    className={`${vendorStyles.categoryPill} ${vendorStyles.activePill}`}
+                  >
+                    <span className={vendorStyles.subLabel}>{cat.name} </span>
+                    <span className={vendorStyles.removeIcon}>×</span>
+                  </button>
+                ))
+              )}
+            </div>
+
+            <label className={styles.label} style={{ marginTop: "15px" }}>
+              Especifica las subcategorías
+            </label>
+            <div className={vendorStyles.subcategoryInputWrapper}>
+              <span className={styles.inputIcon}>
+                <IconsApp.ToolInput />
+              </span>
+              <input
+                type="text"
+                className={styles.input}
+                placeholder={
+                  selectedMainCategories.length === 0
+                    ? "Selecciona una categoría arriba"
+                    : "Buscar subcategorías..."
+                }
+                value={subcategorySearch}
+                onChange={(e) => setSubcategorySearch(e.target.value)}
+                onFocus={() => setSubcategoryDropdownOpen(true)}
+                onBlur={() =>
+                  setTimeout(() => setSubcategoryDropdownOpen(false), 200)
+                }
+                disabled={selectedMainCategories.length === 0}
+              />
+              {subcategorySearch && (
+                <button
+                  type="button"
+                  onClick={() => setSubcategorySearch("")}
+                  className={vendorStyles.clearSearch}
+                >
+                  ×
+                </button>
+              )}
+              {subcategoryDropdownOpen && filteredSubcategories.length > 0 && (
+                <div className={vendorStyles.subcategoryDropdown}>
+                  {filteredSubcategories.map((group) => (
+                    <div key={group.categoryDocId} className={vendorStyles.dropdownGroup}>
+                      <div className={vendorStyles.dropdownGroupHeader}>
+                        {group.categoryName}
+                      </div>
+                      {group.subcategories
+                        .filter(
+                          (sub) =>
+                            !selectedSubs.some(
+                              (s) => s.documentId === sub.documentId
+                            )
+                        )
+                        .map((sub) => (
+                          <div
+                            key={sub.documentId}
+                            onClick={() => {
+                              handleSubcategorySelect(sub, group.categoryName);
+                              setSubcategorySearch("");
+                              setSubcategoryDropdownOpen(false);
+                            }}
+                            className={vendorStyles.dropdownItem}
+                          >
+                            {sub.name}
+                          </div>
+                        ))}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className={vendorStyles.tagsScrollContainer}>

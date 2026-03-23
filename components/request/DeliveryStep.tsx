@@ -100,7 +100,7 @@ export default function DeliveryStep({
           </div>
         </div>
 
-        {/* <div className={styles.deliveryToggleGroup}>
+        <div className={styles.deliveryToggleGroup}>
           <div
             className={`${styles.slider} ${
               formData.deliveryMethod === "delivery"
@@ -128,7 +128,7 @@ export default function DeliveryStep({
           >
             Envío a domicilio
           </button>
-        </div> */}
+        </div>
 
         {locations.length === 0 && (
           <p style={{ fontSize: "12px", color: "#f97316", marginTop: "8px" }}>

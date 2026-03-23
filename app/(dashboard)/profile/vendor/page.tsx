@@ -149,6 +149,10 @@ export default function VendorProfilePage() {
     }
   };
 
+  const formatLupas = (amount: number) => {
+    return new Intl.NumberFormat("de-DE").format(amount || 0);
+  };
+
   return (
     <div
       className={`${styles.pageWrapper} ${
@@ -183,6 +187,21 @@ export default function VendorProfilePage() {
                   </span>
                 </div>
               </div>
+            </section>
+
+            <section className={styles.lupasCard}>
+              <div className={styles.lupasContent}>
+                <p className={styles.lupasTitle}>MIS LUPAS</p>
+                <div className={styles.lupasAmountContainer}>
+                  <span className={styles.lupasValue}>
+                    {formatLupas(vendorProfile.tokensAvailable || 0)}
+                  </span>
+                  <span className={styles.lupasLabel}>Disponibles</span>
+                </div>
+              </div>
+              <button className={styles.arrowButton}>
+                <IconsApp.RightArrow />
+              </button>
             </section>
           </div>
 
