@@ -142,7 +142,7 @@ export default function RequestDetailPage() {
                   <div>
                     <p className={styles.locationName}>{locationInfo.name}</p>
                     <p className={styles.locationAddress}>
-                      {locationInfo.address}
+                      {locationInfo.exactAddress}
                     </p>
                     <p className={styles.locationParish}>
                       {locationInfo.parish}, {locationInfo.municipality},{" "}

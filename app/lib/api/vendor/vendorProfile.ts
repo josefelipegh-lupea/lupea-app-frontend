@@ -24,6 +24,7 @@ export interface ProviderProfile {
   state: string;
   city: string;
   status: string;
+  tokensAvailable?: number;
   termsAccepted: boolean;
   mainCategories: Category[];
 }

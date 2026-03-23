@@ -36,6 +36,8 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
   const [lastSelectedCatId, setLastSelectedCatId] = useState<string | null>(
     null
   );
+  const [subcategorySearch, setSubcategorySearch] = useState("");
+  const [subcategoryDropdownOpen, setSubcategoryDropdownOpen] = useState(false);
 
   // NUEVO: Estado para evitar re-hidratación al borrar todo
   const [isHydrated, setIsHydrated] = useState(false);
@@ -43,13 +45,48 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
   const { jwt, profile } = useAuth();
   const vendor = profile as unknown as ClassificationData;
 
-  const currentSubcategories = useMemo(() => {
-    if (!lastSelectedCatId) return [];
-    const selectedCat = dbCategories.find(
-      (c) => c.documentId === lastSelectedCatId
-    );
-    return selectedCat?.children || [];
-  }, [lastSelectedCatId, dbCategories]);
+  const allSubcategoriesFromSelected = useMemo(() => {
+    if (formData.mainCategories.length === 0) return [];
+    return [...formData.mainCategories]
+      .reverse()
+      .map((selectedCat) => {
+        const category = dbCategories.find(
+          (c) => c.documentId === selectedCat.documentId
+        );
+        if (!category || !category.children) return null;
+        return {
+          categoryName: category.name,
+          categoryDocId: category.documentId,
+          subcategories: category.children as Category[],
+        };
+      })
+      .filter(
+        (
+          item
+        ): item is {
+          categoryName: string;
+          categoryDocId: string;
+          subcategories: Category[];
+        } => item !== null
+      );
+  }, [formData.mainCategories, dbCategories]);
+
+  const filteredSubcategories = useMemo(() => {
+    if (!subcategorySearch.trim()) return allSubcategoriesFromSelected;
+    const searchLower = subcategorySearch.toLowerCase();
+    return allSubcategoriesFromSelected
+      .map((group) => ({
+        ...group,
+        subcategories: group.subcategories.filter((sub) =>
+          sub.name.toLowerCase().includes(searchLower)
+        ),
+      }))
+      .filter((group) => group.subcategories.length > 0);
+  }, [allSubcategoriesFromSelected, subcategorySearch]);
+
+  const flatFilteredSubcategories = useMemo(() => {
+    return filteredSubcategories.flatMap((group) => group.subcategories);
+  }, [filteredSubcategories]);
 
   useEffect(() => {
     if (!jwt) return;
@@ -136,11 +173,11 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
       }
 
       if (type === "subcategories") {
-        const item = currentSubcategories.find(
+        const item = flatFilteredSubcategories.find(
           (s) => s.id === Number(selectedValue)
         );
-        const parent = dbCategories.find(
-          (c) => c.documentId === lastSelectedCatId
+        const parent = dbCategories.find((c) =>
+          c.children?.some((child) => child.id === Number(selectedValue))
         );
         if (
           item &&
@@ -182,9 +219,29 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
     e.target.value = "";
   };
 
+  const handleSubcategorySelect = (sub: Category, categoryName: string) => {
+    setFormData((prev) => {
+      if (prev.subcategories.some((s) => s.documentId === sub.documentId)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        subcategories: [
+          ...prev.subcategories,
+          {
+            id: sub.id,
+            documentId: sub.documentId,
+            name: sub.name,
+            parentName: categoryName,
+          },
+        ],
+      };
+    });
+  };
+
   const removeItem = (type: EntityArrayKeys, documentId: string) => {
     if (type === "mainCategories") {
-      if (lastSelectedCatId === documentId) setLastSelectedCatId(null);
+      if (formData.mainCategories.length <= 1) setLastSelectedCatId(null);
       const categoryToRemove = dbCategories.find(
         (c) => c.documentId === documentId
       );
@@ -255,15 +312,13 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
                 key={cat.documentId}
                 type="button"
                 onClick={() => {
-                  // IMPORTANTE: Primero removemos, luego la lógica de Step decide si limpia lastSelectedCatId
                   removeItem("mainCategories", cat.documentId);
                 }}
-                className={`${styles.categoryPill} ${styles.activePill}`}
-                style={
+                className={`${styles.categoryPill} ${styles.activePill} ${
                   lastSelectedCatId === cat.documentId
-                    ? { outline: "2px solid #ff9100" }
-                    : {}
-                }
+                    ? styles.categoryPillSelected
+                    : ""
+                }`}
               >
                 {cat.name} <span className={styles.removeIcon}>×</span>
               </button>
@@ -275,39 +330,66 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
       {/* SUBCATEGORÍAS */}
       <div className={styles.fullWidth} style={{ marginTop: "20px" }}>
         <label className={styles.label}>Subcategorías</label>
-        <div className={styles.inputWrapper}>
+        <div className={styles.subcategoryInputWrapper}>
           <span className={styles.icon}>
             <IconsApp.ToolInput />
           </span>
-          <select
-            className={`${styles.input} ${styles.selects}`}
-            onChange={(e) => handleSelectChange(e, "subcategories")}
-            value=""
-            disabled={!lastSelectedCatId || currentSubcategories.length === 0}
-          >
-            <option value="" disabled>
-              {!lastSelectedCatId
+          <input
+            type="text"
+            className={styles.input}
+            placeholder={
+              formData.mainCategories.length === 0
                 ? "Selecciona categoría arriba"
-                : currentSubcategories.length === 0
-                ? "No hay subcategorías"
-                : "Selecciona productos"}
-            </option>
-            {currentSubcategories
-              .filter(
-                (sub) =>
-                  !formData.subcategories.some(
-                    (s) => s.documentId === sub.documentId
-                  )
-              )
-              .map((sub) => (
-                <option key={sub.documentId} value={sub.id}>
-                  {sub.name}
-                </option>
+                : "Buscar subcategorías..."
+            }
+            value={subcategorySearch}
+            onChange={(e) => setSubcategorySearch(e.target.value)}
+            onFocus={() => setSubcategoryDropdownOpen(true)}
+            onBlur={() =>
+              setTimeout(() => setSubcategoryDropdownOpen(false), 200)
+            }
+            disabled={formData.mainCategories.length === 0}
+          />
+          {subcategorySearch && (
+            <button
+              type="button"
+              onClick={() => setSubcategorySearch("")}
+              className={styles.clearSearch}
+            >
+              ×
+            </button>
+          )}
+          {subcategoryDropdownOpen && filteredSubcategories.length > 0 && (
+            <div className={styles.subcategoryDropdown}>
+              {filteredSubcategories.map((group) => (
+                <div key={group.categoryDocId} className={styles.dropdownGroup}>
+                  <div className={styles.dropdownGroupHeader}>
+                    {group.categoryName}
+                  </div>
+                  {group.subcategories
+                    .filter(
+                      (sub) =>
+                        !formData.subcategories.some(
+                          (s) => s.documentId === sub.documentId
+                        )
+                    )
+                    .map((sub) => (
+                      <div
+                        key={sub.documentId}
+                        onClick={() => {
+                          handleSubcategorySelect(sub, group.categoryName);
+                          setSubcategorySearch("");
+                          setSubcategoryDropdownOpen(false);
+                        }}
+                        className={styles.dropdownItem}
+                      >
+                        {sub.name}
+                      </div>
+                    ))}
+                </div>
               ))}
-          </select>
-          <div className={styles.iconOverlay}>
-            <IconsApp.DownArrow />
-          </div>
+            </div>
+          )}
         </div>
         <div className={styles.tagsScrollContainer}>
           {formData.subcategories.length === 0 ? (
@@ -321,34 +403,20 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
                 type="button"
                 onClick={() => removeItem("subcategories", sub.documentId)}
                 className={`${styles.categoryPill} ${styles.activePill}`}
-                style={{
-                  height: "auto",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-start",
-                  padding: "6px 12px",
-                }}
               >
-                <span
-                  style={{
-                    fontSize: "9px",
-                    textTransform: "uppercase",
-                    fontWeight: "bold",
-                    opacity: 0.8,
-                    lineHeight: "1",
-                  }}
-                >
-                  {sub.parentName ||
-                    dbCategories.find((c) =>
-                      c.children?.some(
-                        (child) => child.documentId === sub.documentId
-                      )
-                    )?.name ||
-                    "Repuesto"}
-                </span>
-                <span style={{ fontSize: "13px" }}>
-                  {sub.name} <span className={styles.removeIcon}>×</span>
-                </span>
+                <div className={styles.pillContainer}>
+                  <span className={styles.parentLabel}>
+                    {sub.parentName ||
+                      dbCategories.find((c) =>
+                        c.children?.some(
+                          (child) => child.documentId === sub.documentId
+                        )
+                      )?.name ||
+                      "Repuesto"}
+                  </span>
+                  <span className={styles.subLabel}>{sub.name} </span>
+                </div>
+                <span className={styles.removeIcon}>×</span>
               </button>
             ))
           )}
@@ -356,7 +424,7 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
       </div>
 
       {/* MARCAS */}
-      <div className={styles.fullWidth} style={{ marginTop: "20px" }}>
+      <div className={`${styles.fullWidth} ${styles.sectionMarginTop} `}>
         <label className={styles.label}>Marcas que manejas</label>
         <div className={styles.inputWrapper}>
           <span className={styles.icon}>
