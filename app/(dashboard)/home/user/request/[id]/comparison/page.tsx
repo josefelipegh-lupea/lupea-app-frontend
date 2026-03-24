@@ -105,58 +105,6 @@ export default function ComparisonPage({ params }: PageProps) {
     return total;
   };
 
-  const getSelectedRequestItemIds = (): Set<number> => {
-    const selectedIds = new Set<number>();
-    selectedItems.forEach((productIds, quoteId) => {
-      const quote = comparisonData.find((q) => q.id === quoteId);
-      if (!quote) return;
-      productIds.forEach((productId) => {
-        const product = quote.products.find((p) => p.id === productId);
-        if (product) selectedIds.add(product.requestItemId);
-      });
-    });
-    return selectedIds;
-  };
-
-  const isQuoteFullySelected = (quoteId: number): boolean => {
-    const quote = comparisonData.find((q) => q.id === quoteId);
-    if (!quote) return false;
-    const selected = selectedItems.get(quoteId);
-    if (!selected) return false;
-    return quote.products.every((p) => selected.has(p.id));
-  };
-
-  const getFullySelectedQuoteId = (): number | null => {
-    for (const [quoteId] of selectedItems) {
-      if (isQuoteFullySelected(quoteId)) return quoteId;
-    }
-    return null;
-  };
-
-  const isQuoteDisabled = (quoteId: number): boolean => {
-    const fullySelectedQuoteId = getFullySelectedQuoteId();
-    if (fullySelectedQuoteId === null) return false;
-    return fullySelectedQuoteId !== quoteId;
-  };
-
-  const isItemDisabledFromOtherProvider = (
-    productRequestItemId: number,
-    currentQuoteId: number
-  ): boolean => {
-    const selectedIds = getSelectedRequestItemIds();
-    if (!selectedIds.has(productRequestItemId)) return false;
-
-    const isSelectedInCurrentQuote =
-      selectedItems.get(currentQuoteId)?.size &&
-      Array.from(selectedItems.get(currentQuoteId) || []).some((id) => {
-        const quote = comparisonData.find((q) => q.id === currentQuoteId);
-        const product = quote?.products.find((p) => p.id === id);
-        return product?.requestItemId === productRequestItemId;
-      });
-
-    return !isSelectedInCurrentQuote;
-  };
-
   const handleGenerateOrders = async () => {
     if (selectedItems.size === 0 || !jwt) return;
 
@@ -268,13 +216,10 @@ export default function ComparisonPage({ params }: PageProps) {
 
           <div className={styles.quotesList}>
             {comparisonData.map((quote) => {
-              const isCardDisabled = isQuoteDisabled(quote.id);
               return (
                 <div
                   key={quote.id}
-                  className={`${styles.quoteCard} ${
-                    isCardDisabled ? styles.quoteCardDisabled : ""
-                  }`}
+                  className={styles.quoteCard}
                 >
                   <div className={styles.cardHeader}>
                     <span>Solicitud {id.slice(0, 5)}</span>
@@ -318,24 +263,18 @@ export default function ComparisonPage({ params }: PageProps) {
                         const isSelected = selectedItems
                           .get(quote.id)
                           ?.has(product.id);
-                        const isDisabled = isItemDisabledFromOtherProvider(
-                          product.requestItemId,
-                          quote.id
-                        );
                         return (
                           <div
                             key={product.id}
                             className={`${styles.partItem} ${
                               isSelected ? styles.itemActive : ""
-                            } ${isDisabled ? styles.itemDisabled : ""}`}
-                            onClick={() =>
-                              !isDisabled && toggleItem(quote.id, product.id)
-                            }
+                            }`}
+                            onClick={() => toggleItem(quote.id, product.id)}
                           >
                             <div
                               className={`${styles.checkbox} ${
                                 isSelected ? styles.checked : ""
-                              } ${isDisabled ? styles.checkboxDisabled : ""}`}
+                              }`}
                             >
                               {isSelected && <IconsApp.Check color="white" />}
                             </div>

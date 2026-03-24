@@ -274,12 +274,12 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
         <label className={styles.label}>
           Categorías en la que clasifica tu negocio
         </label>
-        <div className={styles.inputWrapper}>
+        <div className={styles.selectWrapper}>
           <span className={styles.icon}>
             <IconsApp.ToolInput />
           </span>
           <select
-            className={`${styles.input} ${styles.selects}`}
+            className={styles.input}
             onChange={(e) => handleSelectChange(e, "mainCategories")}
             value=""
           >
@@ -426,12 +426,12 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
       {/* MARCAS */}
       <div className={`${styles.fullWidth} ${styles.sectionMarginTop} `}>
         <label className={styles.label}>Marcas que manejas</label>
-        <div className={styles.inputWrapper}>
+        <div className={styles.selectWrapper}>
           <span className={styles.icon}>
             <IconsApp.ToolInput />
           </span>
           <select
-            className={`${styles.input} ${styles.selects}`}
+            className={styles.input}
             onChange={(e) => handleSelectChange(e, "brands")}
             value=""
           >

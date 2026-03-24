@@ -119,6 +119,21 @@ export default function RequestDetailPage() {
             </section>
 
             <section className={styles.card}>
+              <h3 className={styles.cardTitle}>Cliente</h3>
+              <div className={styles.vehicleInfo}>
+                <div className={styles.iconCircle}>
+                  <IconsApp.User />
+                </div>
+                <div className={styles.vehicleDetails}>
+                  <h4 className={styles.vehicleName}>
+                    @{request.request.client.username}
+                  </h4>
+                  <p className={styles.vehicleExtra}>Cliente verificado</p>
+                </div>
+              </div>
+            </section>
+
+            <section className={styles.card}>
               <h3 className={styles.cardTitle}>Vehículo</h3>
               <div className={styles.vehicleInfo}>
                 <div className={styles.iconCircle}>
@@ -207,6 +222,12 @@ export default function RequestDetailPage() {
                     "delivery"
                       ? "Delivery"
                       : "Retiro en tienda"}
+                  </span>
+                </div>
+                <div className={styles.criteriaItem}>
+                  <span className={styles.criteriaLabel}>Marca vehículo</span>
+                  <span className={styles.criteriaValue}>
+                    {request.criteria.vehicleBrand.name}
                   </span>
                 </div>
               </div>
