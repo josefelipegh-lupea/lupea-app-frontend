@@ -165,7 +165,7 @@ export default function VendorProfilePage() {
             <section className={styles.profileHeader}>
               <div className={styles.avatarCircle}>
                 <Image
-                  src="https://randomuser.me/api/portraits/men/32.jpg"
+                  src="/provider.png"
                   alt={vendorProfile.businessName || "Negocio"}
                   width={90}
                   height={90}

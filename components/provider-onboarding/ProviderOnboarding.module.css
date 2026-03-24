@@ -139,13 +139,92 @@
   position: relative;
   display: flex;
   align-items: center;
-
-  border: 1.5px solid #e0e0e0;
-  border-radius: 15px;
-  padding: 10px 15px;
   margin-top: 5px;
-  transition: border 0.2s;
-  background-color: #fff;
+}
+
+.inputWrapper:focus-within {
+  border-color: #ff9100;
+}
+
+.selectWrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.selectWrapper select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 30px;
+  padding-left: 14px;
+}
+
+.subcategoryInputWrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.subcategoryInputWrapper .input {
+  padding: 14px 14px 14px 44px;
+}
+
+/* --- DROPDOWN DE SUBCATEGORÍAS --- */
+.subcategoryDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.dropdownGroup {
+  display: block;
+}
+
+.dropdownGroupHeader {
+  padding: 6px 12px;
+  background: #f5f5f5;
+  font-weight: bold;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #ff9100;
+  border-bottom: 1px solid #eee;
+}
+
+.dropdownItem {
+  color: #000;
+  font-size: 14px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.dropdownItem:hover {
+  background: #f5f5f5;
+}
+
+.clearSearch {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 16px;
+  color: #666;
 }
 
 .inputWrapper:focus-within {
@@ -169,6 +248,13 @@
   align-items: center;
 }
 
+.subcategoryInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
 .ghostContainer {
   position: absolute;
   left: 45px;
@@ -181,20 +267,28 @@
 }
 
 .input {
-  display: flex;
-  align-items: center;
-  background: transparent;
-  border: none;
-  outline: none;
   width: 100%;
+  padding: 14px 44px 14px 44px;
   font-size: 1rem;
+
+  border: 1.5px solid #e0e0e0;
+  border-radius: 14px;
+  background: #fff;
   color: #181818;
-  z-index: 2;
+  outline: none;
+  transition: border 0.2s;
+  box-sizing: border-box;
 }
 
 .selects {
   padding: 0 20px;
   appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.selectWrapper select {
+  padding: 14px 44px 14px 44px;
 }
 
 .pillContainer {
@@ -235,9 +329,14 @@
 }
 
 .icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
   display: flex;
   align-items: center;
-  color: #bdbdbd;
+  justify-content: center;
 }
 
 .btnSubmit {
@@ -449,77 +548,13 @@
     grid-column: span 2;
   }
 
-  /* --- DROPDOWN DE SUBCATEGORÍAS --- */
-  .subcategoryDropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    max-height: 200px;
-    overflow-y: auto;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 0 0 8px 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
+  .input {
+    font-size: 13px;
   }
 
-  .dropdownGroup {
-    display: block;
+  .subcategoryInputWrapper .input {
+    padding: 14px 44px 14px 44px;
   }
-
-  .dropdownGroupHeader {
-    padding: 6px 12px;
-    font-weight: bold;
-    font-size: 11px;
-    text-transform: uppercase;
-    color: #000;
-    border-bottom: 1px solid #eee;
-  }
-
-  .dropdownItem {
-    padding: 10px 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #f0f0f0;
-    color: #000;
-    transition: background 0.2s;
-  }
-
-  .dropdownItem:hover {
-    background: #f5f5f5;
-  }
-
-  .clearSearch {
-    position: absolute;
-    right: 12px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    font-size: 16px;
-    color: #ff9100;
-  }
-
-.subcategoryInputWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-
-  border: 1.5px solid #e0e0e0;
-  border-radius: 15px;
-  padding: 10px 15px;
-  margin-top: 5px;
-  transition: border 0.2s;
-  background-color: #fff;
-}
-
-.subcategoryInputWrapper:focus-within {
-  border-color: #ff9100;
-}
-
-.subcategoryInputWrapper .input {
-  padding: 0 10px;
-}
 
   .subcategoryPill {
     height: auto;

@@ -153,7 +153,7 @@ export default function UserProfilePage() {
     if (clientProfile?.avatar?.url) {
       setAvatarUrl(clientProfile.avatar.url);
     } else {
-      setAvatarUrl("https://randomuser.me/api/portraits/men/32.jpg");
+      setAvatarUrl("/customer.png");
     }
   }, [clientProfile]);
 
