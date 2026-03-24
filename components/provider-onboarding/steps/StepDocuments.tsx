@@ -1,18 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useEffect } from "react";
 import styles from "@/components/provider-onboarding/ProviderOnboarding.module.css";
 import { IconsApp } from "@/components/icons/Icons";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 interface StepDocumentsProps {
   selectedFiles: { [key: string]: File | null };
   setSelectedFiles: React.Dispatch<
     React.SetStateAction<{ [key: string]: File | null }>
   >;
-  // jwt ya no es estrictamente necesario aquí si no subimos al momento,
-  // pero lo dejamos por si tu interfaz StepProps lo requiere.
-  jwt?: string;
 }
 
 const StepDocuments: React.FC<StepDocumentsProps> = ({
@@ -26,6 +24,23 @@ const StepDocuments: React.FC<StepDocumentsProps> = ({
     { id: "legal_id", label: "CI del Representante Legal" },
   ];
 
+  const previews = useMemo(() => {
+    const result: { [key: string]: string } = {};
+    requiredDocs.forEach((doc) => {
+      const file = selectedFiles[doc.id];
+      if (file && file.type.startsWith("image/")) {
+        result[doc.id] = URL.createObjectURL(file);
+      }
+    });
+    return result;
+  }, [selectedFiles]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(previews).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [previews]);
+
   const handleFileChange = (
     id: string,
     event: React.ChangeEvent<HTMLInputElement>
@@ -33,64 +48,64 @@ const StepDocuments: React.FC<StepDocumentsProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validación de tamaño (5MB) para no tener problemas en el paso final
     if (file.size > 5 * 1024 * 1024) {
       toast.error("El archivo excede los 5MB permitidos");
-      // Limpiamos el input para que pueda re-seleccionar
       event.target.value = "";
       return;
     }
 
-    // Solo guardamos en el estado del padre. La "magia" de la subida
-    // ocurrirá en handleNextStep cuando currentStep === 5.
     setSelectedFiles((prev) => ({ ...prev, [id]: file }));
-    toast.success(`Archivo "${file.name}" listo para subir`);
+    toast.success(`Archivo cargado correctamente`);
   };
 
   return (
     <div className={styles.gridContainer}>
       <div className={styles.fullWidth}>
         <p className={styles.helperText}>
-          Formatos permitidos <strong>PDF, JPG o PNG</strong>
-          .
-          <br />
+          Formatos permitidos <strong>PDF, JPG o PNG</strong> (Máx. 5MB)
         </p>
       </div>
 
       {requiredDocs.map((doc) => {
         const file = selectedFiles[doc.id];
+        const hasPreview = previews[doc.id];
 
         return (
-          <div
-            key={doc.id}
-            className={`${styles.inputWrapper} ${styles.inputDoc} ${
-              file ? styles.docActive : ""
-            }`}
-          >
-            <div className={styles.inputInner}>
-              <span className={styles.iconDoc}>
-                <IconsApp.Document color={file ? "#2ecc71" : "#A9A9A9"} />
-              </span>
-              <span
-                className={`${styles.input} ${file ? styles.fileSelected : ""}`}
-              >
-                {file ? file.name : doc.label}
-              </span>
-            </div>
+          <div key={doc.id} className={styles.fieldGroup}>
+            <label className={styles.label}>{doc.label}</label>
+            
+            <div className={`${styles.input} ${styles.inputDocContainer} ${file ? styles.docActive : ""}`}>
+              <div className={styles.inputInner}>
+                <div className={styles.iconContainer}>
+                  {hasPreview ? (
+                    <div className={styles.thumbnailWrapper}>
+                      <Image 
+                        src={previews[doc.id]} 
+                        alt="Preview" 
+                        fill 
+                        className={styles.thumbnail}
+                      />
+                    </div>
+                  ) : (
+                    <IconsApp.Document color={file ? "#2ecc71" : "#A9A9A9"} />
+                  )}
+                </div>
+                
+                <span className={`${styles.fileName} ${file ? styles.fileSelected : ""}`}>
+                  {file ? file.name : "Seleccionar archivo..."}
+                </span>
+              </div>
 
-            <label
-              className={`${styles.addBtn} ${file ? styles.btnChange : ""}`}
-            >
-              {file ? "CAMBIAR" : "SELECCIONAR"}
-              <input
-                type="file"
-                name={doc.id}
-                hidden
-                accept=".pdf,.jpg,.png"
-                onChange={(e) => handleFileChange(doc.id, e)}
-                style={{ display: "none" }}
-              />
-            </label>
+              <label className={styles.fileActionBtn}>
+                {file ? "CAMBIAR" : "SUBIR"}
+                <input
+                  type="file"
+                  hidden
+                  accept=".pdf,.jpg,.png"
+                  onChange={(e) => handleFileChange(doc.id, e)}
+                />
+              </label>
+            </div>
           </div>
         );
       })}

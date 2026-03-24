@@ -39,6 +39,7 @@ export default function HomePage() {
   const [featuredQuotes, setFeaturedQuotes] = useState<FeaturedQuoteData[]>([]);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newQuotesCount, setNewQuotesCount] = useState(0);
 
   const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
   const tokensTotal = loginProfile?.tokensTotal ?? 0;
@@ -60,6 +61,12 @@ export default function HomePage() {
         const res = await getMyRequests(jwt);
         if (res.ok) {
           setRequests(res.data.requests);
+
+          const newQuotes = res.data.requests.reduce(
+            (sum, r) => sum + (r.matchingSummary?.pending || 0),
+            0
+          );
+          setNewQuotesCount(newQuotes);
 
           const requestsWithQuotes = res.data.requests.filter(
             (r) => r.quotesReceived > 0
@@ -179,6 +186,7 @@ export default function HomePage() {
                   : item.conditionPreferred,
             }))}
             documentId={req.documentId}
+            matchingSummary={req.matchingSummary}
             onViewOffers={(docId) => router.push(`/home/user/request/${docId}/quotes`)}
           />
         ));
@@ -349,8 +357,8 @@ export default function HomePage() {
                   ? "Mis solicitudes"
                   : "Órdenes generadas"}
               </h3>
-              {activeTab === "COTIZACIONES" && (
-                <span className={styles.badgeNuevas}>3 Nuevas</span>
+              {activeTab === "COTIZACIONES" && newQuotesCount > 0 && (
+                <span className={styles.badgeNuevas}>{newQuotesCount} Nuevas</span>
               )}
             </div>
 
