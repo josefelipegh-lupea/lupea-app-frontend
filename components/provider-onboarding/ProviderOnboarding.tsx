@@ -182,7 +182,9 @@ const ProviderOnboarding: React.FC = () => {
         // Limpieza y redirección
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(LOCATION_STORAGE_KEY);
+        if(refreshProfile){
         await refreshProfile();
+        }
         toast.success("¡Registro completado con éxito!", { duration: 5000 });
         router.replace("/profile/vendor");
       } catch (error) {
@@ -293,7 +295,6 @@ const ProviderOnboarding: React.FC = () => {
                 <StepDocuments
                   selectedFiles={selectedFiles}
                   setSelectedFiles={setSelectedFiles}
-                  jwt={jwt || ""}
                 />
               )}
               {currentStep === 4 && (

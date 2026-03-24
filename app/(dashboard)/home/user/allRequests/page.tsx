@@ -81,6 +81,9 @@ export default function AllRequestsPage() {
                       ? "Cualquiera"
                       : item.conditionPreferred,
                 }))}
+                matchingSummary={req.matchingSummary}
+                documentId={req.documentId}
+                onViewOffers={(docId) => router.push(`/home/user/request/${docId}/quotes`)}
               />
             ))
           )}

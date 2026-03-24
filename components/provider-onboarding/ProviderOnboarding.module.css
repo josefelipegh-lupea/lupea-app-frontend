@@ -237,10 +237,16 @@
 
 .inputDoc {
   justify-content: space-between;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 14px;
+  background: #fff;
 }
 
 .iconDoc {
   margin-right: 10px;
+  display: flex;
+  align-items: center;
 }
 
 .inputInner {
@@ -355,6 +361,18 @@
   cursor: pointer;
   line-height: 1;
   padding: 0 5px;
+}
+
+.btnChange {
+  color: #1a1a3d;
+}
+
+.docActive {
+  border-color: #2ecc71;
+}
+
+.fileSelected {
+  color: #2ecc71;
 }
 
 .helperText {
@@ -481,6 +499,83 @@
   border: 2px solid #e0e0e0;
   margin-top: 10px;
 }
+
+.inputDocContainer {
+  display: flex !important; /* Sobreescribe el display normal del input */
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 56px; /* Altura estándar */
+}
+
+.inputDocContainer:hover {
+  border-color: #ff9100;
+}
+
+.inputInner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+}
+
+.fileName {
+  font-size: 14px;
+  color: #bdbdbd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileSelected {
+  color: #1a1a3d;
+  font-weight: 500;
+}
+
+.docActive {
+  border-color: #2ecc71 !important;
+  background-color: #fafffb;
+}
+
+.fileActionBtn {
+  color: #ff9100;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.fileActionBtn:hover {
+  opacity: 0.8;
+}
+
+/* Thumbnail / Vista previa */
+.thumbnailWrapper {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.thumbnail {
+  object-fit: cover;
+}
+
 
 @media (min-width: 768px) {
   .pageWrapper {
@@ -610,4 +705,11 @@
   .btnSubmit {
     width: 240px;
   }
+
+  .fieldGroup {
+    margin-bottom: 5px;
+  }
 }
+
+
+

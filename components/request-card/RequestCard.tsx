@@ -5,6 +5,14 @@ import { IconsApp } from "../icons/Icons";
 
 import styles from "./RequestCard.module.css";
 
+interface MatchingSummary {
+  total: number;
+  pending: number;
+  viewed: number;
+  quoted: number;
+  rejected: number;
+}
+
 interface Item {
   name: string;
   model: string;
@@ -18,6 +26,7 @@ interface RequestProps {
   documentId?: string;
   onViewOffers?: (documentId: string) => void;
   isProvider?: boolean;
+  matchingSummary?: MatchingSummary;
 }
 
 export const RequestCard: React.FC<RequestProps> = ({
@@ -27,6 +36,7 @@ export const RequestCard: React.FC<RequestProps> = ({
   documentId,
   onViewOffers,
   isProvider = false,
+  matchingSummary,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [maxHeight, setMaxHeight] = useState("0px");
@@ -131,13 +141,18 @@ export const RequestCard: React.FC<RequestProps> = ({
           </button>
         )}
 
+       
+
         <div className={styles.actionsSingle}>
           <button
             className={styles.btnVerOfertas}
             onClick={() => documentId && onViewOffers?.(documentId)}
+            disabled={!isProvider && matchingSummary?.total === 0}
           >
             {isProvider
               ? "Ver detalles de solicitud"
+              : matchingSummary?.total === 0
+              ? "Sin ofertas aún"
               : "Ver ofertas disponibles"}
           </button>
         </div>

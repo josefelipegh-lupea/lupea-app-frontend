@@ -132,3 +132,13 @@
 .btnVerOfertas:hover {
   background: #e5e5ed;
 }
+
+.noOffers {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+  margin-top: 10px;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}

@@ -74,8 +74,18 @@ export default function RequestPage() {
   };
 
   const handleSubmit = async () => {
-    if (!isValid || !jwt) {
-      toast.error("Por favor, completa todos los campos obligatorios.");
+    if (!jwt) return;
+    
+    if (!formData.userVehicle) {
+      toast.error("Por favor, selecciona un vehículo.");
+      return;
+    }
+    if (formData.spareParts.length === 0) {
+      toast.error("Por favor, agrega al menos un repuesto.");
+      return;
+    }
+    if (!formData.deliveryCity) {
+      toast.error("Por favor, selecciona una ubicación de entrega.");
       return;
     }
 
