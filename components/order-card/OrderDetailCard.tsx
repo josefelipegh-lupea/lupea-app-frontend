@@ -104,29 +104,31 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
 
   return (
     <section className={styles.card}>
-      <>
-        <div className={styles.cardHeader} onClick={onToggle}>
-          <div className={styles.providerInfo}>
-            <div className={styles.iconWrapper}>
-              <IconsApp.Tool />
+      {!isProvider && (
+        <>
+          <div className={styles.cardHeader} onClick={onToggle}>
+            <div className={styles.providerInfo}>
+              <div className={styles.iconWrapper}>
+                <IconsApp.Tool />
+              </div>
+              <span className={styles.providerName}>
+                {order.provider.businessName}
+              </span>
             </div>
-            <span className={styles.providerName}>
-              {order.provider.businessName}
-            </span>
-          </div>
 
-          {showExpandButton && (
-            <div
-              className={`${styles.arrowIcon} ${
-                isExpanded ? styles.arrowIconRotated : ""
-              }`}
-            >
-              <IconsApp.DownArrow />
-            </div>
-          )}
-        </div>
-        <div className={styles.divider} />
-      </>
+            {showExpandButton && (
+              <div
+                className={`${styles.arrowIcon} ${
+                  isExpanded ? styles.arrowIconRotated : ""
+                }`}
+              >
+                <IconsApp.DownArrow />
+              </div>
+            )}
+          </div>
+          <div className={styles.divider} />
+        </>
+      )}
 
       <div className={styles.cardBody}>
         <div className={styles.infoRow}>
@@ -229,7 +231,9 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
             {isProvider && order.client?.contact ? (
               <>
                 <ContactRow
-                  icon={<IconsApp.Email color="#BEBEBE" width="24" height="24" />}
+                  icon={
+                    <IconsApp.Email color="#BEBEBE" width="24" height="24" />
+                  }
                   label="Correo electrónico"
                   value={order.client.contact.email}
                 />
@@ -247,7 +251,9 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
             ) : (
               <>
                 <ContactRow
-                  icon={<IconsApp.Email color="#BEBEBE" width="24" height="24" />}
+                  icon={
+                    <IconsApp.Email color="#BEBEBE" width="24" height="24" />
+                  }
                   label="Correo electrónico"
                   value={order.provider.contact.email}
                 />
@@ -267,7 +273,10 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
 
           {onChatClick && (
             <button className={styles.btnChat} onClick={onChatClick}>
-              <IconsApp.ChatBlue /> Chat con {isProvider ? order.client?.username || "Cliente" : order.provider.businessName}
+              <IconsApp.ChatBlue /> Chat con{" "}
+              {isProvider
+                ? order.client?.username || "Cliente"
+                : order.provider.businessName}
             </button>
           )}
           {!isProvider && onCancelClick && (

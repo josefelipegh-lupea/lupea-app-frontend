@@ -151,7 +151,7 @@ export default function HomePage() {
               key={o.documentId}
               id={o.documentId}
               documentId={o.documentId}
-              title={`Orden #${o.id}`}
+              title={o.client?.username || ""}
               cantidadRepuestos={o.items.length}
               status={
                 (o.status === "active"

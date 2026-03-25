@@ -217,10 +217,7 @@ export default function ComparisonPage({ params }: PageProps) {
           <div className={styles.quotesList}>
             {comparisonData.map((quote) => {
               return (
-                <div
-                  key={quote.id}
-                  className={styles.quoteCard}
-                >
+                <div key={quote.id} className={styles.quoteCard}>
                   <div className={styles.cardHeader}>
                     <span>Solicitud {id.slice(0, 5)}</span>
                     <span>
@@ -288,7 +285,15 @@ export default function ComparisonPage({ params }: PageProps) {
                               </p>
                             </div>
                             <span className={styles.partPrice}>
-                              ${product.price.toFixed(0)}
+                              <span className={styles.quantity}>
+                                x{product.quantity}
+                              </span>
+                              <span className={styles.unitPrice}>
+                                ${product.price.toFixed(0)} c/u
+                              </span>
+                              <span className={styles.totalPrice}>
+                                ${(product.price * product.quantity).toFixed(0)}
+                              </span>
                             </span>
                           </div>
                         );
