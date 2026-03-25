@@ -4,9 +4,11 @@ import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
 import { PageAnimation } from "@/components/page-animation/PageAnimation";
 import styles from "./NewQuote.module.css";
+import { useFooterVisibility } from "@/context/FooterVisibilityContext";
 
 export default function NewQuotePage() {
   const { isExpanded } = useSidebar();
+  const { isFooterVisible } = useFooterVisibility();
 
   return (
     <PageAnimation>
@@ -15,31 +17,35 @@ export default function NewQuotePage() {
           !isExpanded ? styles.sidebarCollapsed : ""
         }`}
       >
-        <main className={styles.mainContainer}>
-          <button className={styles.backButton}>
-            <IconsApp.BackArrow />
-            <span>Volver</span>
-          </button>
-
+        <main
+          className={`${styles.mainContainer} ${
+            !isFooterVisible ? styles.noFooter : ""
+          }`}
+        >
+          {/* Header de la solicitud */}
           <div className={styles.topHeaderCard}>
-            <div className={styles.headerLeft}>
-              <button className={styles.backButton}>
-                <IconsApp.BackArrow />
-              </button>
-              <h1 className={styles.requestId}>Solicitud #88421</h1>
-              <span className={styles.badgePending}>PENDIENTE</span>
+            <button className={styles.backButton}>
+              <IconsApp.BackArrow />
+            </button>
+
+            <div className={styles.headerCenter}>
+              <div className={styles.headerTitleRow}>
+                <h1 className={styles.requestId}>Solicitud #88421</h1>
+                <span className={styles.badgePending}>PENDIENTE</span>
+              </div>
+              <div className={styles.headerInfo}>
+                <div className={styles.infoItem}>
+                  <IconsApp.Clock />
+                  <span>24 Mar, 2026</span>
+                </div>
+                <div className={styles.infoItem}>
+                  <IconsApp.User />
+                  <span>Carlos Alberto Moncada</span>
+                </div>
+              </div>
             </div>
 
-            <div className={styles.headerInfo}>
-              <div className={styles.infoItem}>
-                <IconsApp.Clock />
-                <span>24 Mar, 2026</span>
-              </div>
-              <div className={styles.infoItem}>
-                <IconsApp.User />
-                <span>Carlos Alberto Moncada</span>
-              </div>
-            </div>
+            <div className={styles.headerRight}></div>
           </div>
 
           <div className={styles.content}>
@@ -80,7 +86,7 @@ export default function NewQuotePage() {
             <div className={styles.productsCard}>
               <div className={styles.cardHeaderTitle}>
                 <div className={styles.iconCircle}>
-                  <IconsApp.Document color="#f08400" />
+                  <IconsApp.Document color="#F08400" />
                 </div>
                 <h3>Productos a cotizar</h3>
               </div>
@@ -113,66 +119,61 @@ export default function NewQuotePage() {
                   cant: "04",
                 },
               ].map((prod) => (
-                <div key={prod.id} className={styles.productItem}>
-                  <div className={styles.productInfoWrapper}>
-                    <div className={styles.gearIcon}>
-                      <IconsApp.Gear />
-                    </div>
-                    <div>
-                      <p className={styles.prodName}>{prod.name}</p>
-                      <p className={styles.prodSub}>{prod.sub}</p>
-                    </div>
-                  </div>
-
-                  <div className={styles.productFields}>
-                    <div className={styles.fieldRow}>
-                      <label>Cant.</label>
-                      <span className={styles.cantValue}>{prod.cant}</span>
-                    </div>
-                    <div className={styles.fieldRow}>
-                      <label>Precio Unit. ($)</label>
-                      <input
-                        type="text"
-                        placeholder="0"
-                        className={styles.smallInput}
-                      />
-                    </div>
-                    <div className={styles.fieldRow}>
-                      <label>Stock</label>
-                      <div className={styles.selectWrapper}>
-                        <select className={styles.smallSelect}>
-                          <option>Seleccionar</option>
-                        </select>
-                        <IconsApp.DownArrow />
+                <div key={prod.id} className={styles.productRow}>
+                  <div className={styles.colProduct}>
+                    <div className={styles.productInfoWrapper}>
+                      <div className={styles.gearIcon}>
+                        <IconsApp.Gear />
                       </div>
-                    </div>
-                    <div className={styles.fieldRow}>
-                      <label>Tiempo Entrega</label>
-                      <input
-                        type="text"
-                        placeholder="Ej: 2 Días"
-                        className={styles.smallInput}
-                      />
-                    </div>
-                    <div className={styles.fieldRow}>
-                      <label>Garantía / OBS.</label>
-                      <div className={styles.capsuleInputsRow}>
-                        <input
-                          type="text"
-                          placeholder="Garantía"
-                          className={styles.capsuleInput}
-                        />
-                        <input
-                          type="text"
-                          placeholder="Observaciones"
-                          className={styles.capsuleInput}
-                        />
+                      <div className={styles.nameContent}>
+                        <p className={styles.prodName}>{prod.name}</p>
+                        <p className={styles.prodSub}>{prod.sub}</p>
                       </div>
                     </div>
                   </div>
-
-                  <div className={styles.photoCircle}>
-                    <IconsApp.Camera />
+                  <div className={styles.colCant}>
+                    <span className={styles.cantValue}>{prod.cant}</span>
+                  </div>
+                  <div className={styles.colPrice}>
+                    <input
+                      type="text"
+                      placeholder="0"
+                      className={styles.smallInput}
+                    />
+                  </div>
+                  <div className={styles.colStock}>
+                    <div className={styles.selectWrapper}>
+                      <select className={styles.smallSelect}>
+                        <option>Seleccionar</option>
+                      </select>
+                      <IconsApp.DownArrow />
+                    </div>
+                  </div>
+                  <div className={styles.colDelivery}>
+                    <input
+                      type="text"
+                      placeholder="Ej: 2 Días"
+                      className={styles.smallInput}
+                    />
+                  </div>
+                  <div className={styles.colWarranty}>
+                    <div className={styles.obsContainer}>
+                      <input
+                        type="text"
+                        placeholder="Garantía"
+                        className={styles.capsuleInput}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Observaciones"
+                        className={styles.capsuleInput}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.colPhoto}>
+                    <div className={styles.photoCircle}>
+                      <IconsApp.Camera />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -181,7 +182,7 @@ export default function NewQuotePage() {
             <div className={styles.commercialCard}>
               <div className={styles.cardHeaderTitle}>
                 <div className={styles.iconCircle}>
-                  <IconsApp.Document color="#f08400" />
+                  <IconsApp.Document />
                 </div>
                 <h3>Condiciones comerciales</h3>
               </div>
@@ -233,22 +234,28 @@ export default function NewQuotePage() {
                   <div className={styles.rowInputs}>
                     <div className={styles.inputSubGroup}>
                       <label>Tiempo entrega global</label>
-                      <input
-                        type="time"
-                        className={styles.smallInput}
-                        required
-                      />
+                      <div className={styles.inputIconWrapper}>
+                        <input
+                          type="time"
+                          className={styles.smallInput}
+                          required
+                        />
+                        {/* El navegador suele poner su propio icono, pero podemos estilizarlo */}
+                      </div>
                     </div>
+
                     <div className={styles.inputSubGroup}>
                       <label>Vigencia cotización</label>
                       <div className={styles.dateInputWrapper}>
                         <input
                           type="date"
                           className={styles.smallInput}
-                          min={new Date().toISOString().split("T")[0]}
+                          min={new Date().toISOString().split("T")[0]} // Validación: No fechas pasadas
                           required
                         />
-                        <IconsApp.Calendar />
+                        <div className={styles.calendarIconPointer}>
+                          <IconsApp.Calendar />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -266,34 +273,32 @@ export default function NewQuotePage() {
                 </div>
               </div>
             </div>
-
-            {/*Footer*/}
-            <div className={styles.stickyFooterAction}>
-              <div className={styles.footerLeft}>
-                <div className={styles.subtotalGroup}>
-                  <label>SUBTOTAL ESTIMADO</label>
-                  <span className={styles.subtotalValue}>$0.00</span>
-                </div>
-
-                <div className={styles.dividerVertical}></div>
-
-                <div className={styles.warningBadge}>
-                  <IconsApp.Warning color="#F08400" width="16" height="16" />
-                  <span>Faltan 2 productos por cotizar</span>
-                </div>
+          </div>
+          <div className={styles.stickyFooterAction}>
+            <div className={styles.footerLeft}>
+              <div className={styles.subtotalGroup}>
+                <label>SUBTOTAL ESTIMADO</label>
+                <span className={styles.subtotalValue}>$0.00</span>
               </div>
 
-              <div className={styles.footerRight}>
-                <button className={styles.btnCancel}>Cancelar</button>
-                <button className={styles.btnSave}>
-                  <IconsApp.Save />
-                  Guardar borrador
-                </button>
-                <button className={styles.btnSubmit}>
-                  Enviar cotización
-                  <IconsApp.Send />
-                </button>
+              <div className={styles.dividerVertical}></div>
+
+              <div className={styles.warningBadge}>
+                <IconsApp.Warning color="#F08400" width="16" height="16" />
+                <span>Faltan 2 productos por cotizar</span>
               </div>
+            </div>
+
+            <div className={styles.footerRight}>
+              <button className={styles.btnCancel}>Cancelar</button>
+              <button className={styles.btnSave}>
+                <IconsApp.Save />
+                Guardar borrador
+              </button>
+              <button className={styles.btnSubmit}>
+                Enviar cotización
+                <IconsApp.Send />
+              </button>
             </div>
           </div>
         </main>
