@@ -74,18 +74,8 @@ export default function RequestPage() {
   };
 
   const handleSubmit = async () => {
-    if (!jwt) return;
-    
-    if (!formData.userVehicle) {
-      toast.error("Por favor, selecciona un vehículo.");
-      return;
-    }
-    if (formData.spareParts.length === 0) {
-      toast.error("Por favor, agrega al menos un repuesto.");
-      return;
-    }
-    if (!formData.deliveryCity) {
-      toast.error("Por favor, selecciona una ubicación de entrega.");
+    if (!isValid || !jwt) {
+      toast.error("Por favor, completa todos los campos obligatorios.");
       return;
     }
 
@@ -106,8 +96,8 @@ export default function RequestPage() {
           oemCode: part.oemCode || "",
           conditionPreferred: part.condition,
           preferredBrand: part.condition === "original" ? "Original" : "",
-          description: part.description || "", // Ahora viene del repuesto
-          imageId: part.photoId, // Ahora viene del repuesto
+          description: part.description || "",
+          imageId: part.photoId,
         };
       });
 

@@ -47,7 +47,10 @@ export const OrderCard: React.FC<OrderProps> = ({
 
         <div className={styles.divider}></div>
 
-        <button className={styles.btnVerOrden} onClick={() => onViewOrder?.(documentId)}>
+        <button
+          className={styles.btnVerOrden}
+          onClick={() => onViewOrder?.(documentId)}
+        >
           Ver orden
         </button>
       </div>

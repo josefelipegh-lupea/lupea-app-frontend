@@ -206,7 +206,7 @@ export default function RequestDetailPage() {
                   <span className={styles.criteriaLabel}>Coincidencias</span>
                   <span className={styles.criteriaValue}>
                     {request.criteria.matchedItemCount} de{" "}
-                    {request.criteria.totalItems}
+                    {request.criteria.totalItems} repuestos solicitados
                   </span>
                 </div>
                 <div className={styles.criteriaItem}>
