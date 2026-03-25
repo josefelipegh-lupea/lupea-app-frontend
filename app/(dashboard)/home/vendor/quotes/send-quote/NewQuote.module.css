@@ -1,67 +1,95 @@
-/* Mobile First - Estilos base */
+/* --- MOBILE FIRST --- */
 .pageWrapper {
-  min-height: 100dvh;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
   transition: all 0.3s ease-in-out;
-  background-color: #f2f2f2;
-  padding-bottom: 180px;
 }
 
 .mainContainer {
-  margin: 0 auto;
+  background-color: #f9fafb;
+  min-height: 90dvh;
+  height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.mainContainer.noFooter {
   min-height: 100dvh;
-  padding: 16px;
+  height: 100dvh;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px 0 20px;
+  -webkit-overflow-scrolling: touch;
+  background: #f9fafb;
+}
+
+/* Header sticky */
+.topHeaderCard {
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 20px;
+  border-bottom: 1px solid #f1f1f1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerLeft,
+.headerTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerRight {
+  flex: 1;
 }
 
 .backButton {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   background: none;
   border: none;
-  color: #1a1a3d;
-  font-size: 14px;
-  font-weight: 500;
   cursor: pointer;
-  padding: 10px 0;
-  margin-bottom: 10px;
-}
-
-.topHeaderCard {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 16px;
-  margin-bottom: 16px;
-  border: 1px solid #e8e8f0;
-}
-
-.headerLeft {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+  padding: 4px;
 }
 
 .requestId {
   font-size: 16px;
-  font-weight: 700;
-  color: #181440;
+  font-weight: 600;
+  color: #1a1a3d;
   margin: 0;
 }
 
 .badgePending {
-  background-color: #fff5ed;
-  color: #f08400;
-  padding: 5px 12px;
+  background-color: #fff1de;
+  color: #f08100;
+  padding: 4px 10px;
   border-radius: 10px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .headerInfo {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  gap: 16px;
 }
 
 .infoItem {
@@ -69,10 +97,11 @@
   align-items: center;
   gap: 8px;
   color: #000000;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
 }
 
+/* Subheader */
 .subheaderRow {
   display: flex;
   justify-content: space-between;
@@ -89,13 +118,13 @@
 
 .progressText {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: #181440;
 }
 
 .progressBarContainer {
   width: 100%;
-  height: 8px;
+  height: 6px;
   background-color: #e0e0e0;
   border-radius: 10px;
   overflow: hidden;
@@ -106,11 +135,15 @@
   height: 100%;
   background-color: #f08400;
   border-radius: 10px;
+  transition: width 0.3s ease;
 }
 
-.providerCard {
+/* Cards */
+.providerCard,
+.productsCard,
+.commercialCard {
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 16px;
   padding: 16px;
   margin-bottom: 16px;
   border: 1px solid #e8e8f0;
@@ -119,13 +152,13 @@
 .cardHeaderTitle {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .iconCircle {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   background-color: #fff5ed;
   border-radius: 10px;
   display: flex;
@@ -135,8 +168,8 @@
 }
 
 .iconCircle svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: #f08400;
 }
 
@@ -150,10 +183,11 @@
 .divider {
   width: 100%;
   height: 1px;
-  background-color: #e0e0e0;
-  margin-bottom: 14px;
+  background-color: #e8e8f0;
+  margin-bottom: 12px;
 }
 
+/* Provider Info */
 .providerGrid {
   display: flex;
   flex-direction: column;
@@ -165,7 +199,7 @@
   font-size: 12px;
   font-weight: 600;
   color: #181440;
-  opacity: 0.8;
+  opacity: 0.7;
   margin-bottom: 4px;
 }
 
@@ -176,30 +210,29 @@
   margin: 0;
 }
 
-.productsCard {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 16px;
-  margin-bottom: 16px;
-  border: 1px solid #e8e8f0;
+/* Tabla de productos - Mobile stacked */
+.tableHeader {
+  display: none;
 }
 
-.productItem {
-  padding: 12px;
-  background-color: #f8f8fc;
-  border-radius: 14px;
-  margin-bottom: 12px;
+.productRow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid #e8e8f0;
 }
 
-.productItem:last-child {
-  margin-bottom: 0;
+.colProduct {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .productInfoWrapper {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 10px;
 }
 
 .gearIcon {
@@ -207,39 +240,55 @@
   padding: 8px;
   border-radius: 8px;
   display: flex;
-  flex-shrink: 0;
 }
 
 .prodName {
   font-size: 14px;
   font-weight: 700;
   color: #181440;
-  margin: 0 0 4px 0;
+  margin: 0;
 }
 
 .prodSub {
   font-size: 12px;
-  color: #000;
-  margin: 0;
+  color: #666;
+  margin: 2px 0 0;
 }
 
-.productFields {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.fieldRow {
+.colCant,
+.colPrice,
+.colStock,
+.colDelivery,
+.colWarranty,
+.colPhoto {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.fieldRow label {
-  font-size: 11px;
+.colCant::before,
+.colPrice::before,
+.colStock::before,
+.colDelivery::before,
+.colWarranty::before,
+.colPhoto::before {
+  content: attr(data-label);
+  font-size: 10px;
   font-weight: 600;
   color: #181440;
-  opacity: 0.8;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.colCant,
+.colPhoto {
+  display: none;
+}
+
+.cantValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: #181440;
 }
 
 .smallInput,
@@ -251,71 +300,73 @@
   padding: 0 12px;
   font-family: "Poppins";
   font-size: 13px;
+  color: #181440;
   outline: none;
-  background: #fff;
+  background-color: #fafafa;
+}
+
+.smallInput::placeholder {
+  color: #999;
+}
+
+.smallSelect {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
 }
 
 .selectWrapper {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
 .selectWrapper svg {
   position: absolute;
   right: 12px;
-  width: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   pointer-events: none;
 }
 
 .capsuleInput {
   width: 100%;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #e0e0e0;
+  margin-bottom: 6px;
   padding: 0 12px;
   font-size: 12px;
   color: #181440;
   outline: none;
-  background: #fff;
+  background-color: #fafafa;
 }
 
 .capsuleInput::placeholder {
-  color: #a1a1a1;
-}
-
-.capsuleInputsRow {
-  display: flex;
-  gap: 8px;
-}
-
-.capsuleInputsRow .capsuleInput {
-  flex: 1;
+  color: #999;
 }
 
 .photoCircle {
   width: 40px;
   height: 40px;
   background: #f1f1f1;
-  border-radius: 50%;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 10px;
 }
 
-.commercialCard {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 16px;
-  margin-bottom: 16px;
-  border: 1px solid #e8e8f0;
-}
-
+/* Commercial Card */
 .commercialGrid {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.commercialCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .requiredLabel::after {
@@ -326,7 +377,7 @@
 .inputGroup label,
 .inputSubGroup label {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: #181440;
   margin-bottom: 8px;
@@ -336,7 +387,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 16px;
 }
 
 .pillButton {
@@ -347,7 +397,7 @@
   font-family: "Poppins";
   font-size: 12px;
   font-weight: 500;
-  color: #000;
+  color: #333;
   cursor: pointer;
 }
 
@@ -365,15 +415,7 @@
 
 .dateInputWrapper {
   position: relative;
-  display: flex;
-  align-items: center;
   width: 100%;
-}
-
-.dateInputWrapper svg {
-  position: absolute;
-  right: 12px;
-  pointer-events: none;
 }
 
 .smallInput[type="date"],
@@ -382,6 +424,30 @@
   -webkit-appearance: none;
   color: #181440;
   cursor: pointer;
+  position: relative;
+  z-index: 2;
+  background: transparent;
+}
+
+.smallInput::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 8px;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.calendarIconPointer {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  display: flex;
+  color: #999;
 }
 
 .textAreaField {
@@ -394,29 +460,34 @@
   font-size: 13px;
   resize: none;
   outline: none;
-  background-color: #fbfbfb;
+  background-color: #fafafa;
 }
 
 .textAreaField::placeholder {
-  color: #a1a1a1;
+  color: #999;
 }
 
+/* Footer sticky en mobile */
 .stickyFooterAction {
-  position: fixed;
+  position: sticky;
   bottom: 0;
-  left: 0;
-  right: 0;
-  background: #ffffff;
-  padding: 16px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-  z-index: 100;
+  background-color: #ffffff;
+  border-radius: 30px 30px 0 0;
+  padding: 16px 20px 24px 20px;
+  gap: 12px;
+  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  touch-action: none;
+  overscroll-behavior: none;
+  user-select: none;
 }
 
 .footerLeft {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 8px;
 }
 
 .subtotalGroup label {
@@ -424,14 +495,19 @@
   font-size: 11px;
   font-weight: 600;
   color: #181440;
-  opacity: 0.8;
-  margin-bottom: 2px;
+  opacity: 0.7;
 }
 
 .subtotalValue {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 700;
   color: #181440;
+}
+
+.dividerVertical {
+  width: 100%;
+  height: 1px;
+  background-color: #e0e0e0;
 }
 
 .warningBadge {
@@ -448,7 +524,7 @@
 
 .footerRight {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 10px;
 }
 
@@ -456,15 +532,16 @@
 .btnSave,
 .btnSubmit {
   height: 48px;
-  border-radius: 14px;
+  border-radius: 12px;
   font-family: "Poppins";
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   cursor: pointer;
+  flex: 1;
 }
 
 .btnCancel {
@@ -476,32 +553,24 @@
 .btnSave {
   background: white;
   border: 1px solid #e0e0e0;
-  color: #000;
+  color: #333;
 }
 
 .btnSubmit {
   background: #f08400;
   border: none;
   color: white;
-  box-shadow: 0px 4px 10px rgba(240, 132, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(240, 132, 0, 0.2);
 }
 
-.btnCancel:active,
-.btnSave:active,
-.btnSubmit:active {
-  transform: scale(0.98);
-}
-
-/* Desktop */
+/* Versión Desktop */
 @media (min-width: 768px) {
   .pageWrapper {
     margin-left: 230px;
     width: calc(100% - 230px);
     padding: 40px 0;
-    padding-bottom: 40px;
     display: flex;
     justify-content: center;
-    background-color: #f2f2f2;
   }
 
   .pageWrapper.sidebarCollapsed {
@@ -512,194 +581,451 @@
   .mainContainer {
     width: 95%;
     max-width: 1200px;
-    min-height: auto;
-    padding: 0;
+    height: auto;
   }
 
-  .backButton {
-    display: none;
-  }
-
+  /* NUEVA TARJETA HEADER (PIXEL PERFECT) */
   .topHeaderCard {
     display: flex;
     align-items: center;
     justify-content: flex-start;
     padding: 20px 30px;
+    background: #ffffff;
     border-radius: 24px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.03);
     gap: 45px;
     margin-bottom: 25px;
-    border: none;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.03);
   }
 
   .headerLeft {
-    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .backButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 0;
   }
 
   .requestId {
-    font-size: clamp(14px, 2.1vw, 21px);
+    font-size: clamp(18px, 2.5vw, 21px);
+    font-weight: 700;
+    color: #181440;
+    margin: 0;
+    letter-spacing: -0.5px;
   }
 
   .badgePending {
-    font-size: clamp(10px, 1.2vw, 12px);
+    background-color: #fff5ed;
+    color: #f08400;
     padding: 5px 14px;
+    border-radius: 10px;
+    font-size: clamp(10px, 1.5vw, 12px);
+    font-weight: 700;
+    margin-left: 5px;
   }
 
   .headerInfo {
+    display: flex;
     flex-direction: row;
+    align-items: center;
     gap: 35px;
   }
 
   .infoItem {
-    font-size: clamp(12px, 1.5vw, 15px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #000000;
+    font-size: clamp(13px, 1.8vw, 15px);
+    font-weight: 500;
+  }
+
+  .content {
+    width: 100%;
   }
 
   .subheaderRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 12px;
     padding: 0 10px;
   }
 
   .subTitle {
-    font-size: clamp(16px, 2.4vw, 24px);
+    font-size: clamp(20px, 3vw, 24px);
+    font-weight: 700;
+    color: #181440;
+    margin: 0;
   }
 
   .progressText {
-    font-size: clamp(12px, 1.6vw, 16px);
+    font-size: clamp(14px, 2vw, 16px);
+    font-weight: 700;
+    color: #181440;
   }
 
-  .providerCard,
-  .productsCard,
-  .commercialCard {
-    padding: 24px 35px;
+  .progressBarContainer {
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 30px;
+  }
+
+  .progressBarFill {
+    height: 100%;
+    background-color: #f08400;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+
+  .providerCard {
+    background: #ffffff;
     border-radius: 28px;
-    margin-bottom: 25px;
-    border: none;
+    padding: 24px 35px;
     box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.03);
+    margin-bottom: 25px;
   }
 
   .cardHeaderTitle {
+    display: flex;
+    align-items: center;
     gap: 15px;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
   }
 
   .iconCircle {
     width: 32px;
     height: 32px;
+    background-color: #fff5ed;
     border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .iconCircle svg {
+    width: 18px;
+    height: 18px;
+    color: #f08400;
   }
 
   .cardHeaderTitle h3 {
-    font-size: clamp(14px, 1.8vw, 18px);
+    font-size: clamp(15px, 2vw, 18px);
+    font-weight: 600;
+    color: #181440;
+    margin: 0;
   }
 
   .divider {
+    width: 100%;
+    height: 1px;
+    background-color: #e0e0e0;
     margin-bottom: 22px;
   }
 
   .providerGrid {
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
   }
 
   .infoGroup label {
-    font-size: clamp(12px, 1.4vw, 14px);
+    display: block;
+    font-size: clamp(12px, 1.7vw, 14px);
+    font-weight: 600;
+    color: #181440;
+    opacity: 0.8;
     margin-bottom: 8px;
   }
 
   .infoGroup p {
-    font-size: clamp(14px, 1.6vw, 16px);
+    font-size: clamp(14px, 2vw, 16px);
+    font-weight: 500;
+    color: #000000;
+    margin: 0;
   }
 
-  .productItem {
-    padding: 20px 0;
-    background: none;
-    border-radius: 0;
-    border-bottom: 1px solid #e0e0e0;
-    margin-bottom: 0;
+  .productsCard {
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 24px 35px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.03);
+    margin-bottom: 30px;
   }
 
-  .productInfoWrapper {
-    margin-bottom: 0;
-    gap: 12px;
-  }
-
-  .prodName {
-    font-size: clamp(13px, 1.5vw, 15px);
-  }
-
-  .prodSub {
-    font-size: clamp(10px, 1.2vw, 12px);
-  }
-
-  .productFields {
-    flex-direction: row;
+  .tableHeader,
+  .productRow {
+    display: grid;
+    grid-template-columns: 2.5fr 0.5fr 1fr 1.2fr 1.2fr 1.5fr 0.5fr;
+    align-items: center;
     gap: 15px;
   }
 
-  .fieldRow {
-    flex: 1;
+  .tableHeader {
+    padding: 15px 0;
+    font-size: clamp(11px, 1.4vw, 14px);
+    font-weight: 600;
+    color: #181440;
+    opacity: 0.8;
+  }
+
+  .productRow {
+    padding: 20px 0;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .colCant,
+  .colPhoto {
+    display: flex;
+  }
+
+  .productInfoWrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .gearIcon {
+    background: #f1f1f1;
+    padding: 8px;
+    border-radius: 8px;
+    display: flex;
+  }
+
+  .prodName {
+    font-size: clamp(13px, 1.8vw, 15px);
+    font-weight: 700;
+    color: #181440;
+    margin: 0;
+  }
+
+  .prodSub {
+    font-size: clamp(10px, 1.4vw, 12px);
+    color: #000;
+    margin: 2px 0 0;
+  }
+
+  .cantValue {
+    font-size: clamp(15px, 2vw, 18px);
+    font-weight: 700;
+    color: #181440;
   }
 
   .smallInput,
   .smallSelect {
+    width: 100%;
     height: 40px;
     border-radius: 20px;
-    font-size: clamp(11px, 1.4vw, 14px);
+    border: 1px solid #e0e0e0;
     padding: 0 15px;
+    font-family: "Poppins";
+    font-size: clamp(12px, 1.7vw, 14px);
+    outline: none;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .smallSelect:focus {
+    border: 1px solid #f08400 !important;
+    box-shadow: 0 0 0 3px rgba(240, 132, 0, 0.1);
+  }
+
+  .selectWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .selectWrapper svg {
+    position: absolute;
+    right: 12px;
+    width: 12px;
+    pointer-events: none;
   }
 
   .capsuleInput {
+    width: 100%;
     height: 34px;
     border-radius: 17px;
-    font-size: clamp(10px, 1.3vw, 13px);
-    padding: 0 15px;
+    border: 1px solid #e0e0e0;
     margin-bottom: 6px;
+    padding: 0 15px;
+    font-size: clamp(11px, 1.6vw, 13px);
+    color: #181440;
+    outline: none;
+    transition: all 0.3s ease-in-out;
   }
 
-  .capsuleInputsRow {
-    flex-direction: column;
+  .capsuleInput::placeholder {
+    color: #a1a1a1;
+  }
+
+  .capsuleInput:focus {
+    border: 1px solid #f08400 !important;
+    box-shadow: 0 0 0 3px rgba(240, 132, 0, 0.1);
   }
 
   .photoCircle {
     width: 44px;
     height: 44px;
-    margin-top: 0;
+    background: #f1f1f1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .commercialCard {
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 24px 35px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.03);
     margin-bottom: 30px;
   }
 
   .commercialGrid {
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 40px;
+  }
+
+  .requiredLabel::after {
+    content: " *";
+    color: #f08400;
   }
 
   .inputGroup label,
   .inputSubGroup label {
-    font-size: clamp(12px, 1.4vw, 14px);
+    display: block;
+    font-size: clamp(12px, 1.7vw, 14px);
+    font-weight: 700;
+    color: #181440;
     margin-bottom: 12px;
   }
 
   .pillContainer {
+    display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 20px;
   }
 
   .pillButton {
     padding: 8px 20px;
-    font-size: clamp(11px, 1.4vw, 14px);
+    border-radius: 20px;
+    border: 1px solid #e0e0e0;
+    background: white;
+    font-family: "Poppins";
+    font-size: clamp(11px, 1.5vw, 14px);
+    font-weight: 500;
+    color: #000;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .pillButton.active {
+    background-color: #f08400;
+    border-color: #f08400;
+    color: white;
   }
 
   .rowInputs {
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
   }
 
+  .dateInputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .dateInputWrapper svg {
+    position: absolute;
+    right: 15px;
+    pointer-events: none;
+  }
+
   .textAreaField {
+    width: 100%;
     height: 100px;
     border-radius: 20px;
-    font-size: clamp(11px, 1.4vw, 14px);
+    border: 1px solid #e0e0e0;
     padding: 15px;
+    font-family: "Poppins";
+    font-size: clamp(12px, 1.7vw, 14px);
+    resize: none;
+    outline: none;
+    background-color: #fbfbfb;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .textAreaField::placeholder {
+    color: #a1a1a1;
+  }
+
+  .textAreaField:focus {
+    border: 1px solid #f08400 !important;
+    box-shadow: 0 0 0 3px rgba(240, 132, 0, 0.1);
+  }
+
+  .dateInputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .smallInput[type="date"],
+  .smallInput[type="time"] {
+    appearance: none;
+    -webkit-appearance: none;
+    color: #181440;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    background: transparent;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .smallInput::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 12px;
+    top: 0;
+    bottom: 0;
+    width: 25px;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 3;
+  }
+
+  .calendarIconPointer {
+    position: absolute;
+    right: 15px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    color: #a1a1a1;
+  }
+
+  .smallInput:invalid {
+    border-color: #ff4d4d22;
+  }
+
+  .smallInput:focus {
+    border-color: #f08400;
+    box-shadow: 0 0 0 2px rgba(240, 132, 0, 0.1);
   }
 
   .stickyFooterAction {
@@ -711,6 +1037,7 @@
     padding: 20px 35px;
     margin-top: 40px;
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
@@ -718,6 +1045,7 @@
   }
 
   .footerLeft {
+    display: flex;
     flex-direction: row;
     align-items: center;
     margin-bottom: 0;
@@ -740,6 +1068,7 @@
   }
 
   .footerRight {
+    display: flex;
     flex-direction: row;
     gap: clamp(8px, 1.5vw, 15px);
   }
@@ -747,9 +1076,45 @@
   .btnCancel,
   .btnSave,
   .btnSubmit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     height: clamp(38px, 5vw, 48px);
     font-size: clamp(12px, 1.5vw, 15px);
     padding: 0 clamp(12px, 2.5vw, 25px);
     border-radius: 14px;
+  }
+
+  .btnCancel {
+    background: white;
+    border: 1px solid #e0e0e0;
+    color: #181440;
+  }
+
+  .btnSave {
+    background: white;
+    border: 1px solid #e0e0e0;
+    color: #000;
+  }
+
+  .btnSubmit {
+    background: #f08400;
+    border: none;
+    color: white;
+    box-shadow: 0px 4px 10px rgba(240, 132, 0, 0.2);
+  }
+
+  .btnSubmit:hover {
+    background: #d67500;
+    transform: translateY(-1px);
+  }
+
+  .btnSave:hover,
+  .btnCancel:hover {
+    background: #f8f8f8;
+  }
+
+  .content {
+    padding-bottom: 0;
   }
 }
