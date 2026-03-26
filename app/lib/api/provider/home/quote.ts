@@ -215,3 +215,61 @@ export async function getProviderQuotes(
     throw error;
   }
 }
+
+export interface SubmitQuotePayload {
+  deliveryTime: string;
+  validityDate: string;
+  paymentMethods: string[];
+  deliveryMethods: string[];
+  warrantyPolicy?: string;
+  returnPolicy?: string;
+  noteGeneral?: string;
+  items: {
+    requestItemId: number;
+    offeredBrand?: string;
+    availableQuantity?: number;
+    unitPrice: number;
+    warranty?: string;
+    notes?: string;
+  }[];
+}
+
+export interface SubmitQuoteResponse {
+  ok: boolean;
+  data?: ProviderQuote;
+  error?: {
+    message: string;
+  };
+}
+
+export async function submitQuote(
+  jwt: string,
+  matchId: string,
+  quoteMode: string,
+  payload: SubmitQuotePayload
+): Promise<SubmitQuoteResponse> {
+  try {
+    const res = await fetch(
+      `${API_URL}/quotes/provider/matches/${matchId}?mode=${quoteMode}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error?.message || "Error al enviar la cotización");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Fetch error in submitQuote:", error);
+    throw error;
+  }
+}

@@ -51,7 +51,10 @@ export default function AllVendorQuotesPage() {
         }`}
       >
         <main className={styles.mainContainer}>
-          <Header title="Mis Cotizaciones" />
+          <Header
+            title="Mis Cotizaciones"
+            onBack={() => router.replace("/home/vendor")}
+          />
           <div className={styles.content}>
             <SkeletonOrders />
           </div>
@@ -67,7 +70,10 @@ export default function AllVendorQuotesPage() {
       }`}
     >
       <main className={styles.mainContainer}>
-        <Header title="Mis Cotizaciones" />
+        <Header
+          title="Mis Cotizaciones"
+          onBack={() => router.replace("/home/vendor")}
+        />
 
         <div className={styles.content}>
           {quotes.length === 0 ? (
