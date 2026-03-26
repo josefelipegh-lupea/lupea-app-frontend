@@ -235,7 +235,12 @@ export default function RequestDetailPage() {
 
             {request.status === "pending" && (
               <div className={styles.actionsContainer}>
-                <Button className={styles.btnPrimary}>Enviar cotización</Button>
+                <Button
+                  className={styles.btnPrimary}
+                  onClick={() => router.push("/home/vendor/quotes/send-quote")}
+                >
+                  Enviar cotización
+                </Button>
               </div>
             )}
           </div>
