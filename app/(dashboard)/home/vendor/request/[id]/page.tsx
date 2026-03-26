@@ -237,7 +237,7 @@ export default function RequestDetailPage() {
               <div className={styles.actionsContainer}>
                 <Button
                   className={styles.btnPrimary}
-                  onClick={() => router.push("/home/vendor/quotes/send-quote")}
+                  onClick={() => router.push(`/home/vendor/quotes/send-quote?id=${params.id}`)}
                 >
                   Enviar cotización
                 </Button>
