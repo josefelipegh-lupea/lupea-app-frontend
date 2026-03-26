@@ -1,14 +1,48 @@
 "use client";
 
+import { useState } from "react";
 import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
 import { PageAnimation } from "@/components/page-animation/PageAnimation";
 import styles from "./NewQuote.module.css";
 import { useFooterVisibility } from "@/context/FooterVisibilityContext";
+import { useRouter } from "next/navigation";
+
+const PAYMENT_METHODS = [
+  "Transferencia",
+  "Tarjeta crédito",
+  "Crédito 30 días",
+  "Efectivo",
+];
+
+const DELIVERY_METHODS = ["Retiro en tiendas", "Envío a domicilio"];
 
 export default function NewQuotePage() {
   const { isExpanded } = useSidebar();
+  const router = useRouter();
   const { isFooterVisible } = useFooterVisibility();
+  const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<
+    string[]
+  >([]);
+  const [selectedDeliveryMethods, setSelectedDeliveryMethods] = useState<
+    string[]
+  >([]);
+
+  const togglePaymentMethod = (method: string) => {
+    setSelectedPaymentMethods((prev) =>
+      prev.includes(method)
+        ? prev.filter((m) => m !== method)
+        : [...prev, method]
+    );
+  };
+
+  const toggleDeliveryMethod = (method: string) => {
+    setSelectedDeliveryMethods((prev) =>
+      prev.includes(method)
+        ? prev.filter((m) => m !== method)
+        : [...prev, method]
+    );
+  };
 
   return (
     <PageAnimation>
@@ -25,7 +59,7 @@ export default function NewQuotePage() {
           {/* Header de la solicitud */}
           <div className={styles.topHeaderCard}>
             <button className={styles.backButton}>
-              <IconsApp.BackArrow />
+              <IconsApp.Back color="#000" />
             </button>
 
             <div className={styles.headerCenter}>
@@ -182,12 +216,12 @@ export default function NewQuotePage() {
             <div className={styles.commercialCard}>
               <div className={styles.cardHeaderTitle}>
                 <div className={styles.iconCircle}>
-                  <IconsApp.Document />
+                  <IconsApp.Document color="#F08400" />
                 </div>
                 <h3>Condiciones comerciales</h3>
               </div>
 
-              <div className={styles.tableDivider}></div>
+              <div className={styles.divider}></div>
 
               <div className={styles.commercialGrid}>
                 {/* Columna Izquierda: Pagos y Entrega */}
@@ -197,18 +231,20 @@ export default function NewQuotePage() {
                       Formas de pago aceptadas
                     </label>
                     <div className={styles.pillContainer}>
-                      <button className={styles.pillButton}>
-                        Transferencia
-                      </button>
-                      <button className={styles.pillButton}>
-                        Tarjeta crédito
-                      </button>
-                      <button
-                        className={`${styles.pillButton} ${styles.active}`}
-                      >
-                        Crédito 30 días
-                      </button>
-                      <button className={styles.pillButton}>Efectivo</button>
+                      {PAYMENT_METHODS.map((method) => (
+                        <button
+                          key={method}
+                          type="button"
+                          className={`${styles.pillButton} ${
+                            selectedPaymentMethods.includes(method)
+                              ? styles.active
+                              : ""
+                          }`}
+                          onClick={() => togglePaymentMethod(method)}
+                        >
+                          {method}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
@@ -217,14 +253,20 @@ export default function NewQuotePage() {
                       Métodos de entrega
                     </label>
                     <div className={styles.pillContainer}>
-                      <button className={styles.pillButton}>
-                        Retiro en tiendas
-                      </button>
-                      <button
-                        className={`${styles.pillButton} ${styles.active}`}
-                      >
-                        Envío a domicilio
-                      </button>
+                      {DELIVERY_METHODS.map((method) => (
+                        <button
+                          key={method}
+                          type="button"
+                          className={`${styles.pillButton} ${
+                            selectedDeliveryMethods.includes(method)
+                              ? styles.active
+                              : ""
+                          }`}
+                          onClick={() => toggleDeliveryMethod(method)}
+                        >
+                          {method}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -250,7 +292,7 @@ export default function NewQuotePage() {
                         <input
                           type="date"
                           className={styles.smallInput}
-                          min={new Date().toISOString().split("T")[0]} // Validación: No fechas pasadas
+                          min={new Date().toISOString().split("T")[0]}
                           required
                         />
                         <div className={styles.calendarIconPointer}>
@@ -281,7 +323,7 @@ export default function NewQuotePage() {
                 <span className={styles.subtotalValue}>$0.00</span>
               </div>
 
-              <div className={styles.dividerVertical}></div>
+              <div className={styles.dividerVertical} />
 
               <div className={styles.warningBadge}>
                 <IconsApp.Warning color="#F08400" width="16" height="16" />

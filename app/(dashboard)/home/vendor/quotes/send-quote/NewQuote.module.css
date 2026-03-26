@@ -3,12 +3,11 @@
   background-color: transparent;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
   transition: all 0.3s ease-in-out;
 }
 
 .mainContainer {
-  background-color: #f9fafb;
+  /* background-color: #f9fafb; */
   min-height: 90dvh;
   height: 90dvh;
   display: flex;
@@ -27,7 +26,7 @@
   overflow-y: auto;
   padding: 24px 20px 0 20px;
   -webkit-overflow-scrolling: touch;
-  background: #f9fafb;
+  /* background: #f9fafb; */
 }
 
 /* Header sticky */
@@ -39,7 +38,7 @@
   padding: 20px;
   border-bottom: 1px solid #f1f1f1;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
 }
 
@@ -47,18 +46,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  margin: 0 auto;
   gap: 8px;
 }
 
-.headerLeft,
 .headerTitleRow {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-}
-
-.headerRight {
-  flex: 1;
 }
 
 .backButton {
@@ -67,7 +64,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  padding: 4px;
+  /* padding: 4px; */
 }
 
 .requestId {
@@ -303,6 +300,7 @@
   color: #181440;
   outline: none;
   background-color: #fafafa;
+  transition: all 0.3s ease-in-out;
 }
 
 .smallInput::placeholder {
@@ -340,6 +338,7 @@
   color: #181440;
   outline: none;
   background-color: #fafafa;
+  transition: all 0.3s ease-in-out;
 }
 
 .capsuleInput::placeholder {
@@ -442,7 +441,7 @@
 
 .calendarIconPointer {
   position: absolute;
-  right: 12px;
+  right: 15px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 1;
@@ -461,6 +460,7 @@
   resize: none;
   outline: none;
   background-color: #fafafa;
+  transition: all 0.3s ease-in-out;
 }
 
 .textAreaField::placeholder {
@@ -505,8 +505,8 @@
 }
 
 .dividerVertical {
-  width: 100%;
-  height: 1px;
+  width: 1px;
+  align-self: stretch;
   background-color: #e0e0e0;
 }
 
@@ -542,6 +542,7 @@
   gap: 8px;
   cursor: pointer;
   flex: 1;
+  width: fit-content;
 }
 
 .btnCancel {
@@ -563,14 +564,76 @@
   box-shadow: 0 4px 10px rgba(240, 132, 0, 0.2);
 }
 
+.smallSelect:focus {
+  border: 1px solid #f08400 !important;
+  box-shadow: 0 0 0 3px rgba(240, 132, 0, 0.1);
+}
+.capsuleInput::placeholder {
+  color: #a1a1a1;
+}
+
+.capsuleInput:focus {
+  border: 1px solid #f08400 !important;
+  box-shadow: 0 0 0 3px rgba(240, 132, 0, 0.1);
+}
+.requiredLabel::after {
+  content: " *";
+  color: #f08400;
+}
+.pillButton.active {
+  background-color: #f08400;
+  border-color: #f08400;
+  color: white;
+}
+.textAreaField::placeholder {
+  color: #a1a1a1;
+}
+
+.textAreaField:focus {
+  border: 1px solid #f08400 !important;
+  box-shadow: 0 0 0 3px rgba(240, 132, 0, 0.1);
+}
+.smallInput::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 12px;
+  top: 0;
+  bottom: 0;
+  width: 25px;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.smallInput:invalid {
+  border-color: #ff4d4d22;
+}
+
+.smallInput:focus {
+  border-color: #f08400;
+  box-shadow: 0 0 0 2px rgba(240, 132, 0, 0.1);
+}
+
+.btnSubmit:hover {
+  background: #d67500;
+  transform: translateY(-1px);
+}
+
+.btnSave:hover,
+.btnCancel:hover {
+  background: #f8f8f8;
+}
+
 /* Versión Desktop */
 @media (min-width: 768px) {
   .pageWrapper {
     margin-left: 230px;
     width: calc(100% - 230px);
-    padding: 40px 0;
-    display: flex;
+    padding: 0 0;
     justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background-color: transparent;
   }
 
   .pageWrapper.sidebarCollapsed {
@@ -582,11 +645,23 @@
     width: 95%;
     max-width: 1200px;
     height: auto;
+    /* padding: 40px clamp(20px, 5vw, 60px); */
+    /* padding-bottom: 30px; */
+    border-radius: 50px;
+    margin: 0 auto;
+    box-shadow: 0;
+    overflow: visible;
+  }
+
+  .content {
+    overflow-y: visible;
+    min-height: auto;
   }
 
   /* NUEVA TARJETA HEADER (PIXEL PERFECT) */
   .topHeaderCard {
-    display: flex;
+    position: sticky;
+    z-index: 100;
     align-items: center;
     justify-content: flex-start;
     padding: 20px 30px;
@@ -594,13 +669,18 @@
     border-radius: 24px;
     box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.03);
     gap: 45px;
-    margin-bottom: 25px;
+    margin-top: 20px;
+    /* margin-bottom: 25px; */
   }
 
   .headerLeft {
     display: flex;
     align-items: center;
     gap: 18px;
+  }
+
+  .headerRight {
+    flex: 1;
   }
 
   .backButton {
@@ -613,7 +693,7 @@
   }
 
   .requestId {
-    font-size: clamp(18px, 2.5vw, 21px);
+    font-size: clamp(16px, 2.5vw, 18px);
     font-weight: 700;
     color: #181440;
     margin: 0;
@@ -717,6 +797,11 @@
     width: 18px;
     height: 18px;
     color: #f08400;
+  }
+
+  .headerCenter {
+    flex-direction: row;
+    gap: 0;
   }
 
   .cardHeaderTitle h3 {
@@ -834,11 +919,6 @@
     transition: all 0.3s ease-in-out;
   }
 
-  .smallSelect:focus {
-    border: 1px solid #f08400 !important;
-    box-shadow: 0 0 0 3px rgba(240, 132, 0, 0.1);
-  }
-
   .selectWrapper {
     position: relative;
     display: flex;
@@ -865,15 +945,6 @@
     transition: all 0.3s ease-in-out;
   }
 
-  .capsuleInput::placeholder {
-    color: #a1a1a1;
-  }
-
-  .capsuleInput:focus {
-    border: 1px solid #f08400 !important;
-    box-shadow: 0 0 0 3px rgba(240, 132, 0, 0.1);
-  }
-
   .photoCircle {
     width: 44px;
     height: 44px;
@@ -889,18 +960,13 @@
     border-radius: 28px;
     padding: 24px 35px;
     box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.03);
-    margin-bottom: 30px;
+    /* margin-bottom: 30px; */
   }
 
   .commercialGrid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 40px;
-  }
-
-  .requiredLabel::after {
-    content: " *";
-    color: #f08400;
   }
 
   .inputGroup label,
@@ -930,12 +996,6 @@
     color: #000;
     cursor: pointer;
     transition: all 0.2s;
-  }
-
-  .pillButton.active {
-    background-color: #f08400;
-    border-color: #f08400;
-    color: white;
   }
 
   .rowInputs {
@@ -970,15 +1030,6 @@
     transition: all 0.3s ease-in-out;
   }
 
-  .textAreaField::placeholder {
-    color: #a1a1a1;
-  }
-
-  .textAreaField:focus {
-    border: 1px solid #f08400 !important;
-    box-shadow: 0 0 0 3px rgba(240, 132, 0, 0.1);
-  }
-
   .dateInputWrapper {
     position: relative;
     display: flex;
@@ -998,34 +1049,13 @@
     transition: all 0.3s ease-in-out;
   }
 
-  .smallInput::-webkit-calendar-picker-indicator {
-    position: absolute;
-    right: 12px;
-    top: 0;
-    bottom: 0;
-    width: 25px;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 3;
-  }
-
   .calendarIconPointer {
     position: absolute;
-    right: 15px;
+    right: 0px;
     z-index: 1;
     display: flex;
     align-items: center;
     color: #a1a1a1;
-  }
-
-  .smallInput:invalid {
-    border-color: #ff4d4d22;
-  }
-
-  .smallInput:focus {
-    border-color: #f08400;
-    box-shadow: 0 0 0 2px rgba(240, 132, 0, 0.1);
   }
 
   .stickyFooterAction {
@@ -1083,6 +1113,7 @@
     font-size: clamp(12px, 1.5vw, 15px);
     padding: 0 clamp(12px, 2.5vw, 25px);
     border-radius: 14px;
+    white-space: nowrap;
   }
 
   .btnCancel {
@@ -1102,16 +1133,6 @@
     border: none;
     color: white;
     box-shadow: 0px 4px 10px rgba(240, 132, 0, 0.2);
-  }
-
-  .btnSubmit:hover {
-    background: #d67500;
-    transform: translateY(-1px);
-  }
-
-  .btnSave:hover,
-  .btnCancel:hover {
-    background: #f8f8f8;
   }
 
   .content {
