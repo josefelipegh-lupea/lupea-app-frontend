@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
@@ -32,13 +32,9 @@ const PAYMENT_METHODS = [
   "Binance",
 ];
 
-const DELIVERY_METHODS = [
-  "Retiro en tienda",
-  "Envío local",
-  "Envío nacional",
-];
+const DELIVERY_METHODS = ["Retiro en tienda", "Envío local", "Envío nacional"];
 
-export default function NewQuotePage() {
+function NewQuotePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { isExpanded } = useSidebar();
@@ -695,8 +691,10 @@ export default function NewQuotePage() {
                   $
                   {request.request.items
                     .reduce((total, item) => {
-                      const price = parseFloat(itemData[item.id]?.unitPrice) || 0;
-                      const qty = parseInt(itemData[item.id]?.availableQuantity) || 0;
+                      const price =
+                        parseFloat(itemData[item.id]?.unitPrice) || 0;
+                      const qty =
+                        parseInt(itemData[item.id]?.availableQuantity) || 0;
                       return total + price * qty;
                     }, 0)
                     .toFixed(2)}
@@ -772,5 +770,25 @@ export default function NewQuotePage() {
         </main>
       </div>
     </PageAnimation>
+  );
+}
+
+export default function NewQuotePage() {
+  return (
+    <Suspense
+      fallback={
+        <PageAnimation>
+          <div className={styles.pageWrapper}>
+            <div className={styles.mainContainer}>
+              <div className={styles.content}>
+                <SkeletonSendQuote />
+              </div>
+            </div>
+          </div>
+        </PageAnimation>
+      }
+    >
+      <NewQuotePageContent />
+    </Suspense>
   );
 }

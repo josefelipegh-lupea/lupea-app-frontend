@@ -193,7 +193,7 @@ export interface ClientQuote {
     productName: string;
     quantity: number;
     offeredBrand: string;
-    availability: string;
+    availableQuantity: number;
     unitPrice: number;
     subtotal: number;
     warranty: string | null;
@@ -266,7 +266,7 @@ export interface ClientQuote {
 
 export async function getClientRequestQuotes(
   jwt: string,
-  requestDocumentId: string
+  requestDocumentId: string,
 ): Promise<ClientQuoteResponse> {
   try {
     const res = await fetch(
@@ -277,14 +277,14 @@ export async function getClientRequestQuotes(
           "Content-Type": "application/json",
           Authorization: `Bearer ${jwt}`,
         },
-      }
+      },
     );
 
     const data = await res.json();
 
     if (!res.ok) {
       throw new Error(
-        data.error?.message || "Error al obtener las cotizaciones"
+        data.error?.message || "Error al obtener las cotizaciones",
       );
     }
 
@@ -297,26 +297,21 @@ export async function getClientRequestQuotes(
 
 export async function getClientQuoteById(
   jwt: string,
-  quoteId: string
+  quoteId: string,
 ): Promise<{ ok: boolean; data: ClientQuote }> {
   try {
-    const res = await fetch(
-      `${API_URL}/quotes/client/me/${quoteId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${jwt}`,
-        },
-      }
-    );
+    const res = await fetch(`${API_URL}/quotes/client/me/${quoteId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
 
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(
-        data.error?.message || "Error al obtener la cotización"
-      );
+      throw new Error(data.error?.message || "Error al obtener la cotización");
     }
 
     return data;

@@ -83,7 +83,8 @@ const QuoteDetailCard: React.FC<QuoteDetailCardProps> = ({
                 {quote.provider.businessName}
               </span>
               <span className={styles.providerLocation}>
-                {quote.provider.location.parish}, {quote.provider.location.state}
+                {quote.provider.location.parish},{" "}
+                {quote.provider.location.state}
               </span>
             </div>
           </div>
@@ -127,7 +128,7 @@ const QuoteDetailCard: React.FC<QuoteDetailCardProps> = ({
                   <div className={styles.itemInfo}>
                     <p className={styles.itemName}>{item.productName}</p>
                     <p className={styles.itemSub}>
-                      {item.offeredBrand} • {item.availability}
+                      {item.offeredBrand} • {item.availableQuantity}
                     </p>
                   </div>
                 </div>
