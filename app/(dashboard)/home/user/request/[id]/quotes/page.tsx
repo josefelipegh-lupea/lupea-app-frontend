@@ -86,7 +86,7 @@ const RequestQuotesPage: React.FC = () => {
               items={quote.items.map((item) => ({
                 name: item.productName,
                 model: item.offeredBrand || "",
-                type: item.availability,
+                type: item.availableQuantity?.toString() || "-",
               }))}
               totalSolicitados={quote.items.length}
               documentId={params.id as string}

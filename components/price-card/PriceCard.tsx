@@ -194,7 +194,7 @@ export const PriceCard: React.FC<PriceProps> = ({
                 className={hasOrders ? styles.btnVerOrden : styles.btnComparar}
                 onClick={() => {
                   if (hasOrders) {
-                    onViewOrder?.(documentId!);
+                    onViewOrder?.(quoteDocumentId || documentId!);
                   } else if (documentId) {
                     onCompare?.(documentId);
                   }

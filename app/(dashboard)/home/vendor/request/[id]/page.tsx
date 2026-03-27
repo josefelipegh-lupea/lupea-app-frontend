@@ -35,7 +35,7 @@ export default function RequestDetailPage() {
         const res = await getProviderRequests(jwt);
         if (res.ok) {
           const found = res.data.requests.find(
-            (r) => r.documentId === params.id
+            (r) => r.documentId === params.id,
           );
           setRequest(found || null);
         }
@@ -237,9 +237,13 @@ export default function RequestDetailPage() {
               <div className={styles.actionsContainer}>
                 <Button
                   className={styles.btnPrimary}
-                  onClick={() => router.push(`/home/vendor/quotes/send-quote?id=${params.id}`)}
+                  onClick={() =>
+                    router.push(
+                      `/home/vendor/quotes/send-quote?id=${params.id}`,
+                    )
+                  }
                 >
-                  Enviar cotización
+                  Cotizar
                 </Button>
               </div>
             )}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import styles from "./OrderDetail.module.css";
 import Header from "@/components/header/Header";
@@ -13,6 +13,7 @@ import OrderDetailCard from "@/components/order-card/OrderDetailCard";
 
 const OrderDetailPage: React.FC = () => {
   const params = useParams();
+  const router = useRouter();
   const { jwt } = useAuth();
   const { isExpanded } = useSidebar();
   const [order, setOrder] = useState<OrderData | null>(null);
@@ -54,7 +55,10 @@ const OrderDetailPage: React.FC = () => {
         }`}
       >
         <main className={styles.mainContainer}>
-          <Header title="Detalle de Orden" />
+          <Header
+            title="Detalle de Orden"
+            onBack={() => router.replace("/home/user")}
+          />
           <div className={styles.container}>
             <SkeletonOrders />
           </div>
@@ -71,7 +75,10 @@ const OrderDetailPage: React.FC = () => {
         }`}
       >
         <main className={styles.mainContainer}>
-          <Header title="Detalle de Orden" />
+          <Header
+            title="Detalle de Orden"
+            onBack={() => router.push("/home/user")}
+          />
           <div className={styles.container}>
             <p className={styles.emptyText}>Orden no encontrada</p>
           </div>
@@ -87,7 +94,10 @@ const OrderDetailPage: React.FC = () => {
       }`}
     >
       <main className={styles.mainContainer}>
-        <Header title="Detalle de Orden" />
+        <Header
+          title="Detalle de Orden"
+          onBack={() => router.push("/home/user")}
+        />
 
         <div className={styles.container}>
           <OrderDetailCard

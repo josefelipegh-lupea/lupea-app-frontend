@@ -12,6 +12,7 @@ import { PriceCard } from "@/components/price-card/PriceCard";
 import { OrderCard } from "@/components/order-card/OrderCard";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useSocket } from "@/context/SocketContext";
 import {
   getProviderRequests,
   ProviderQuoteRequest,
@@ -29,6 +30,7 @@ export default function HomePage() {
   const { jwt, loginProfile } = useAuth();
   const { isExpanded } = useSidebar();
   const router = useRouter();
+  const { onNotification } = useSocket();
   const [activeTab, setActiveTab] = useState("SOLICITUDES");
 
   const [requests, setRequests] = useState<ProviderQuoteRequest[]>([]);
@@ -77,6 +79,36 @@ export default function HomePage() {
     fetchHomeData();
   }, [jwt]);
 
+  useEffect(() => {
+    const unsubscribe = onNotification((notification) => {
+      if (
+        notification.type === "provider.request_assigned" ||
+        notification.type === "provider.order_generated"
+      ) {
+        const fetchData = async () => {
+          if (!jwt) return;
+          try {
+            const [requestsRes, ordersRes] = await Promise.all([
+              getProviderRequests(jwt),
+              getProviderOrders(jwt),
+            ]);
+            if (requestsRes.ok) {
+              setRequests(requestsRes.data.requests);
+            }
+            if (ordersRes.ok) {
+              setOrders(ordersRes.data.orders);
+            }
+          } catch (error) {
+            console.error("Error refreshing data:", error);
+          }
+        };
+        fetchData();
+      }
+    });
+
+    return unsubscribe;
+  }, [jwt, onNotification]);
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "COTIZACIONES":
@@ -100,7 +132,7 @@ export default function HomePage() {
               items={quote.items.map((item) => ({
                 name: item.productName,
                 model: `${quote.request.vehicle.brand} ${quote.request.vehicle.model} ${quote.request.vehicle.year}`,
-                type: item.availability,
+                type: item.availableQuantity?.toString() || "-",
               }))}
               totalSolicitados={quote.request.items.length}
               isProvider={true}

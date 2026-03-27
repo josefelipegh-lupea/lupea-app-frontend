@@ -1,0 +1,176 @@
+.pageWrapper {
+  background-color: #f2f2f2;
+  transition: all 0.3s ease-in-out;
+}
+
+.mainContainer {
+  background-color: #ffffff;
+  min-height: 90dvh;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.mainContainer.noFooter {
+  min-height: 100dvh;
+  height: 100dvh;
+}
+
+.content {
+  padding: 24px 20px;
+}
+
+.header {
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 20px;
+  border-bottom: 1px solid #f1f1f1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a3d;
+  margin: 0;
+}
+
+.markAllBtn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #f08400;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.notificationItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.notificationItem:active {
+  transform: scale(0.98);
+}
+
+.notificationItem.unread {
+  background: #fff8f0;
+  border-left: 3px solid #f08400;
+}
+
+.iconWrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notificationContent {
+  flex: 1;
+}
+
+.notificationTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a3d;
+  margin: 0 0 4px 0;
+}
+
+.notificationMessage {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+.notificationTime {
+  font-size: 11px;
+  color: #999;
+}
+
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  background: #f08400;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.emptyIcon {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: #999;
+  text-align: center;
+}
+
+.sidebarCollapsed {
+  margin-left: 0;
+}
+
+@media (min-width: 768px) {
+  .pageWrapper {
+    height: auto;
+    overflow: visible;
+    padding: 40px 0;
+    margin-left: 230px;
+    width: calc(100% - 230px);
+    background-color: #f2f2f2;
+    padding: 40px 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .pageWrapper.sidebarCollapsed {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+  }
+
+  .mainContainer {
+    width: 95%;
+    max-width: 1000px;
+    height: auto;
+    overflow: hidden;
+    padding: 40px clamp(20px, 5vw, 60px);
+    padding-bottom: 30px;
+    border-radius: 50px;
+    margin: 0 auto;
+    box-shadow: 0;
+  }
+}
