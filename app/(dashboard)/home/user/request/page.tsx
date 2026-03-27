@@ -35,7 +35,7 @@ import { useFooterVisibility } from "@/context/FooterVisibilityContext";
 
 export default function RequestPage() {
   const router = useRouter();
-  const { jwt, refreshProfile } = useAuth();
+  const { jwt, refreshProfile, refreshLoginProfile } = useAuth();
 
   const [allStates, setAllStates] = useState<State[]>([]);
   const [savedLocations, setSavedLocations] = useState<Location[]>([]);
@@ -114,6 +114,7 @@ export default function RequestPage() {
       if (res.ok) {
         clearDraft();
         await refreshProfile();
+        await refreshLoginProfile();
         toast.success("¡Solicitud enviada con éxito!");
         setTimeout(() => router.push("/home/user"), 1500);
       }

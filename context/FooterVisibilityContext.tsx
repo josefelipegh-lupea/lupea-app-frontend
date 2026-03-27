@@ -40,13 +40,14 @@ export function FooterVisibilityProvider({
   const value = useMemo(() => {
     const isRequestPage = pathname.includes("/request");
     const isSendQuotePage = pathname.includes("/send-quote");
+    const isQuoteDetailPage = pathname.match(/^\/home\/vendor\/quotes\/[^/]+$/);
 
     if (isDesktop) {
       return { isFooterVisible: true };
     }
 
     return {
-      isFooterVisible: !isRequestPage && !isSendQuotePage,
+      isFooterVisible: !isRequestPage && !isSendQuotePage && !isQuoteDetailPage,
     };
   }, [pathname, isDesktop]);
 

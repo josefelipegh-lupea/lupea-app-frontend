@@ -272,3 +272,43 @@ export async function getOrderById(jwt: string, orderId: string): Promise<{
     throw error;
   }
 }
+
+export async function getQuoteOrder(
+  jwt: string,
+  quoteDocumentId: string
+): Promise<{
+  ok: boolean;
+  data: {
+    order: OrderData | null;
+  };
+}> {
+  try {
+    const res = await fetch(`${API_URL}/orders/client/me?limit=100`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error?.message || "Error al obtener las órdenes");
+    }
+
+    const order = data.data.orders.find(
+      (o: OrderData) => o.quote?.documentId === quoteDocumentId
+    );
+
+    return {
+      ok: true,
+      data: {
+        order: order || null,
+      },
+    };
+  } catch (error) {
+    console.error("Fetch error in getQuoteOrder:", error);
+    throw error;
+  }
+}

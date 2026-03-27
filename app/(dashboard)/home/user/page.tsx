@@ -17,9 +17,10 @@ import {
   ClientQuote,
 } from "@/app/lib/api/client/home/quote";
 import { useAuth } from "@/context/AuthContext";
+import { useSocket } from "@/context/SocketContext";
 import {
   getMyClientOrders,
-  getRequestOrders,
+  getQuoteOrder,
   OrderData,
 } from "@/app/lib/api/client/home/order";
 import styles from "./Home.module.css";
@@ -30,8 +31,9 @@ interface FeaturedQuoteData {
 }
 
 export default function HomePage() {
-  const { jwt, profile, loginProfile } = useAuth();
+  const { jwt, profile, loginProfile, refreshLoginProfile } = useAuth();
   const { isExpanded } = useSidebar();
+  const { onNotification } = useSocket();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("COTIZACIONES");
 
@@ -107,6 +109,66 @@ export default function HomePage() {
     fetchData();
   }, [jwt]);
 
+  useEffect(() => {
+    const unsubscribe = onNotification((notification) => {
+      if (
+        notification.type === "client.quote_received" ||
+        notification.type === "client.order_completed"
+      ) {
+        const fetchData = async () => {
+          if (!jwt) return;
+          try {
+            const [requestsRes, ordersRes] = await Promise.all([
+              getMyRequests(jwt),
+              getMyClientOrders(jwt),
+            ]);
+            if (requestsRes.ok) {
+              setRequests(requestsRes.data.requests);
+              const newQuotes = requestsRes.data.requests.reduce(
+                (sum, r) => sum + (r.matchingSummary?.pending || 0),
+                0
+              );
+              setNewQuotesCount(newQuotes);
+
+              const requestsWithQuotes = requestsRes.data.requests.filter(
+                (r) => r.quotesReceived > 0
+              );
+
+              const featuredData = await Promise.all(
+                requestsWithQuotes.slice(0, 3).map(async (request) => {
+                  const quotesRes = await getClientRequestQuotes(
+                    jwt,
+                    request.documentId
+                  );
+                  if (quotesRes.ok && quotesRes.data.featuredQuote) {
+                    return {
+                      request,
+                      featuredQuote: quotesRes.data.featuredQuote,
+                    };
+                  }
+                  return null;
+                })
+              );
+
+              setFeaturedQuotes(
+                featuredData.filter((d) => d !== null) as FeaturedQuoteData[]
+              );
+            }
+            if (ordersRes.ok) {
+              setOrders(ordersRes.data.orders);
+            }
+            await refreshLoginProfile();
+          } catch (error) {
+            console.error("Error refreshing data:", error);
+          }
+        };
+        fetchData();
+      }
+    });
+
+    return unsubscribe;
+  }, [jwt, onNotification, refreshLoginProfile]);
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "COTIZACIONES":
@@ -143,17 +205,18 @@ export default function HomePage() {
               }))}
               totalSolicitados={data.request.items.length}
               documentId={data.request.documentId}
+              quoteDocumentId={data.featuredQuote.documentId}
               hasOrders={hasOrders}
               onCompare={(docId) =>
                 router.push(`/home/user/request/${docId}/comparison`)
               }
-              onViewOrder={async (requestDocId) => {
-                if (!jwt) return;
+              onViewOrder={async (quoteDocId) => {
+                if (!jwt || !quoteDocId) return;
                 try {
-                  const res = await getRequestOrders(jwt, requestDocId);
-                  if (res.ok && res.data.orders.length > 0) {
+                  const res = await getQuoteOrder(jwt, quoteDocId);
+                  if (res.ok && res.data.order) {
                     router.push(
-                      `/home/user/orders/${res.data.orders[0].documentId}`
+                      `/home/user/orders/${res.data.order.documentId}`
                     );
                   }
                 } catch (error) {

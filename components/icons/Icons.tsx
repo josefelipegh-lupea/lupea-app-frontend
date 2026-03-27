@@ -332,6 +332,40 @@ export const IconsApp = {
     );
   },
 
+  Bell: ({ color = "#757575" }: IconProps) => {
+    const isActive = color === "#F08400";
+    return (
+      <svg
+        width="27"
+        height="27"
+        viewBox="0 0 27 27"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M13.5 3C10.5 3 8 5.5 8 8.5V13.5C8 16 6 18 5 19H22C21 18 19 16 19 13.5V8.5C19 5.5 16.5 3 13.5 3Z"
+          fill={isActive ? "#F08400" : "none"}
+          stroke={isActive ? "#F08400" : color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M11 22C11 23.3807 12.1193 24.5 13.5 24.5C14.8807 24.5 16 23.3807 16 22"
+          stroke={isActive ? "#F08400" : color}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        {/* La pequeña punta superior */}
+        <path
+          d="M13.5 1V3"
+          stroke={isActive ? "#F08400" : color}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  },
   User: ({ color = "#757575" }: IconProps) => {
     const isActive = color === "#F08400";
 

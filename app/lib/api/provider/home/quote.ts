@@ -113,7 +113,7 @@ export interface ProviderQuote {
     productName: string;
     quantity: number;
     offeredBrand: string;
-    availability: string;
+    availableQuantity: number;
     unitPrice: number;
     subtotal: number;
     warranty: string | null;
@@ -240,6 +240,77 @@ export interface SubmitQuoteResponse {
   error?: {
     message: string;
   };
+}
+
+export interface QuoteDetailResponse {
+  ok: boolean;
+  data: ProviderQuote & {
+    formContext?: {
+      requestHeader: {
+        id: number;
+        documentId: string;
+        status: string;
+        createdAt: string;
+        clientName: string;
+      };
+      providerInfo: {
+        profileId: number;
+        businessName: string;
+        location: {
+          state: string;
+          municipality: string;
+          parish: string;
+          address: string;
+        };
+      };
+      progress: {
+        quotedItemsCount: number;
+        quotedVariantsCount: number;
+        totalRequestItemsCount: number;
+      };
+      commercialDefaults: {
+        paymentMethods: string[];
+        warrantyPolicy: string;
+        returnPolicy: string;
+        hasStorePickup: boolean;
+        hasLocalDelivery: boolean;
+        hasNationalDelivery: boolean;
+        nationalCarriers: string[];
+      };
+    };
+  };
+}
+
+export async function getQuoteDetail(
+  jwt: string,
+  quoteId: string,
+  includeFormContext: boolean = true
+): Promise<QuoteDetailResponse> {
+  try {
+    const res = await fetch(
+      `${API_URL}/quotes/provider/me/${quoteId}?includeFormContext=${includeFormContext}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        data.error?.message || "Error al obtener el detalle de la cotización"
+      );
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Fetch error in getQuoteDetail:", error);
+    throw error;
+  }
 }
 
 export async function submitQuote(

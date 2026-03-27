@@ -6,9 +6,10 @@ interface HeaderProps {
   title: string;
   onBack?: () => void;
   rightAction?: React.ReactNode;
+  showBackButton?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, onBack, rightAction }) => {
+const Header: React.FC<HeaderProps> = ({ title, onBack, rightAction, showBackButton = true }) => {
   const handleBack = () => {
     if (onBack) {
       onBack();
@@ -19,13 +20,17 @@ const Header: React.FC<HeaderProps> = ({ title, onBack, rightAction }) => {
 
   return (
     <header className={styles.header}>
-      <button
-        className={styles.backButton}
-        onClick={handleBack}
-        aria-label="Volver"
-      >
-        <IconsApp.Back color="#000"/>
-      </button>
+      {showBackButton ? (
+        <button
+          className={styles.backButton}
+          onClick={handleBack}
+          aria-label="Volver"
+        >
+          <IconsApp.Back color="#000" />
+        </button>
+      ) : (
+        <div className={styles.backButton} />
+      )}
 
       <h1 className={styles.headerTitle}>{title}</h1>
 

@@ -95,7 +95,7 @@ export default function AllVendorQuotesPage() {
                   items={quote.items.map((item) => ({
                     name: item.productName,
                     model: `${quote.request.vehicle.brand} ${quote.request.vehicle.model} ${quote.request.vehicle.year}`,
-                    type: item.availability,
+                    type: item.availableQuantity?.toString() || "-",
                   }))}
                   totalSolicitados={quote.request.items.length}
                   isProvider={true}

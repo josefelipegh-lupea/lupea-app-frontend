@@ -27,6 +27,7 @@ interface AuthContextType {
   login: (data: LoginResponse) => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
+  refreshLoginProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -123,6 +124,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const refreshLoginProfile = async () => {
+    const jwt = localStorage.getItem("jwt");
+    if (!jwt) return;
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.profile) {
+          setLoginProfile(data.profile);
+          localStorage.setItem("loginProfile", JSON.stringify(data.profile));
+        }
+      }
+    } catch (error) {
+      console.error("Error al refrescar loginProfile:", error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -135,6 +159,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logout,
         isLoading,
         refreshProfile,
+        refreshLoginProfile,
       }}
     >
       {children}
