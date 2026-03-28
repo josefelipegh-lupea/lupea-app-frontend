@@ -38,7 +38,7 @@ export function FooterVisibilityProvider({
   }, []);
 
   const value = useMemo(() => {
-    const isRequestPage = pathname.includes("/request");
+    const isRequestPage = pathname === "/home/user/request";
     const isSendQuotePage = pathname.includes("/send-quote");
     const isQuoteDetailPage = pathname.match(/^\/home\/vendor\/quotes\/[^/]+$/);
 

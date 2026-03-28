@@ -76,13 +76,29 @@ export const useSocket = () => {
 };
 
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
-  const { jwt, user } = useAuth();
+  const { jwt, user, role } = useAuth();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [realtimeConfig, setRealtimeConfig] = useState<RealtimeConfig | null>(
     null,
   );
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && user) {
+      const saved = localStorage.getItem("notifications");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setNotifications(parsed);
+        } catch {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setNotifications([]);
+        }
+      }
+    }
+  }, [user]);
 
   const socketRef = useRef<Socket | null>(null);
   const isConnectedRef = useRef(false);
@@ -103,7 +119,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const addNotification = useCallback((notification: Notification) => {
-    setNotifications((prev) => [notification, ...prev]);
+    setNotifications((prev) => {
+      const updated = [notification, ...prev];
+      localStorage.setItem("notifications", JSON.stringify(updated));
+      return updated;
+    });
 
     notificationCallbacksRef.current.forEach((callback) => {
       callback(notification);
@@ -116,17 +136,24 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const markAsRead = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
+    setNotifications((prev) => {
+      const updated = prev.map((n) => (n.id === id ? { ...n, read: true } : n));
+      localStorage.setItem("notifications", JSON.stringify(updated));
+      return updated;
+    });
   }, []);
 
   const markAllAsRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setNotifications((prev) => {
+      const updated = prev.map((n) => ({ ...n, read: true }));
+      localStorage.setItem("notifications", JSON.stringify(updated));
+      return updated;
+    });
   }, []);
 
   const clearNotifications = useCallback(() => {
     setNotifications([]);
+    localStorage.removeItem("notifications");
   }, []);
 
   useEffect(() => {

@@ -183,3 +183,32 @@ export async function getProviderRequestById(
     throw error;
   }
 }
+
+export async function getProviderRequestByNumericId(
+  jwt: string,
+  numericId: number
+): Promise<{ ok: boolean; data: { id: number; documentId: string } | null }> {
+  try {
+    const res = await fetch(
+      `${API_URL}/quote-requests/provider/me/by-id/${numericId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return { ok: false, data: null };
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Fetch error in getProviderRequestByNumericId:", error);
+    return { ok: false, data: null };
+  }
+}

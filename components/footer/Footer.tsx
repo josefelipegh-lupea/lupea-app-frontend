@@ -27,7 +27,7 @@ export const Footer = () => {
       Icon: IconsApp.Bell,
       path: `/notifications/${userRole}`,
       label: "Notificaciones",
-      showBadge: unreadCount > 0,
+      showBadge: unreadCount > 0 && !pathname.startsWith(`/notifications/${userRole}`),
     },
     { id: "chat", Icon: IconsApp.Chat, path: "/chat", label: "Chat" },
     {
@@ -67,6 +67,7 @@ export const Footer = () => {
                 className={`${styles.tabItem} ${
                   isActive ? styles.tabItemActive : ""
                 }`}
+                style={{ position: "relative" }}
               >
                 {isActive ? (
                   <div className={styles.activeIndicator}>
@@ -84,10 +85,10 @@ export const Footer = () => {
                   <>
                     <span className={styles.tabIcon}>
                       <Icon color={inactiveColor} />
-                      {showBadge && (
-                        <span className={styles.notificationBadge}></span>
-                      )}
                     </span>
+                    {showBadge && (
+                      <span className={styles.notificationBadge}></span>
+                    )}
                     {isExpanded && (
                       <span className={styles.desktopLabel}>{label}</span>
                     )}

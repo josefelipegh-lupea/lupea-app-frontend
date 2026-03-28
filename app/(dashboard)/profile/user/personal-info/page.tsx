@@ -7,7 +7,6 @@ import Header from "@/components/header/Header";
 import InputField from "@/components/input/InputField";
 import {
   ClientProfileResponse,
-  getClientProfile,
   updateClientProfile,
 } from "@/app/lib/api/client/clientProfile";
 import { useAuth } from "@/context/AuthContext";
@@ -34,7 +33,7 @@ export default function PersonalInfoPage() {
   const { isValid } = useProfileValidation(formData);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     let newValue = value;
