@@ -126,10 +126,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshLoginProfile = async () => {
     const jwt = localStorage.getItem("jwt");
-    if (!jwt) return;
+    const currentUser = localStorage.getItem("userData");
+    if (!jwt || !currentUser) return;
+
+    const userData = JSON.parse(currentUser);
+    const isProvider = userData.role === "provider";
+    
+    const endpoint = isProvider 
+      ? `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/provider-profiles/me`
+      : `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/client-profiles/me`;
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/auth/me`, {
+      const response = await fetch(endpoint, {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
@@ -137,10 +145,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (response.ok) {
         const data = await response.json();
-        if (data.profile) {
-          setLoginProfile(data.profile);
-          localStorage.setItem("loginProfile", JSON.stringify(data.profile));
+        
+        let loginProfileData;
+        
+        if (isProvider) {
+          loginProfileData = {
+            id: data.id,
+            displayName: data.businessName || data.username,
+            tokensAvailable: data.tokensAvailable || 0,
+            tokensTotal: data.tokensAvailable || 0,
+            tokensPurchasedThisMonth: 0,
+            tokensLastRenewal: loginProfile?.tokensLastRenewal || "",
+            tokensNextRenewal: loginProfile?.tokensNextRenewal || "",
+            monthlyConsumption: loginProfile?.monthlyConsumption || { usedTokens: 0, percentage: 0 },
+            tokenMetricsMonth: loginProfile?.tokenMetricsMonth || "",
+            freeTokensGrantedThisMonth: 0,
+            privacyLevel: "public",
+          };
+        } else {
+          loginProfileData = {
+            id: data.id,
+            displayName: data.displayName,
+            tokensAvailable: data.tokensAvailable,
+            tokensTotal: data.tokensAvailable + (loginProfile?.tokensPurchasedThisMonth || 0),
+            tokensPurchasedThisMonth: loginProfile?.tokensPurchasedThisMonth || 0,
+            tokensLastRenewal: loginProfile?.tokensLastRenewal || "",
+            tokensNextRenewal: loginProfile?.tokensNextRenewal || "",
+            monthlyConsumption: loginProfile?.monthlyConsumption || { usedTokens: 0, percentage: 0 },
+            tokenMetricsMonth: loginProfile?.tokenMetricsMonth || "",
+            freeTokensGrantedThisMonth: loginProfile?.freeTokensGrantedThisMonth || 0,
+            privacyLevel: data.privacyLevel,
+          };
         }
+        
+        setLoginProfile(loginProfileData);
+        localStorage.setItem("loginProfile", JSON.stringify(loginProfileData));
       }
     } catch (error) {
       console.error("Error al refrescar loginProfile:", error);

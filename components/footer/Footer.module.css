@@ -82,14 +82,30 @@
 
 .notificationBadge {
   position: absolute;
-  top: -2px;
-  right: -2px;
+  top: 4px;
+  right: 4px;
   width: 10px;
   height: 10px;
   background-color: #f08400;
   border-radius: 50%;
-  border: 2px solid #fff;
   animation: pulse 1.5s infinite;
+  z-index: 10;
+}
+
+/* Mobile specific badge position */
+@media (max-width: 767px) {
+  .notificationBadge {
+    top: -8px;
+    right: 25px;
+  }
+}
+
+/* Desktop specific badge position */
+@media (min-width: 768px) {
+  .notificationBadge {
+    top: 4px;
+    right: 4px;
+  }
 }
 
 @keyframes pulse {

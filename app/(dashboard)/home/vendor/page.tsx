@@ -27,7 +27,7 @@ import {
 } from "@/app/lib/api/provider/home/order";
 
 export default function HomePage() {
-  const { jwt, loginProfile } = useAuth();
+  const { jwt, loginProfile, refreshLoginProfile } = useAuth();
   const { isExpanded } = useSidebar();
   const router = useRouter();
   const { onNotification } = useSocket();
@@ -55,6 +55,8 @@ export default function HomePage() {
 
       try {
         setLoading(true);
+        await refreshLoginProfile();
+        
         const [requestsRes, quotesRes, ordersRes] = await Promise.all([
           getProviderRequests(jwt),
           getProviderQuotes(jwt),
@@ -98,6 +100,7 @@ export default function HomePage() {
             if (ordersRes.ok) {
               setOrders(ordersRes.data.orders);
             }
+            await refreshLoginProfile();
           } catch (error) {
             console.error("Error refreshing data:", error);
           }
@@ -107,7 +110,7 @@ export default function HomePage() {
     });
 
     return unsubscribe;
-  }, [jwt, onNotification]);
+  }, [jwt, onNotification, refreshLoginProfile]);
 
   const renderTabContent = () => {
     switch (activeTab) {

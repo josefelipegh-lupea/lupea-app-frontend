@@ -72,7 +72,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
 export default function VendorProfilePage() {
   const [isNotifEnabled, setIsNotifEnabled] = useState(true);
   const { isExpanded } = useSidebar();
-  const { user, profile, logout, isLoading } = useAuth();
+  const { user, profile, loginProfile, logout, isLoading, refreshLoginProfile } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -80,6 +80,12 @@ export default function VendorProfilePage() {
       router.replace("/login");
     }
   }, [user, isLoading, router]);
+
+  useEffect(() => {
+    if (user) {
+      refreshLoginProfile();
+    }
+  }, [user, refreshLoginProfile]);
 
   if (isLoading || !user || !profile) {
     return <div className={styles.pageWrapper}>Cargando perfil...</div>;
@@ -194,7 +200,7 @@ export default function VendorProfilePage() {
                 <p className={styles.lupasTitle}>MIS LUPAS</p>
                 <div className={styles.lupasAmountContainer}>
                   <span className={styles.lupasValue}>
-                    {formatLupas(vendorProfile.tokensAvailable || 0)}
+                    {formatLupas(loginProfile?.tokensAvailable ?? 0)}
                   </span>
                   <span className={styles.lupasLabel}>Disponibles</span>
                 </div>

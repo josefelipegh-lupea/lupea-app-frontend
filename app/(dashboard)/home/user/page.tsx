@@ -60,6 +60,9 @@ export default function HomePage() {
 
       try {
         setLoading(true);
+        
+        await refreshLoginProfile();
+        
         const res = await getMyRequests(jwt);
         if (res.ok) {
           setRequests(res.data.requests);
