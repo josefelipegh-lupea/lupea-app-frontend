@@ -32,7 +32,7 @@ export default function ComparisonPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [comparisonData, setComparisonData] = useState<ComparisonQuote[]>([]);
   const [selectedItems, setSelectedItems] = useState<Map<number, Set<number>>>(
-    new Map()
+    new Map(),
   );
   const [showInfoBox, setShowInfoBox] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -93,14 +93,14 @@ export default function ComparisonPage({ params }: PageProps) {
     return (
       quote?.products
         .filter((p) => selected.has(p.id))
-        .reduce((sum, p) => sum + (p.price * p.quantity), 0) || 0
+        .reduce((sum, p) => sum + p.price * p.quantity, 0) || 0
     );
   };
 
   const getTotalAmount = () => {
     let total = 0;
     selectedItems.forEach(
-      (_, quoteId) => (total += getQuoteSelectedTotal(quoteId))
+      (_, quoteId) => (total += getQuoteSelectedTotal(quoteId)),
     );
     return total;
   };
@@ -319,12 +319,12 @@ export default function ComparisonPage({ params }: PageProps) {
                     </div>
 
                     <div className={styles.buttonContainer}>
-                      <Button
+                      <button
                         className={styles.btnAcceptCompleteOffer}
                         onClick={() => selectAllFromQuote(quote.id)}
                       >
                         Aceptar oferta completa
-                      </Button>
+                      </button>
                     </div>
                     <div className={styles.selectionSummary}>
                       <span>
@@ -347,7 +347,7 @@ export default function ComparisonPage({ params }: PageProps) {
             <p className={styles.footerCount}>
               {Array.from(selectedItems.values()).reduce(
                 (a, b) => a + b.size,
-                0
+                0,
               )}{" "}
               productos {selectedItems.size} proveedores
             </p>

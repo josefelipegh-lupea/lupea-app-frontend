@@ -81,6 +81,11 @@ export default function NotificationsPage() {
       case "provider.request_assigned": {
         const requestDocId = data?.requestDocumentId as string | undefined;
         if (requestDocId) return `/home/vendor/request/${requestDocId}`;
+        
+        const requestId = data?.requestId as number | undefined;
+        const cachedDocId = requestId ? findDocumentId(requestId, cachedData.requests) : null;
+        if (cachedDocId) return `/home/vendor/request/${cachedDocId}`;
+        
         return "/home/vendor";
       }
       case "client.quote_received": {

@@ -90,6 +90,7 @@ const RequestQuotesPage: React.FC = () => {
               }))}
               totalSolicitados={quote.items.length}
               documentId={params.id as string}
+              quoteDocumentId={quote.documentId}
               onCompare={(docId) =>
                 router.push(`/home/user/request/${docId}/comparison`)
               }

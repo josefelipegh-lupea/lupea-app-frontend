@@ -84,6 +84,29 @@ export async function getClientProfile(
   return data;
 }
 
+export async function getClientProfileById(
+  jwt: string,
+  clientId: number
+): Promise<ClientProfileResponse> {
+  const res = await fetch(`${API_URL}/client-profiles/${clientId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(
+      data.error?.message || "No se pudo obtener el perfil del cliente"
+    );
+  }
+
+  return data;
+}
+
 export async function updateClientProfile(
   jwt: string,
   formData: Partial<ClientProfileResponse>

@@ -46,6 +46,17 @@ export interface ProviderOrderData {
       address: string;
     };
   };
+  customer?: {
+    id: number;
+    documentId: string;
+    username: string;
+    fullName?: string;
+    contact?: {
+      email: string;
+      phone: string;
+      address: string;
+    };
+  };
   quote: {
     id: number;
     documentId: string;

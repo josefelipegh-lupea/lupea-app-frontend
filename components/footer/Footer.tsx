@@ -29,7 +29,7 @@ export const Footer = () => {
       label: "Notificaciones",
       showBadge: unreadCount > 0 && !pathname.startsWith(`/notifications/${userRole}`),
     },
-    { id: "chat", Icon: IconsApp.Chat, path: "/chat", label: "Chat" },
+    { id: "chat", Icon: IconsApp.Chat, path: `/chat/${userRole}`, label: "Chat" },
     {
       id: "user",
       Icon: IconsApp.User,

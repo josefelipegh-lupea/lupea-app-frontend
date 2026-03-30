@@ -4,11 +4,11 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
-import styles from "../../request/[id]/comparison/Comparison.module.css";
+import styles from "./QuoteDetail.module.css";
 import Header from "@/components/header/Header";
 import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
-import { useFooterVisibility } from "@/context/FooterVisibilityContext";
+
 import {
   getClientQuoteById,
   ClientQuote,
@@ -20,6 +20,7 @@ import {
 } from "@/app/lib/api/client/home/order";
 import { IconsApp } from "@/components/icons/Icons";
 import Button from "@/components/button/Button";
+import { PageAnimation } from "@/components/page-animation/PageAnimation";
 import { SkeletonComparison } from "@/components/skeleton/SkeletonComparison";
 
 const QuoteDetailPage: React.FC = () => {
@@ -27,7 +28,6 @@ const QuoteDetailPage: React.FC = () => {
   const router = useRouter();
   const { jwt } = useAuth();
   const { isExpanded } = useSidebar();
-  const { isFooterVisible } = useFooterVisibility();
   const [quote, setQuote] = useState<ClientQuote | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
@@ -47,7 +47,7 @@ const QuoteDetailPage: React.FC = () => {
             const orderRes = await getQuoteOrder(jwt, res.data.documentId);
             if (orderRes.ok && orderRes.data.order) {
               const orderedItemIds = new Set(
-                orderRes.data.order.items.map((item) => item.quoteItemId)
+                orderRes.data.order.items.map((item) => item.quoteItemId),
               );
               setSelectedItems(orderedItemIds);
             }
@@ -120,195 +120,239 @@ const QuoteDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div
-        className={`${styles.pageWrapper} ${
-          !isExpanded ? styles.sidebarCollapsed : ""
-        }`}
-      >
-        <Header title="Detalle de Cotización" />
-        <div className={styles.container}>
-          <SkeletonComparison />
+      <PageAnimation>
+        <div
+          className={`${styles.pageWrapper} ${
+            !isExpanded ? styles.sidebarCollapsed : ""
+          }`}
+        >
+          <main className={styles.mainContainer}>
+            <Header title="Detalle de Cotización" />
+            <div className={styles.container}>
+              <SkeletonComparison />
+            </div>
+          </main>
         </div>
-      </div>
+      </PageAnimation>
     );
   }
 
   if (!quote) {
     return (
-      <div
-        className={`${styles.pageWrapper} ${
-          !isExpanded ? styles.sidebarCollapsed : ""
-        }`}
-      >
-        <Header title="Detalle de Cotización" />
-        <div className={styles.container}>
-          <p className={styles.emptyText}>Cotización no encontrada</p>
+      <PageAnimation>
+        <div
+          className={`${styles.pageWrapper} ${
+            !isExpanded ? styles.sidebarCollapsed : ""
+          }`}
+        >
+          <main className={styles.mainContainer}>
+            <Header title="Detalle de Cotización" />
+            <div className={styles.container}>
+              <p className={styles.emptyText}>Cotización no encontrada</p>
+            </div>
+          </main>
         </div>
-      </div>
+      </PageAnimation>
     );
   }
 
   const isOrdered = quote.request.status === "ordered";
 
   return (
-    <div
-      className={`${styles.pageWrapper} ${
-        !isExpanded ? styles.sidebarCollapsed : ""
-      }`}
-    >
-      <main
-        className={`${styles.mainContainer} ${
-          !isFooterVisible ? styles.noFooter : ""
+    <PageAnimation>
+      <div
+        className={`${styles.pageWrapper} ${
+          !isExpanded ? styles.sidebarCollapsed : ""
         }`}
       >
-        <Header title="Detalle de Cotización" />
+        <main className={styles.mainContainer}>
+          <Header title="Detalle de Cotización" />
 
-        {isOrdered && (
-          <div className={styles.infoBox}>
-            <div className={styles.infoIcon}>
-              <IconsApp.Check color="#22c55e" />
-            </div>
-            <div className={styles.infoContent}>
-              <p>Esta cotización ya tiene una orden generada.</p>
+          {/* <div className={styles.requestSelectorRow}>
+          <div className={styles.selectorItem}>
+            <IconsApp.Document color="#A1A1A1" />
+            <span>Solicitud {quote.request.documentId.slice(0, 5)}</span>
+            <IconsApp.DownArrow />
+          </div>
+          <span className={styles.quoteCount}>
+            1 Cotización
+          </span>
+        </div> */}
+
+          {/* <div className={styles.searchFilterRow}>
+          <div className={styles.searchLeft}>
+            <IconsApp.Search color="#1a1a3d" />
+            <div className={styles.searchBadge}>
+              <span>Menor precio</span>
+              <IconsApp.Close className={styles.closeSearch} />
             </div>
           </div>
-        )}
-
-        <div className={styles.quoteCard}>
-          <div className={styles.cardHeader}>
-            <span>Cotización {quote.quoteCode}</span>
-            <span>
-              {new Date(quote.createdAt).toLocaleDateString("es-ES", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </span>
+          <div className={styles.filterIcon}>
+            <IconsApp.History />
           </div>
+        </div> */}
 
-          <div className={styles.cardBody}>
-            <div className={styles.providerRow}>
-              <div className={styles.providerInfo}>
-                <div className={styles.toolIcon}>
-                  <IconsApp.Clock />
-                </div>
-                <span className={styles.providerName}>
-                  {quote.provider.businessName}
-                </span>
+          {isOrdered && (
+            <div className={styles.infoBox}>
+              <div className={styles.infoIcon}>
+                <IconsApp.Check color="#22c55e" />
+              </div>
+              <div className={styles.infoContent}>
+                <p>Esta cotización ya tiene una orden generada.</p>
               </div>
             </div>
+          )}
 
-            <div className={styles.partsList}>
-              {quote.items.map((item) => {
-                const isSelected = selectedItems.has(item.id);
-                return (
-                  <div
-                    key={item.id}
-                    className={`${styles.partItem} ${
-                      isSelected ? styles.itemActive : ""
-                    }`}
-                    onClick={() => !isOrdered && toggleItem(item.id)}
-                  >
-                    <div
-                      className={`${styles.checkbox} ${
-                        isSelected ? styles.checked : ""
-                      }`}
-                    >
-                      {isSelected && <IconsApp.Check color="white" />}
+          <div className={styles.quotesList}>
+            <div className={styles.quoteCard}>
+              <div className={styles.cardHeader}>
+                <span>Cotización {quote.quoteCode}</span>
+                <span>
+                  {new Date(quote.createdAt).toLocaleDateString("es-ES", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
+              </div>
+
+              <div className={styles.cardBody}>
+                <div className={styles.providerRow}>
+                  <div className={styles.providerInfo}>
+                    <div className={styles.toolIcon}>
+                      <IconsApp.Clock />
                     </div>
-                    <div className={styles.partContent}>
-                      <p className={styles.partName}>{item.productName}</p>
-                      <p className={styles.partSub}>
-                        {item.offeredBrand || "Original"}
-                      </p>
-                    </div>
-                    <span className={styles.partPrice}>
-                      <span className={styles.quantity}>x{item.quantity}</span>
-                      <span className={styles.unitPrice}>
-                        ${item.unitPrice.toFixed(0)} c/u
-                      </span>
-                      <span className={styles.totalPrice}>
-                        ${(item.unitPrice * item.quantity).toFixed(0)}
-                      </span>
+                    <span className={styles.providerName}>
+                      {quote.provider.businessName}
                     </span>
                   </div>
-                );
-              })}
-            </div>
+                </div>
 
-            <div className={styles.cardFooter}>
-              <span className={styles.deliveryTime}>
-                <IconsApp.GreenClock />
-                <span
-                  style={{
-                    color: "#419700",
-                    fontWeight: 600,
-                    fontSize: 13,
-                  }}
-                >
-                  {quote.deliveryTime}
-                </span>
-              </span>
-              <div className={styles.cardTotal}>
-                Total ${quote.priceTotal.toFixed(0)}
+                <p className={styles.partsCount}>
+                  {String(quote.items.length).padStart(2, "0")} de{" "}
+                  {String(quote.items.length).padStart(2, "0")} Repuestos
+                  solicitados
+                </p>
+
+                <div className={styles.partsList}>
+                  {quote.items.map((item) => {
+                    const isSelected = selectedItems.has(item.id);
+                    return (
+                      <div
+                        key={item.id}
+                        className={`${styles.partItem} ${
+                          isSelected ? styles.itemActive : ""
+                        }`}
+                        onClick={() => !isOrdered && toggleItem(item.id)}
+                      >
+                        <div
+                          className={`${styles.checkbox} ${
+                            isSelected ? styles.checked : ""
+                          }`}
+                        >
+                          {isSelected && <IconsApp.Check color="white" />}
+                        </div>
+                        <div className={styles.partContent}>
+                          <p className={styles.partName}>{item.productName}</p>
+                          <p className={styles.partSub}>
+                            {item.offeredBrand || "Original"}
+                          </p>
+                        </div>
+                        <span className={styles.partPrice}>
+                          <span className={styles.quantity}>
+                            x{item.quantity}
+                          </span>
+                          <span className={styles.unitPrice}>
+                            ${item.unitPrice.toFixed(0)} c/u
+                          </span>
+                          <span className={styles.totalPrice}>
+                            ${(item.unitPrice * item.quantity).toFixed(0)}
+                          </span>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className={styles.cardFooter}>
+                  <span className={styles.deliveryTime}>
+                    <IconsApp.GreenClock />
+                    <span
+                      style={{
+                        color: "#419700",
+                        fontWeight: 600,
+                        fontSize: 13,
+                      }}
+                    >
+                      {quote.deliveryTime}
+                    </span>
+                  </span>
+                  <div className={styles.cardTotal}>
+                    Total ${quote.priceTotal.toFixed(0)}
+                  </div>
+                </div>
+
+                {!isOrdered && (
+                  <>
+                    <div className={styles.buttonContainer}>
+                      <Button
+                        className={styles.btnAcceptCompleteOffer}
+                        onClick={selectAll}
+                      >
+                        Seleccionar todos
+                      </Button>
+                    </div>
+                    <div className={styles.selectionSummary}>
+                      <span>{selectedItems.size} Seleccionado</span>
+                      <span>${getSelectedTotal().toFixed(0)}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
+          </div>
 
+          <div className={styles.stickyFooter}>
+            {orderSuccess && (
+              <div className={styles.successMessage}>
+                Órden generada correctamente
+              </div>
+            )}
+            <p className={styles.footerCount}>
+              {isOrdered
+                ? `${quote.items.length} productos`
+                : `${selectedItems.size} productos`}
+            </p>
+            <div className={styles.footerActionRow}>
+              <div className={styles.totalFinal}>
+                Total <strong>${quote.priceTotal.toFixed(0)}</strong>
+              </div>
+              {isOrdered ? (
+                <Button
+                  className={styles.btnGenerar}
+                  onClick={() =>
+                    router.push(`/home/user/orders/${quote.request.documentId}`)
+                  }
+                >
+                  Ver orden
+                </Button>
+              ) : (
+                <Button
+                  className={styles.btnGenerar}
+                  onClick={handleGenerateOrder}
+                  disabled={isGenerating || selectedItems.size === 0}
+                >
+                  {isGenerating ? "Generando..." : "Generar orden"}
+                </Button>
+              )}
+            </div>
             {!isOrdered && (
-              <>
-                <div className={styles.buttonContainer}>
-                  <Button
-                    className={styles.btnAcceptCompleteOffer}
-                    onClick={selectAll}
-                  >
-                    Seleccionar todos
-                  </Button>
-                </div>
-                <div className={styles.selectionSummary}>
-                  <span>{selectedItems.size} Seleccionado</span>
-                  <span>${getSelectedTotal().toFixed(0)}</span>
-                </div>
-              </>
+              <p className={styles.footerSub}>Se generará 1 orden de compra</p>
             )}
           </div>
-        </div>
-
-        <div className={styles.stickyFooter}>
-          {orderSuccess && (
-            <div className={styles.successMessage}>
-              Órden generada correctamente
-            </div>
-          )}
-          <p className={styles.footerCount}>
-            {isOrdered ? `${quote.items.length} productos` : `${selectedItems.size} productos`}
-          </p>
-          <div className={styles.footerActionRow}>
-            <div className={styles.totalFinal}>
-              Total <strong>${quote.priceTotal.toFixed(0)}</strong>
-            </div>
-            {isOrdered ? (
-              <Button
-                className={styles.btnGenerar}
-                onClick={() => router.push(`/home/user/orders/${quote.request.documentId}`)}
-              >
-                Ver orden
-              </Button>
-            ) : (
-              <Button
-                className={styles.btnGenerar}
-                onClick={handleGenerateOrder}
-                disabled={isGenerating || selectedItems.size === 0}
-              >
-                {isGenerating ? "Generando..." : "Generar orden"}
-              </Button>
-            )}
-          </div>
-          {!isOrdered && (
-            <p className={styles.footerSub}>Se generará 1 orden de compra</p>
-          )}
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </PageAnimation>
   );
 };
 

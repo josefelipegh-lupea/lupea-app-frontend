@@ -386,7 +386,7 @@ function NewQuotePageContent() {
               <div className={styles.providerGrid}>
                 <div className={styles.infoGroup}>
                   <label>Nombre Completo</label>
-                  <p>-</p>
+                  <p>{request.request.client.displayName}</p>
                 </div>
                 <div className={styles.infoGroup}>
                   <label>Ubicación</label>

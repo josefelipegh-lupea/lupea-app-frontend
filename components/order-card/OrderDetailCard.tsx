@@ -9,6 +9,8 @@ interface OrderItem {
   brand: string;
   availability: string;
   price: number;
+  quantity: number;
+  subtotal: number;
 }
 
 interface OrderConditions {
@@ -32,6 +34,7 @@ interface OrderQuote {
 
 interface OrderClient {
   username: string;
+  fullName?: string;
   contact?: {
     email: string;
     phone: string;
@@ -50,6 +53,7 @@ interface CommonOrderData {
   conditions: OrderConditions;
   items: OrderItem[];
   client?: OrderClient;
+  customer?: OrderClient;
 }
 
 interface OrderDetailCardProps {
@@ -60,6 +64,10 @@ interface OrderDetailCardProps {
   onChatClick?: () => void;
   onCancelClick?: () => void;
   showExpandButton?: boolean;
+  clientData?: {
+    email: string;
+    phone: string;
+  } | null;
 }
 
 const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
@@ -70,6 +78,7 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
   onCancelClick,
   showExpandButton = true,
   isProvider = false,
+  clientData,
 }) => {
   const formatStatus = (
     status: string
@@ -180,7 +189,9 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
             {order.items.map((item) => (
               <li key={item.documentId} className={styles.itemRow}>
                 <div className={styles.itemMainInfo}>
-                  <p className={styles.itemName}>{item.productName}</p>
+                  <p className={styles.itemName}>
+                    {item.productName}
+                  </p>
                   <p className={styles.itemSubText}>
                     {item.brand}
                     {item.brand && item.availability && " • "}
@@ -188,8 +199,12 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
                   </p>
                 </div>
                 <div className={styles.itemPriceWrapper}>
+                  <span className={styles.itemQuantity}>x{item.quantity}</span>
+                  <span className={styles.itemUnitPrice}>
+                    ${item.price.toFixed(0)} c/u
+                  </span>
                   <span className={styles.itemPrice}>
-                    ${item.price.toFixed(0)}
+                    ${item.subtotal.toFixed(0)}
                   </span>
                 </div>
               </li>
@@ -228,24 +243,24 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
             {isProvider ? "Información del cliente" : "Información de contacto"}
           </h3>
           <div className={styles.contactContainer}>
-            {isProvider && order.client?.contact ? (
+            {isProvider && (clientData || order.client?.contact || order.customer?.contact) ? (
               <>
                 <ContactRow
                   icon={
                     <IconsApp.Email color="#BEBEBE" width="24" height="24" />
                   }
                   label="Correo electrónico"
-                  value={order.client.contact.email}
+                  value={clientData?.email || order.customer?.contact?.email || order.client?.contact?.email || ""}
                 />
                 <ContactRow
                   icon={<IconsApp.Phone />}
                   label="Teléfono"
-                  value={order.client.contact.phone}
+                  value={clientData?.phone || order.customer?.contact?.phone || order.client?.contact?.phone || ""}
                 />
                 <ContactRow
                   icon={<IconsApp.Pin width="24" height="24" color="#BEBEBE" />}
                   label="Dirección"
-                  value={order.client.contact.address}
+                  value={order.customer?.contact?.address || order.client?.contact?.address || ""}
                 />
               </>
             ) : (
@@ -275,7 +290,7 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
             <button className={styles.btnChat} onClick={onChatClick}>
               <IconsApp.ChatBlue /> Chat con{" "}
               {isProvider
-                ? order.client?.username || "Cliente"
+                ? order.customer?.fullName || order.customer?.username || order.client?.username || "Cliente"
                 : order.provider.businessName}
             </button>
           )}
