@@ -39,10 +39,6 @@ export const OrderCard: React.FC<OrderProps> = ({
               </h2>
             </div>
           </div>
-
-          <div className={`${styles.badge} ${styles[status.toLowerCase()]}`}>
-            {status}
-          </div>
         </div>
 
         <div className={styles.divider}></div>

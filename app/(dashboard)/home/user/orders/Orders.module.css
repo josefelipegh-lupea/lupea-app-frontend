@@ -284,8 +284,10 @@
 
 /* Línea vertical antes del precio */
 .itemPriceWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding-left: 10px;
-  min-width: 20px;
   text-align: right;
 }
 
@@ -293,6 +295,18 @@
   font-weight: 500;
   font-size: 16px;
   color: #1a1a3d;
+}
+
+.itemQuantity {
+  color: #f08400;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.itemUnitPrice {
+  display: block;
+  font-size: 12px;
+  color: #666;
 }
 
 /* Subtotal Section */

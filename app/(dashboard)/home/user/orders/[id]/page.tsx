@@ -8,6 +8,7 @@ import Header from "@/components/header/Header";
 import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
 import { getOrderById, OrderData } from "@/app/lib/api/client/home/order";
+import { getOrderChatAsClient } from "@/app/lib/api/client/chat";
 import { SkeletonOrders } from "@/components/skeleton/SkeletonOrders";
 import OrderDetailCard from "@/components/order-card/OrderDetailCard";
 
@@ -39,8 +40,16 @@ const OrderDetailPage: React.FC = () => {
     fetchOrder();
   }, [jwt, params.id]);
 
-  const handleChatClick = () => {
-    console.log("Open chat");
+  const handleChatClick = async () => {
+    if (!jwt || !order) return;
+    try {
+      const res = await getOrderChatAsClient(jwt, order.documentId);
+      if (res.ok) {
+        router.push(`/chat/user/${res.data.chat.documentId}`);
+      }
+    } catch (error) {
+      console.error("Error opening chat:", error);
+    }
   };
 
   const handleCancelClick = () => {

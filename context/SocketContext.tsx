@@ -12,6 +12,7 @@ import {
 import { io, Socket } from "socket.io-client";
 import toast from "react-hot-toast";
 import { useAuth } from "./AuthContext";
+import { getNotifications, ServerNotification, markNotificationsAsRead } from "@/app/lib/api/client/notification";
 
 type RefreshCallback = () => void;
 import { IconsApp } from "@/components/icons/Icons";
@@ -23,6 +24,36 @@ export interface Notification {
   message: string;
   data?: Record<string, unknown>;
   read: boolean;
+  createdAt: string;
+}
+
+export interface ChatMessage {
+  id: number;
+  documentId: string;
+  chatId?: number;
+  content: string;
+  senderType: "client" | "provider";
+  senderId: number;
+  senderName: string;
+  createdAt: string;
+  isRead: boolean;
+}
+
+export interface ChatParticipant {
+  id: number;
+  documentId: string;
+  name: string;
+  type: "client" | "provider";
+  avatar?: string;
+}
+
+export interface ChatOrder {
+  id: number;
+  documentId: string;
+  orderCode: string;
+  status: string;
+  total: number;
+  itemsCount: number;
   createdAt: string;
 }
 
@@ -62,6 +93,12 @@ interface SocketContextType {
   realtimeConfig: RealtimeConfig | null;
   onNotification: (
     callback: (notification: Notification) => void,
+  ) => () => void;
+  onNewChatMessage: (
+    callback: (message: ChatMessage) => void,
+  ) => () => void;
+  onChatRead: (
+    callback: (data: { chatId: number; messageId: number }) => void,
   ) => () => void;
 }
 
@@ -105,8 +142,34 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const notificationCallbacksRef = useRef<
     Set<(notification: Notification) => void>
   >(new Set());
+  const chatMessageCallbacksRef = useRef<
+    Set<(message: ChatMessage) => void>
+  >(new Set());
+  const chatReadCallbacksRef = useRef<
+    Set<(data: { chatId: number; messageId: number }) => void>
+  >(new Set());
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const onNewChatMessage = useCallback(
+    (callback: (message: ChatMessage) => void) => {
+      chatMessageCallbacksRef.current.add(callback);
+      return () => {
+        chatMessageCallbacksRef.current.delete(callback);
+      };
+    },
+    [],
+  );
+
+  const onChatRead = useCallback(
+    (callback: (data: { chatId: number; messageId: number }) => void) => {
+      chatReadCallbacksRef.current.add(callback);
+      return () => {
+        chatReadCallbacksRef.current.delete(callback);
+      };
+    },
+    [],
+  );
 
   const onNotification = useCallback(
     (callback: (notification: Notification) => void) => {
@@ -135,31 +198,78 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  const markAsRead = useCallback((id: string) => {
+  const markAsRead = useCallback(async (id: string) => {
     setNotifications((prev) => {
       const updated = prev.map((n) => (n.id === id ? { ...n, read: true } : n));
       localStorage.setItem("notifications", JSON.stringify(updated));
       return updated;
     });
-  }, []);
 
-  const markAllAsRead = useCallback(() => {
+    if (jwt) {
+      try {
+        await markNotificationsAsRead(jwt, { all: false, documentIds: [id] });
+      } catch (error) {
+        console.error("Error marking notification as read:", error);
+      }
+    }
+  }, [jwt]);
+
+  const markAllAsRead = useCallback(async () => {
     setNotifications((prev) => {
       const updated = prev.map((n) => ({ ...n, read: true }));
       localStorage.setItem("notifications", JSON.stringify(updated));
       return updated;
     });
-  }, []);
+
+    if (jwt) {
+      try {
+        await markNotificationsAsRead(jwt, { all: true });
+      } catch (error) {
+        console.error("Error marking all notifications as read:", error);
+      }
+    }
+  }, [jwt]);
 
   const clearNotifications = useCallback(() => {
     setNotifications([]);
     localStorage.removeItem("notifications");
   }, []);
 
+  const loadNotificationsFromServer = useCallback(async () => {
+    if (!jwt) return;
+    
+    try {
+      const res = await getNotifications(jwt, 50, null);
+      if (res.ok && res.data.notifications) {
+        const formattedNotifications: Notification[] = res.data.notifications.map(
+          (n: ServerNotification) => ({
+            id: n.documentId || n.id.toString(),
+            type: n.type,
+            title: n.title,
+            message: n.message,
+            data: n.data,
+            read: n.isRead,
+            createdAt: n.createdAt,
+          })
+        );
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setNotifications(formattedNotifications);
+        localStorage.setItem("notifications", JSON.stringify(formattedNotifications));
+      }
+    } catch (error) {
+      console.error("Error loading notifications from server:", error);
+    }
+  }, [jwt]);
+
   useEffect(() => {
     if (!jwt || !user) {
       return;
     }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTimeout(() => {
+      loadNotificationsFromServer();
+    }, 0);
 
     const API_URL =
       process.env.NEXT_PUBLIC_STRAPI_API_URL?.replace("/api", "") ||
@@ -237,12 +347,26 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       },
     );
 
+    newSocket.on("chat.message.new", (data: ChatMessage) => {
+      console.log("New chat message received:", data);
+      chatMessageCallbacksRef.current.forEach((callback) => {
+        callback(data);
+      });
+    });
+
+    newSocket.on("chat.message.read", (data: { chatId: number; messageId: number }) => {
+      console.log("Chat message read:", data);
+      chatReadCallbacksRef.current.forEach((callback) => {
+        callback(data);
+      });
+    });
+
     return () => {
       socketRef.current?.disconnect();
       socketRef.current = null;
       isConnectedRef.current = false;
     };
-  }, [jwt, user, addNotification]);
+  }, [jwt, user, addNotification, loadNotificationsFromServer]);
 
   return (
     <SocketContext.Provider
@@ -257,6 +381,8 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         clearNotifications,
         realtimeConfig,
         onNotification,
+        onNewChatMessage,
+        onChatRead,
       }}
     >
       {children}

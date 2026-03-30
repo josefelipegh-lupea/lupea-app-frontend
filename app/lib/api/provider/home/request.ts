@@ -122,12 +122,13 @@ export interface ProviderQuoteRequest {
     client: {
       id: number;
       username: string;
+      displayName: string;
     };
   };
 }
 
 export async function getProviderRequests(
-  jwt: string
+  jwt: string,
 ): Promise<ProviderQuoteRequestResponse> {
   try {
     const res = await fetch(`${API_URL}/quote-requests/provider/me`, {
@@ -142,7 +143,7 @@ export async function getProviderRequests(
 
     if (!res.ok) {
       throw new Error(
-        data.error?.message || "Error al obtener las solicitudes"
+        data.error?.message || "Error al obtener las solicitudes",
       );
     }
 
@@ -155,7 +156,7 @@ export async function getProviderRequests(
 
 export async function getProviderRequestById(
   jwt: string,
-  documentId: string
+  documentId: string,
 ): Promise<{ ok: boolean; data: ProviderQuoteRequest | null }> {
   try {
     const res = await fetch(
@@ -166,15 +167,13 @@ export async function getProviderRequestById(
           "Content-Type": "application/json",
           Authorization: `Bearer ${jwt}`,
         },
-      }
+      },
     );
 
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(
-        data.error?.message || "Error al obtener la solicitud"
-      );
+      throw new Error(data.error?.message || "Error al obtener la solicitud");
     }
 
     return data;
@@ -186,7 +185,7 @@ export async function getProviderRequestById(
 
 export async function getProviderRequestByNumericId(
   jwt: string,
-  numericId: number
+  numericId: number,
 ): Promise<{ ok: boolean; data: { id: number; documentId: string } | null }> {
   try {
     const res = await fetch(
@@ -197,7 +196,7 @@ export async function getProviderRequestByNumericId(
           "Content-Type": "application/json",
           Authorization: `Bearer ${jwt}`,
         },
-      }
+      },
     );
 
     const data = await res.json();
