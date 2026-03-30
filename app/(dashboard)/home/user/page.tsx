@@ -210,6 +210,7 @@ export default function HomePage() {
               documentId={data.request.documentId}
               quoteDocumentId={data.featuredQuote.documentId}
               hasOrders={hasOrders}
+              onViewQuote={(docId) => router.push(`/home/user/quotes/${docId}`)}
               onCompare={(docId) =>
                 router.push(`/home/user/request/${docId}/comparison`)
               }

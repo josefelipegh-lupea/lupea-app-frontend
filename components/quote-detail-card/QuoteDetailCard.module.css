@@ -328,3 +328,10 @@
   font-weight: 600;
   color: #065f46;
 }
+
+@media (min-width: 768px) {
+  .quoteCard {
+    box-shadow: none;
+    border: none;
+  }
+}

@@ -93,7 +93,7 @@ export default function ComparisonPage({ params }: PageProps) {
     return (
       quote?.products
         .filter((p) => selected.has(p.id))
-        .reduce((sum, p) => sum + p.price, 0) || 0
+        .reduce((sum, p) => sum + (p.price * p.quantity), 0) || 0
     );
   };
 

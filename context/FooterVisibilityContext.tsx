@@ -39,15 +39,17 @@ export function FooterVisibilityProvider({
 
   const value = useMemo(() => {
     const isRequestPage = pathname === "/home/user/request";
+    const isComparisonPage = pathname.includes("/comparison");
+    const isQuoteDetailPage = pathname.match(/^\/home\/user\/quotes\/[^/]+$/);
+    const isVendorQuoteDetailPage = pathname.match(/^\/home\/vendor\/quotes\/[^/]+$/);
     const isSendQuotePage = pathname.includes("/send-quote");
-    const isQuoteDetailPage = pathname.match(/^\/home\/vendor\/quotes\/[^/]+$/);
 
     if (isDesktop) {
       return { isFooterVisible: true };
     }
 
     return {
-      isFooterVisible: !isRequestPage && !isSendQuotePage && !isQuoteDetailPage,
+      isFooterVisible: !isRequestPage && !isComparisonPage && !isQuoteDetailPage && !isVendorQuoteDetailPage && !isSendQuotePage,
     };
   }, [pathname, isDesktop]);
 
