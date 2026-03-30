@@ -25,8 +25,10 @@ interface RequestProps {
   items: Item[];
   documentId?: string;
   onViewOffers?: (documentId: string) => void;
+  onViewQuote?: (documentId: string) => void;
   isProvider?: boolean;
   matchingSummary?: MatchingSummary;
+  status?: string;
 }
 
 export const RequestCard: React.FC<RequestProps> = ({
@@ -35,8 +37,10 @@ export const RequestCard: React.FC<RequestProps> = ({
   items,
   documentId,
   onViewOffers,
+  onViewQuote,
   isProvider = false,
   matchingSummary,
+  status,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [maxHeight, setMaxHeight] = useState("0px");
@@ -146,11 +150,19 @@ export const RequestCard: React.FC<RequestProps> = ({
         <div className={styles.actionsSingle}>
           <button
             className={styles.btnVerOfertas}
-            onClick={() => documentId && onViewOffers?.(documentId)}
+            onClick={() => {
+              if (status === "ordered" && onViewQuote) {
+                documentId && onViewQuote(documentId);
+              } else if (onViewOffers) {
+                documentId && onViewOffers(documentId);
+              }
+            }}
             disabled={!isProvider && matchingSummary?.total === 0}
           >
             {isProvider
               ? "Ver detalles de solicitud"
+              : status === "ordered"
+              ? "Ver cotización"
               : matchingSummary?.total === 0
               ? "Sin ofertas aún"
               : "Ver ofertas disponibles"}

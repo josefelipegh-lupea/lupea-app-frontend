@@ -15,6 +15,7 @@ import {
 } from "@/app/lib/api/client/home/quote";
 import {
   createOrdersFromComparison,
+  getQuoteOrder,
   SelectedItem,
 } from "@/app/lib/api/client/home/order";
 import { IconsApp } from "@/components/icons/Icons";
@@ -42,6 +43,15 @@ const QuoteDetailPage: React.FC = () => {
         const res = await getClientQuoteById(jwt, params.id as string);
         if (res.ok) {
           setQuote(res.data);
+          if (res.data.request.status === "ordered") {
+            const orderRes = await getQuoteOrder(jwt, res.data.documentId);
+            if (orderRes.ok && orderRes.data.order) {
+              const orderedItemIds = new Set(
+                orderRes.data.order.items.map((item) => item.quoteItemId)
+              );
+              setSelectedItems(orderedItemIds);
+            }
+          }
         }
       } catch (error) {
         console.error("Error loading quote:", error);
@@ -197,7 +207,7 @@ const QuoteDetailPage: React.FC = () => {
                     className={`${styles.partItem} ${
                       isSelected ? styles.itemActive : ""
                     }`}
-                    onClick={() => toggleItem(item.id)}
+                    onClick={() => !isOrdered && toggleItem(item.id)}
                   >
                     <div
                       className={`${styles.checkbox} ${
@@ -240,22 +250,26 @@ const QuoteDetailPage: React.FC = () => {
                 </span>
               </span>
               <div className={styles.cardTotal}>
-                Total ${getSelectedTotal().toFixed(0)}
+                Total ${quote.priceTotal.toFixed(0)}
               </div>
             </div>
 
-            <div className={styles.buttonContainer}>
-              <Button
-                className={styles.btnAcceptCompleteOffer}
-                onClick={selectAll}
-              >
-                Seleccionar todos
-              </Button>
-            </div>
-            <div className={styles.selectionSummary}>
-              <span>{selectedItems.size} Seleccionado</span>
-              <span>${getSelectedTotal().toFixed(0)}</span>
-            </div>
+            {!isOrdered && (
+              <>
+                <div className={styles.buttonContainer}>
+                  <Button
+                    className={styles.btnAcceptCompleteOffer}
+                    onClick={selectAll}
+                  >
+                    Seleccionar todos
+                  </Button>
+                </div>
+                <div className={styles.selectionSummary}>
+                  <span>{selectedItems.size} Seleccionado</span>
+                  <span>${getSelectedTotal().toFixed(0)}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -265,20 +279,33 @@ const QuoteDetailPage: React.FC = () => {
               Órden generada correctamente
             </div>
           )}
-          <p className={styles.footerCount}>{selectedItems.size} productos</p>
+          <p className={styles.footerCount}>
+            {isOrdered ? `${quote.items.length} productos` : `${selectedItems.size} productos`}
+          </p>
           <div className={styles.footerActionRow}>
             <div className={styles.totalFinal}>
-              Total <strong>${getSelectedTotal().toFixed(0)}</strong>
+              Total <strong>${quote.priceTotal.toFixed(0)}</strong>
             </div>
-            <Button
-              className={styles.btnGenerar}
-              onClick={handleGenerateOrder}
-              disabled={isGenerating || selectedItems.size === 0}
-            >
-              {isGenerating ? "Generando..." : "Generar orden"}
-            </Button>
+            {isOrdered ? (
+              <Button
+                className={styles.btnGenerar}
+                onClick={() => router.push(`/home/user/orders/${quote.request.documentId}`)}
+              >
+                Ver orden
+              </Button>
+            ) : (
+              <Button
+                className={styles.btnGenerar}
+                onClick={handleGenerateOrder}
+                disabled={isGenerating || selectedItems.size === 0}
+              >
+                {isGenerating ? "Generando..." : "Generar orden"}
+              </Button>
+            )}
           </div>
-          <p className={styles.footerSub}>Se generará 1 orden de compra</p>
+          {!isOrdered && (
+            <p className={styles.footerSub}>Se generará 1 orden de compra</p>
+          )}
         </div>
       </main>
     </div>

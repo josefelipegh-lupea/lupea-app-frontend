@@ -30,6 +30,12 @@ interface FeaturedQuoteData {
   featuredQuote: ClientQuote;
 }
 
+interface RequestWithQuote {
+  request: QuoteRequest;
+  status: string;
+  quoteDocumentId: string;
+}
+
 export default function HomePage() {
   const { jwt, profile, loginProfile, refreshLoginProfile } = useAuth();
   const { isExpanded } = useSidebar();
@@ -39,6 +45,7 @@ export default function HomePage() {
 
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [featuredQuotes, setFeaturedQuotes] = useState<FeaturedQuoteData[]>([]);
+  const [requestsWithQuotes, setRequestsWithQuotes] = useState<RequestWithQuote[]>([]);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
   const [newQuotesCount, setNewQuotesCount] = useState(0);
@@ -73,12 +80,12 @@ export default function HomePage() {
           );
           setNewQuotesCount(newQuotes);
 
-          const requestsWithQuotes = res.data.requests.filter(
+          const requestsWithQuotesList = res.data.requests.filter(
             (r) => r.quotesReceived > 0
           );
 
           const featuredData = await Promise.all(
-            requestsWithQuotes.slice(0, 3).map(async (request) => {
+            requestsWithQuotesList.slice(0, 3).map(async (request) => {
               const quotesRes = await getClientRequestQuotes(
                 jwt,
                 request.documentId
@@ -95,6 +102,27 @@ export default function HomePage() {
 
           setFeaturedQuotes(
             featuredData.filter((d) => d !== null) as FeaturedQuoteData[]
+          );
+
+          const requestsQuotesData = await Promise.all(
+            requestsWithQuotesList.slice(0, 3).map(async (request) => {
+              const quotesRes = await getClientRequestQuotes(
+                jwt,
+                request.documentId
+              );
+              if (quotesRes.ok && quotesRes.data.featuredQuote) {
+                return {
+                  request,
+                  status: quotesRes.data.featuredQuote.request.status,
+                  quoteDocumentId: quotesRes.data.featuredQuote.documentId,
+                };
+              }
+              return null;
+            })
+          );
+
+          setRequestsWithQuotes(
+            requestsQuotesData.filter((d) => d !== null) as RequestWithQuote[]
           );
         }
 
@@ -239,24 +267,33 @@ export default function HomePage() {
             <p className={styles.emptyText}>No tienes solicitudes activas.</p>
           );
 
-        return requests.slice(0, 3).map((req) => (
-          <RequestCard
-            key={req.documentId}
-            id={req.id.toString().padStart(5, "0")}
-            date={new Date(req.createdAt).toLocaleDateString("es-ES")}
-            items={req.items.map((item) => ({
-              name: item.productName,
-              model: `${req.vehicle.brand} ${req.vehicle.model}`,
-              type:
-                item.conditionPreferred === "no_importa"
-                  ? "Cualquiera"
-                  : item.conditionPreferred,
-            }))}
-            documentId={req.documentId}
-            matchingSummary={req.matchingSummary}
-            onViewOffers={(docId) => router.push(`/home/user/request/${docId}/quotes`)}
-          />
-        ));
+        return requests.slice(0, 3).map((req) => {
+          const quoteData = requestsWithQuotes.find(
+            (r) => r.request.documentId === req.documentId
+          );
+          const status = quoteData?.status;
+          const quoteDocId = quoteData?.quoteDocumentId;
+          return (
+            <RequestCard
+              key={req.documentId}
+              id={req.id.toString().padStart(5, "0")}
+              date={new Date(req.createdAt).toLocaleDateString("es-ES")}
+              items={req.items.map((item) => ({
+                name: item.productName,
+                model: `${req.vehicle.brand} ${req.vehicle.model}`,
+                type:
+                  item.conditionPreferred === "no_importa"
+                    ? "Cualquiera"
+                    : item.conditionPreferred,
+              }))}
+              documentId={req.documentId}
+              matchingSummary={req.matchingSummary}
+              status={status}
+              onViewOffers={(docId) => router.push(`/home/user/request/${docId}/quotes`)}
+              onViewQuote={(docId) => router.push(`/home/user/quotes/${quoteDocId}`)}
+            />
+          );
+        });
 
       case "ÓRDENES":
         if (loading)
