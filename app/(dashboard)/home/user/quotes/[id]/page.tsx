@@ -4,26 +4,34 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
-import styles from "./QuoteDetail.module.css";
+import styles from "../../request/[id]/comparison/Comparison.module.css";
 import Header from "@/components/header/Header";
 import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
-import { getClientQuoteById, ClientQuote } from "@/app/lib/api/client/home/quote";
+import { useFooterVisibility } from "@/context/FooterVisibilityContext";
+import {
+  getClientQuoteById,
+  ClientQuote,
+} from "@/app/lib/api/client/home/quote";
 import {
   createOrdersFromComparison,
   SelectedItem,
 } from "@/app/lib/api/client/home/order";
-import { SkeletonOrders } from "@/components/skeleton/SkeletonOrders";
-import QuoteDetailCard from "@/components/quote-detail-card/QuoteDetailCard";
+import { IconsApp } from "@/components/icons/Icons";
+import Button from "@/components/button/Button";
+import { SkeletonComparison } from "@/components/skeleton/SkeletonComparison";
 
 const QuoteDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const { jwt } = useAuth();
   const { isExpanded } = useSidebar();
+  const { isFooterVisible } = useFooterVisibility();
   const [quote, setQuote] = useState<ClientQuote | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [isGenerating, setIsGenerating] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
 
   useEffect(() => {
     const fetchQuote = async () => {
@@ -45,6 +53,61 @@ const QuoteDetailPage: React.FC = () => {
     fetchQuote();
   }, [jwt, params.id]);
 
+  const toggleItem = (productId: number) => {
+    setSelectedItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(productId)) {
+        newSet.delete(productId);
+      } else {
+        newSet.add(productId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAll = () => {
+    if (!quote) return;
+    setSelectedItems(new Set(quote.items.map((item) => item.id)));
+  };
+
+  const getSelectedTotal = (): number => {
+    if (!quote) return 0;
+    return quote.items
+      .filter((item) => selectedItems.has(item.id))
+      .reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  };
+
+  const handleGenerateOrder = async () => {
+    if (!jwt || !quote || selectedItems.size === 0) return;
+
+    setIsGenerating(true);
+    try {
+      const selectedItemsList: SelectedItem[] = Array.from(selectedItems).map(
+        (itemId) => ({
+          quoteItemId: itemId,
+        }),
+      );
+
+      const res = await createOrdersFromComparison(
+        jwt,
+        quote.request.documentId,
+        selectedItemsList,
+      );
+
+      if (res.ok && res.data.orders.length > 0) {
+        setOrderSuccess(true);
+        toast.success("Orden generada con éxito");
+        setTimeout(() => {
+          router.push(`/home/user/orders/${res.data.orders[0].documentId}`);
+        }, 1500);
+      }
+    } catch (error) {
+      toast.error("Error al generar la orden. Intenta de nuevo.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   if (loading) {
     return (
       <div
@@ -53,7 +116,9 @@ const QuoteDetailPage: React.FC = () => {
         }`}
       >
         <Header title="Detalle de Cotización" />
-        <SkeletonOrders />
+        <div className={styles.container}>
+          <SkeletonComparison />
+        </div>
       </div>
     );
   }
@@ -75,50 +140,146 @@ const QuoteDetailPage: React.FC = () => {
 
   const isOrdered = quote.request.status === "ordered";
 
-  const handleGenerateOrder = async () => {
-    if (!jwt || !quote) return;
-
-    setIsGenerating(true);
-    try {
-      const selectedItems: SelectedItem[] = quote.items.map((item) => ({
-        quoteItemId: item.id,
-      }));
-
-      const res = await createOrdersFromComparison(
-        jwt,
-        quote.request.documentId,
-        selectedItems
-      );
-
-      if (res.ok && res.data.orders.length > 0) {
-        toast.success("Orden generada con éxito");
-        setTimeout(() => {
-          router.push(`/home/user/orders/${res.data.orders[0].documentId}`);
-        }, 1500);
-      }
-    } catch (error) {
-      toast.error("Error al generar la orden. Intenta de nuevo.");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   return (
     <div
       className={`${styles.pageWrapper} ${
         !isExpanded ? styles.sidebarCollapsed : ""
       }`}
     >
-      <Header title="Detalle de Cotización" />
+      <main
+        className={`${styles.mainContainer} ${
+          !isFooterVisible ? styles.noFooter : ""
+        }`}
+      >
+        <Header title="Detalle de Cotización" />
 
-      <main className={styles.container}>
-        <QuoteDetailCard
-          quote={quote}
-          showActions={true}
-          isOrdered={isOrdered}
-          onGenerateOrder={handleGenerateOrder}
-          isGenerating={isGenerating}
-        />
+        {isOrdered && (
+          <div className={styles.infoBox}>
+            <div className={styles.infoIcon}>
+              <IconsApp.Check color="#22c55e" />
+            </div>
+            <div className={styles.infoContent}>
+              <p>Esta cotización ya tiene una orden generada.</p>
+            </div>
+          </div>
+        )}
+
+        <div className={styles.quoteCard}>
+          <div className={styles.cardHeader}>
+            <span>Cotización {quote.quoteCode}</span>
+            <span>
+              {new Date(quote.createdAt).toLocaleDateString("es-ES", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+
+          <div className={styles.cardBody}>
+            <div className={styles.providerRow}>
+              <div className={styles.providerInfo}>
+                <div className={styles.toolIcon}>
+                  <IconsApp.Clock />
+                </div>
+                <span className={styles.providerName}>
+                  {quote.provider.businessName}
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.partsList}>
+              {quote.items.map((item) => {
+                const isSelected = selectedItems.has(item.id);
+                return (
+                  <div
+                    key={item.id}
+                    className={`${styles.partItem} ${
+                      isSelected ? styles.itemActive : ""
+                    }`}
+                    onClick={() => toggleItem(item.id)}
+                  >
+                    <div
+                      className={`${styles.checkbox} ${
+                        isSelected ? styles.checked : ""
+                      }`}
+                    >
+                      {isSelected && <IconsApp.Check color="white" />}
+                    </div>
+                    <div className={styles.partContent}>
+                      <p className={styles.partName}>{item.productName}</p>
+                      <p className={styles.partSub}>
+                        {item.offeredBrand || "Original"}
+                      </p>
+                    </div>
+                    <span className={styles.partPrice}>
+                      <span className={styles.quantity}>x{item.quantity}</span>
+                      <span className={styles.unitPrice}>
+                        ${item.unitPrice.toFixed(0)} c/u
+                      </span>
+                      <span className={styles.totalPrice}>
+                        ${(item.unitPrice * item.quantity).toFixed(0)}
+                      </span>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className={styles.cardFooter}>
+              <span className={styles.deliveryTime}>
+                <IconsApp.GreenClock />
+                <span
+                  style={{
+                    color: "#419700",
+                    fontWeight: 600,
+                    fontSize: 13,
+                  }}
+                >
+                  {quote.deliveryTime}
+                </span>
+              </span>
+              <div className={styles.cardTotal}>
+                Total ${getSelectedTotal().toFixed(0)}
+              </div>
+            </div>
+
+            <div className={styles.buttonContainer}>
+              <Button
+                className={styles.btnAcceptCompleteOffer}
+                onClick={selectAll}
+              >
+                Seleccionar todos
+              </Button>
+            </div>
+            <div className={styles.selectionSummary}>
+              <span>{selectedItems.size} Seleccionado</span>
+              <span>${getSelectedTotal().toFixed(0)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.stickyFooter}>
+          {orderSuccess && (
+            <div className={styles.successMessage}>
+              Órden generada correctamente
+            </div>
+          )}
+          <p className={styles.footerCount}>{selectedItems.size} productos</p>
+          <div className={styles.footerActionRow}>
+            <div className={styles.totalFinal}>
+              Total <strong>${getSelectedTotal().toFixed(0)}</strong>
+            </div>
+            <Button
+              className={styles.btnGenerar}
+              onClick={handleGenerateOrder}
+              disabled={isGenerating || selectedItems.size === 0}
+            >
+              {isGenerating ? "Generando..." : "Generar orden"}
+            </Button>
+          </div>
+          <p className={styles.footerSub}>Se generará 1 orden de compra</p>
+        </div>
       </main>
     </div>
   );
