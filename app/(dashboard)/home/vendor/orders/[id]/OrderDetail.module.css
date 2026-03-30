@@ -4,7 +4,6 @@
 }
 
 .mainContainer {
-  background-color: #ffffff;
   min-height: 90dvh;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
@@ -27,7 +26,7 @@
     padding: 40px 0;
     margin-left: 230px;
     width: calc(100% - 230px);
-    background-color: #f2f2f2;
+    background-color: #ffffff;
     padding: 40px 0;
     display: flex;
     justify-content: center;
@@ -48,6 +47,7 @@
     border-radius: 50px;
     margin: 0 auto;
     box-shadow: 0;
+    background-color: #ffffff;
   }
 
   .tabs {

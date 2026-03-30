@@ -93,6 +93,9 @@ const RequestQuotesPage: React.FC = () => {
               onCompare={(docId) =>
                 router.push(`/home/user/request/${docId}/comparison`)
               }
+              onViewQuote={(quoteDocId) =>
+                router.push(`/home/user/quotes/${quoteDocId}`)
+              }
             />
           ))}
 
