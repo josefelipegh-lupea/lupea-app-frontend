@@ -331,7 +331,7 @@ const QuoteDetailPage: React.FC = () => {
                 <Button
                   className={styles.btnGenerar}
                   onClick={() =>
-                    router.push(`/home/user/orders/${quote.request.documentId}`)
+                    router.push(`/home/user/orders/${quote.orderDocumentId}`)
                   }
                 >
                   Ver orden

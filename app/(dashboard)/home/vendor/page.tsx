@@ -37,6 +37,7 @@ export default function HomePage() {
   const [quotes, setQuotes] = useState<ProviderQuote[]>([]);
   const [orders, setOrders] = useState<ProviderOrderData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
 
   const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
   const tokensTotal = loginProfile?.tokensTotal ?? 0;
@@ -70,6 +71,7 @@ export default function HomePage() {
         }
         if (ordersRes.ok) {
           setOrders(ordersRes.data.orders);
+          setNewOrdersCount(ordersRes.data.orders.filter((o: ProviderOrderData) => o.status === "active").length);
         }
       } catch (error) {
         console.error("Error loading data:", error);
@@ -83,22 +85,14 @@ export default function HomePage() {
 
   useEffect(() => {
     const unsubscribe = onNotification((notification) => {
-      if (
-        notification.type === "provider.request_assigned" ||
-        notification.type === "provider.order_generated"
-      ) {
+      if (notification.type === "provider.order_generated") {
         const fetchData = async () => {
           if (!jwt) return;
           try {
-            const [requestsRes, ordersRes] = await Promise.all([
-              getProviderRequests(jwt),
-              getProviderOrders(jwt),
-            ]);
-            if (requestsRes.ok) {
-              setRequests(requestsRes.data.requests);
-            }
+            const ordersRes = await getProviderOrders(jwt);
             if (ordersRes.ok) {
               setOrders(ordersRes.data.orders);
+              setNewOrdersCount(ordersRes.data.orders.filter((o: ProviderOrderData) => o.status === "active").length);
             }
             await refreshLoginProfile();
           } catch (error) {
@@ -195,6 +189,7 @@ export default function HomePage() {
                   ? "CANCELADA"
                   : "COMPLETADA") as "ACTIVA" | "CANCELADA" | "COMPLETADA"
               }
+              badge={o.status === "active" ? "Activa" : o.status === "cancelled" ? "Cancelada" : "Completada"}
               onViewOrder={(docId) =>
                 router.push(`/home/vendor/orders/${docId}`)
               }
@@ -327,6 +322,11 @@ export default function HomePage() {
               {activeTab === "SOLICITUDES" && requests.length > 0 && (
                 <span className={styles.badgeNuevas}>
                   {requests.length} Nuevas
+                </span>
+              )}
+              {activeTab === "ÓRDENES" && newOrdersCount > 0 && (
+                <span className={styles.badgeNuevas}>
+                  {newOrdersCount} Nuevas
                 </span>
               )}
             </div>

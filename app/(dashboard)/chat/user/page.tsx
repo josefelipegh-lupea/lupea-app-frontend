@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
-import {
-  getMyChatsAsClient,
-  ChatListItem,
-} from "@/app/lib/api/client/chat";
+import { getMyChatsAsClient, ChatListItem } from "@/app/lib/api/client/chat";
 import { PageAnimation } from "@/components/page-animation/PageAnimation";
 import styles from "../Chat.module.css";
 import Header from "@/components/header/Header";
@@ -109,9 +106,7 @@ const ChatListPage: React.FC = () => {
                 <div className={styles.emptyIcon}>
                   <IconsApp.Chat />
                 </div>
-                <p className={styles.emptyText}>
-                  No tienes conversaciones aún
-                </p>
+                <p className={styles.emptyText}>No tienes conversaciones aún</p>
               </div>
             ) : (
               <div className={styles.chatList}>
@@ -119,17 +114,15 @@ const ChatListPage: React.FC = () => {
                   <div
                     key={chat.id}
                     className={styles.chatItem}
-                    onClick={() =>
-                      router.push(`/chat/user/${chat.documentId}`)
-                    }
+                    onClick={() => router.push(`/chat/user/${chat.documentId}`)}
                   >
                     <div className={styles.avatar}>
-                      {getInitials(chat.participant.name)}
+                      {getInitials(chat.participants.provider.businessName)}
                     </div>
                     <div className={styles.chatInfo}>
                       <div className={styles.chatHeader}>
                         <span className={styles.chatName}>
-                          {chat.participant.name}
+                          {chat.participants.provider.businessName}
                         </span>
                         <span className={styles.chatTime}>
                           {formatTime(chat.lastMessageAt)}

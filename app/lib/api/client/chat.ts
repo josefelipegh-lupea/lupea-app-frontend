@@ -4,13 +4,27 @@ const API_URL =
 export interface ChatMessage {
   id: number;
   documentId: string;
-  chatId: number;
+  sender: {
+    id: number;
+    username: string;
+    role: "client" | "provider" | "system";
+  };
+  senderRole: "client" | "provider" | "system";
+  messageType: "text" | "image" | "file" | "payment_proof" | "system";
   content: string;
-  senderType: "client" | "provider";
-  senderId: number;
-  senderName: string;
+  status: "sent" | "delivered" | "read";
+  deliveredAt: string | null;
+  readAt: string | null;
   createdAt: string;
-  isRead: boolean;
+  updatedAt: string;
+  attachment: {
+    id: number;
+    documentId: string;
+    url: string;
+    name: string;
+    mime: string;
+    size: number;
+  } | null;
 }
 
 export interface ChatParticipant {
@@ -22,13 +36,15 @@ export interface ChatParticipant {
 }
 
 export interface ChatOrder {
-  id: number;
-  documentId: string;
-  orderCode: string;
-  status: string;
-  total: number;
-  itemsCount: number;
-  createdAt: string;
+  id: number | null;
+  documentId: string | null;
+  orderCode: string | null;
+  status: string | null;
+  subtotal: number | null;
+  chatEnabled: boolean;
+  contactInfoVisible: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 export interface ChatListItem {
@@ -38,8 +54,33 @@ export interface ChatListItem {
   lastMessageAt: string;
   lastMessagePreview: string;
   unreadCount: number;
-  participant: ChatParticipant;
   order: ChatOrder;
+  participants: {
+    customer: {
+      id: number;
+      username: string;
+      email: string | null;
+    };
+    provider: {
+      id: number;
+      documentId: string;
+      businessName: string;
+      username: string;
+      email: string | null;
+      contact: {
+        email: string;
+        phone: string;
+        address: string;
+      } | null;
+      location: {
+        id: number;
+        name: string;
+        state: string;
+        parish: string;
+        municipality: string;
+      } | null;
+    };
+  };
 }
 
 export interface SendMessageRequest {
@@ -51,6 +92,7 @@ export async function getMyChatsAsClient(
 ): Promise<{
   ok: boolean;
   data: {
+    total: number;
     chats: ChatListItem[];
   };
 }> {
@@ -82,13 +124,7 @@ export async function getOrderChatAsClient(
 ): Promise<{
   ok: boolean;
   data: {
-    chat: {
-      id: number;
-      documentId: string;
-      status: string;
-      order: ChatOrder;
-      participant: ChatParticipant;
-    };
+    chat: ChatListItem;
   };
 }> {
   try {
@@ -120,8 +156,9 @@ export async function getChatMessagesAsClient(
 ): Promise<{
   ok: boolean;
   data: {
+    chat: ChatListItem;
+    total: number;
     messages: ChatMessage[];
-    hasMore: boolean;
   };
 }> {
   try {
@@ -152,18 +189,25 @@ export async function sendMessageAsClient(
   content: string
 ): Promise<{
   ok: boolean;
+  message: string;
   data: {
+    chat: {
+      id: number;
+      lastMessagePreview: string;
+    };
     message: ChatMessage;
   };
 }> {
   try {
+    const formData = new FormData();
+    formData.append("content", content);
+
     const res = await fetch(`${API_URL}/chats/${chatId}/messages`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${jwt}`,
       },
-      body: JSON.stringify({ content }),
+      body: formData,
     });
 
     const data = await res.json();
@@ -175,6 +219,50 @@ export async function sendMessageAsClient(
     return data;
   } catch (error) {
     console.error("Fetch error in sendMessageAsClient:", error);
+    throw error;
+  }
+}
+
+export async function sendMessageWithAttachmentAsClient(
+  jwt: string,
+  chatId: string,
+  content: string,
+  file: File
+): Promise<{
+  ok: boolean;
+  message: string;
+  data: {
+    chat: {
+      id: number;
+      lastMessagePreview: string;
+    };
+    message: ChatMessage;
+  };
+}> {
+  try {
+    const formData = new FormData();
+    if (content.trim()) {
+      formData.append("content", content);
+    }
+    formData.append("attachment", file);
+
+    const res = await fetch(`${API_URL}/chats/${chatId}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error?.message || "Error al enviar el mensaje");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Fetch error in sendMessageWithAttachmentAsClient:", error);
     throw error;
   }
 }

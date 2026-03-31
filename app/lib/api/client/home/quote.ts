@@ -112,6 +112,8 @@ export interface ClientQuote {
   noteGeneral: string | null;
   createdAt: string;
   updatedAt: string;
+  orderId?: number;
+  orderDocumentId?: string;
   provider: {
     id: number;
     documentId: string;

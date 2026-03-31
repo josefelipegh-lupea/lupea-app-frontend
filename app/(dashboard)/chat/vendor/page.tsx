@@ -109,9 +109,7 @@ const ChatListPage: React.FC = () => {
                 <div className={styles.emptyIcon}>
                   <IconsApp.Chat />
                 </div>
-                <p className={styles.emptyText}>
-                  No tienes conversaciones aún
-                </p>
+                <p className={styles.emptyText}>No tienes conversaciones aún</p>
               </div>
             ) : (
               <div className={styles.chatList}>
@@ -124,12 +122,12 @@ const ChatListPage: React.FC = () => {
                     }
                   >
                     <div className={styles.avatar}>
-                      {getInitials(chat.participant.name)}
+                      {getInitials(chat.participants.customer.username)}
                     </div>
                     <div className={styles.chatInfo}>
                       <div className={styles.chatHeader}>
                         <span className={styles.chatName}>
-                          {chat.participant.name}
+                          {chat.participants.customer.username}
                         </span>
                         <span className={styles.chatTime}>
                           {formatTime(chat.lastMessageAt)}
