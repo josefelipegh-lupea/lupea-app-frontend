@@ -7,13 +7,39 @@ import { usePathname } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import { useSocket } from "@/context/SocketContext";
 import { useAuth } from "@/context/AuthContext";
+import { useEffect } from "react";
+import { getMyChatsAsClient } from "@/app/lib/api/client/chat";
+import { getMyChatsAsProvider } from "@/app/lib/api/provider/chat";
 
 export const Footer = () => {
   const pathname = usePathname();
   const { role } = useAuth();
   const userRole = role === "provider" ? "vendor" : "user";
   const { isExpanded, toggleSidebar } = useSidebar();
-  const { unreadCount } = useSocket();
+  const { unreadCount, chatUnreadCount, updateChatUnreadCount } = useSocket();
+  const { jwt } = useAuth();
+
+  console.log("Footer render - chatUnreadCount:", chatUnreadCount);
+
+  useEffect(() => {
+    const loadChatUnreadCount = async () => {
+      if (!jwt) return;
+      try {
+        const res = role === "provider" 
+          ? await getMyChatsAsProvider(jwt)
+          : await getMyChatsAsClient(jwt);
+        
+        if (res.ok) {
+          const totalUnread = res.data.chats.reduce((sum, chat) => sum + chat.unreadCount, 0);
+          updateChatUnreadCount(totalUnread);
+        }
+      } catch (error) {
+        console.error("Error loading chat unread count:", error);
+      }
+    };
+
+    loadChatUnreadCount();
+  }, [jwt, role, updateChatUnreadCount]);
 
   const tabs = [
     {
@@ -29,7 +55,13 @@ export const Footer = () => {
       label: "Notificaciones",
       showBadge: unreadCount > 0 && !pathname.startsWith(`/notifications/${userRole}`),
     },
-    { id: "chat", Icon: IconsApp.Chat, path: `/chat/${userRole}`, label: "Chat" },
+    { 
+      id: "chat", 
+      Icon: IconsApp.Chat, 
+      path: `/chat/${userRole}`, 
+      label: "Chat",
+      showBadge: chatUnreadCount > 0 && !pathname.startsWith(`/chat/${userRole}`),
+    },
     {
       id: "user",
       Icon: IconsApp.User,

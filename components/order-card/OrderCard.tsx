@@ -10,6 +10,7 @@ interface OrderProps {
   title: string;
   cantidadRepuestos: number;
   status: "ACTIVA" | "COMPLETADA" | "CANCELADA";
+  badge?: string;
   onViewOrder?: (documentId: string) => void;
 }
 
@@ -19,9 +20,23 @@ export const OrderCard: React.FC<OrderProps> = ({
   title,
   cantidadRepuestos,
   status,
+  badge,
   onViewOrder,
 }) => {
   const formatNumber = (num: number) => (num < 10 ? `0${num}` : num);
+
+  const getStatusClass = () => {
+    switch (status) {
+      case "ACTIVA":
+        return styles.activa;
+      case "COMPLETADA":
+        return styles.completada;
+      case "CANCELADA":
+        return styles.cancelada;
+      default:
+        return "";
+    }
+  };
 
   return (
     <div className={styles.card}>
@@ -39,6 +54,12 @@ export const OrderCard: React.FC<OrderProps> = ({
               </h2>
             </div>
           </div>
+
+          {badge && (
+            <span className={`${styles.badge} ${getStatusClass()}`}>
+              {badge}
+            </span>
+          )}
         </div>
 
         <div className={styles.divider}></div>

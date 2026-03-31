@@ -9,6 +9,7 @@ import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
 import { getOrderById, OrderData } from "@/app/lib/api/client/home/order";
 import { getOrderChatAsClient } from "@/app/lib/api/client/chat";
+import { getOrderReview } from "@/app/lib/api/provider/review";
 import { SkeletonOrders } from "@/components/skeleton/SkeletonOrders";
 import OrderDetailCard from "@/components/order-card/OrderDetailCard";
 
@@ -19,6 +20,7 @@ const OrderDetailPage: React.FC = () => {
   const { isExpanded } = useSidebar();
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasReview, setHasReview] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -29,6 +31,14 @@ const OrderDetailPage: React.FC = () => {
         const res = await getOrderById(jwt, params.id as string);
         if (res.ok) {
           setOrder(res.data.order);
+          
+          console.log("Order status:", res.data.order.status, "orderId:", params.id, "order.id:", res.data.order.id);
+          
+          if (res.data.order.status === "completed") {
+            const reviewRes = await getOrderReview(jwt, res.data.order.id.toString());
+            console.log("Review check:", reviewRes);
+            setHasReview(reviewRes.ok && !!reviewRes.data?.review);
+          }
         }
       } catch (error) {
         console.error("Error loading order:", error);
@@ -54,6 +64,12 @@ const OrderDetailPage: React.FC = () => {
 
   const handleCancelClick = () => {
     console.log("Cancel order");
+  };
+
+  const handleReviewClick = () => {
+    if (order) {
+      router.push(`/home/user/orders/${order.id}/review`);
+    }
   };
 
   if (loading) {
@@ -115,6 +131,9 @@ const OrderDetailPage: React.FC = () => {
             showExpandButton={false}
             onChatClick={handleChatClick}
             onCancelClick={handleCancelClick}
+            onReviewClick={handleReviewClick}
+            showReviewButton={order.status === "completed" && !hasReview}
+            showCancelButton={order.status !== "completed"}
           />
         </div>
       </main>

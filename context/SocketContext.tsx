@@ -86,6 +86,8 @@ interface SocketContextType {
   isConnected: boolean;
   notifications: Notification[];
   unreadCount: number;
+  chatUnreadCount: number;
+  onlineParticipants: Record<number, Set<number>>;
   addNotification: (notification: Notification) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
@@ -98,8 +100,17 @@ interface SocketContextType {
     callback: (message: ChatMessage) => void,
   ) => () => void;
   onChatRead: (
-    callback: (data: { chatId: number; messageId: number }) => void,
+    callback: (data: { chatId: number; readMessageIds: number[]; readAt: string; readBy: string }) => void,
   ) => () => void;
+  onParticipantJoined: (
+    callback: (data: { chatId: number; userId: number; role: string }) => void,
+  ) => () => void;
+  onParticipantLeft: (
+    callback: (data: { chatId: number; userId: number; role: string }) => void,
+  ) => () => void;
+  joinChat: (chatId: number) => void;
+  leaveChat: (chatId: number) => void;
+  updateChatUnreadCount: (count: number) => void;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -117,9 +128,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const [realtimeConfig, setRealtimeConfig] = useState<RealtimeConfig | null>(
     null,
   );
+  const [onlineParticipants, setOnlineParticipants] = useState<Record<number, Set<number>>>({});
 
   useEffect(() => {
     if (typeof window !== "undefined" && user) {
@@ -146,7 +159,13 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     Set<(message: ChatMessage) => void>
   >(new Set());
   const chatReadCallbacksRef = useRef<
-    Set<(data: { chatId: number; messageId: number }) => void>
+    Set<(data: { chatId: number; readMessageIds: number[]; readAt: string; readBy: string }) => void>
+  >(new Set());
+  const participantJoinedCallbacksRef = useRef<
+    Set<(data: { chatId: number; userId: number; role: string }) => void>
+  >(new Set());
+  const participantLeftCallbacksRef = useRef<
+    Set<(data: { chatId: number; userId: number; role: string }) => void>
   >(new Set());
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -162,10 +181,30 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const onChatRead = useCallback(
-    (callback: (data: { chatId: number; messageId: number }) => void) => {
+    (callback: (data: { chatId: number; readMessageIds: number[]; readAt: string; readBy: string }) => void) => {
       chatReadCallbacksRef.current.add(callback);
       return () => {
         chatReadCallbacksRef.current.delete(callback);
+      };
+    },
+    [],
+  );
+
+  const onParticipantJoined = useCallback(
+    (callback: (data: { chatId: number; userId: number; role: string }) => void) => {
+      participantJoinedCallbacksRef.current.add(callback);
+      return () => {
+        participantJoinedCallbacksRef.current.delete(callback);
+      };
+    },
+    [],
+  );
+
+  const onParticipantLeft = useCallback(
+    (callback: (data: { chatId: number; userId: number; role: string }) => void) => {
+      participantLeftCallbacksRef.current.add(callback);
+      return () => {
+        participantLeftCallbacksRef.current.delete(callback);
       };
     },
     [],
@@ -347,16 +386,48 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       },
     );
 
-    newSocket.on("chat.message.new", (data: ChatMessage) => {
+    newSocket.on("chat.message.new", (data: { chatId: number; orderId: number; message: ChatMessage }) => {
       console.log("New chat message received:", data);
+      const messageWithChatId = { ...data.message, chatId: data.chatId };
       chatMessageCallbacksRef.current.forEach((callback) => {
+        callback(messageWithChatId);
+      });
+      setChatUnreadCount((prev) => prev + 1);
+    });
+
+    newSocket.on("chat.message.read", (data: { chatId: number; readMessageIds: number[]; readAt: string; readBy: string }) => {
+      console.log("Chat message read:", data);
+      chatReadCallbacksRef.current.forEach((callback) => {
+        callback(data);
+      });
+      if (data.readMessageIds?.length > 0) {
+        setChatUnreadCount((prev) => Math.max(0, prev - data.readMessageIds.length));
+      }
+    });
+
+    newSocket.on("chat.joined", (data: { chatId: number; userId: number; role: string }) => {
+      console.log("Participant joined:", data);
+      setOnlineParticipants((prev) => {
+        const chatParticipants = prev[data.chatId] || new Set<number>();
+        const updated = new Set(chatParticipants);
+        updated.add(data.userId);
+        return { ...prev, [data.chatId]: updated };
+      });
+      participantJoinedCallbacksRef.current.forEach((callback) => {
         callback(data);
       });
     });
 
-    newSocket.on("chat.message.read", (data: { chatId: number; messageId: number }) => {
-      console.log("Chat message read:", data);
-      chatReadCallbacksRef.current.forEach((callback) => {
+    newSocket.on("chat.left", (data: { chatId: number; userId: number; role: string }) => {
+      console.log("Participant left:", data);
+      setOnlineParticipants((prev) => {
+        const chatParticipants = prev[data.chatId];
+        if (!chatParticipants) return prev;
+        const updated = new Set(chatParticipants);
+        updated.delete(data.userId);
+        return { ...prev, [data.chatId]: updated };
+      });
+      participantLeftCallbacksRef.current.forEach((callback) => {
         callback(data);
       });
     });
@@ -368,6 +439,22 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [jwt, user, addNotification, loadNotificationsFromServer]);
 
+  const joinChat = useCallback((chatId: number) => {
+    if (socketRef.current && isConnectedRef.current) {
+      socketRef.current.emit("chat.join", { chatId });
+    }
+  }, []);
+
+  const leaveChat = useCallback((chatId: number) => {
+    if (socketRef.current && isConnectedRef.current) {
+      socketRef.current.emit("chat.leave", { chatId });
+    }
+  }, []);
+
+  const updateChatUnreadCount = useCallback((count: number) => {
+    setChatUnreadCount(count);
+  }, []);
+
   return (
     <SocketContext.Provider
       value={{
@@ -375,6 +462,8 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         isConnected,
         notifications,
         unreadCount,
+        chatUnreadCount,
+        onlineParticipants,
         addNotification,
         markAsRead,
         markAllAsRead,
@@ -383,6 +472,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         onNotification,
         onNewChatMessage,
         onChatRead,
+        onParticipantJoined,
+        onParticipantLeft,
+        joinChat,
+        leaveChat,
+        updateChatUnreadCount,
       }}
     >
       {children}

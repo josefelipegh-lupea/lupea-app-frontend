@@ -316,6 +316,7 @@ export default function HomePage() {
                   ? "CANCELADA"
                   : "COMPLETADA") as "ACTIVA" | "CANCELADA" | "COMPLETADA"
               }
+              badge={o.status === "active" ? "Activa" : o.status === "cancelled" ? "Cancelada" : "Completada"}
               onViewOrder={(docId) => router.push(`/home/user/orders/${docId}`)}
             />
           ));

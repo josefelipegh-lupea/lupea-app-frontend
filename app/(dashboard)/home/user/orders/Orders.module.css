@@ -178,6 +178,26 @@
   letter-spacing: 0.5px;
 }
 
+.badgeCompleted {
+  background: #fff4e6;
+  color: #ff9800;
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.badgeCancelled {
+  background: #fdeded;
+  color: #f44336;
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
 .dateText {
   font-weight: 600;
   font-size: 15px;
@@ -440,6 +460,24 @@
   color: #ef4444;
   font-weight: 500;
   font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.btnReview {
+  width: 100%;
+  background-color: #fef3c7;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 14px;
+  color: #b45309;
+  font-weight: 500;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
   cursor: pointer;
 }
 

@@ -63,7 +63,10 @@ interface OrderDetailCardProps {
   onToggle?: () => void;
   onChatClick?: () => void;
   onCancelClick?: () => void;
+  onReviewClick?: () => void;
   showExpandButton?: boolean;
+  showReviewButton?: boolean;
+  showCancelButton?: boolean;
   clientData?: {
     email: string;
     phone: string;
@@ -76,12 +79,15 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
   onToggle,
   onChatClick,
   onCancelClick,
+  onReviewClick,
   showExpandButton = true,
+  showReviewButton = false,
+  showCancelButton = true,
   isProvider = false,
   clientData,
 }) => {
   const formatStatus = (
-    status: string
+    status: string,
   ): "ACTIVA" | "CANCELADA" | "COMPLETADA" => {
     switch (status) {
       case "active":
@@ -146,7 +152,15 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
         </div>
 
         <div className={styles.infoRow}>
-          <span className={styles.badgeActive}>
+          <span
+            className={
+              order.status === "active"
+                ? styles.badgeActive
+                : order.status === "completed"
+                  ? styles.badgeCompleted
+                  : styles.badgeCancelled
+            }
+          >
             {formatStatus(order.status)}
           </span>
           <span className={styles.itemCountText}>
@@ -189,9 +203,7 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
             {order.items.map((item) => (
               <li key={item.documentId} className={styles.itemRow}>
                 <div className={styles.itemMainInfo}>
-                  <p className={styles.itemName}>
-                    {item.productName}
-                  </p>
+                  <p className={styles.itemName}>{item.productName}</p>
                   <p className={styles.itemSubText}>
                     {item.brand}
                     {item.brand && item.availability && " • "}
@@ -243,24 +255,39 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
             {isProvider ? "Información del cliente" : "Información de contacto"}
           </h3>
           <div className={styles.contactContainer}>
-            {isProvider && (clientData || order.client?.contact || order.customer?.contact) ? (
+            {isProvider &&
+            (clientData || order.client?.contact || order.customer?.contact) ? (
               <>
                 <ContactRow
                   icon={
                     <IconsApp.Email color="#BEBEBE" width="24" height="24" />
                   }
                   label="Correo electrónico"
-                  value={clientData?.email || order.customer?.contact?.email || order.client?.contact?.email || ""}
+                  value={
+                    clientData?.email ||
+                    order.customer?.contact?.email ||
+                    order.client?.contact?.email ||
+                    ""
+                  }
                 />
                 <ContactRow
                   icon={<IconsApp.Phone />}
                   label="Teléfono"
-                  value={clientData?.phone || order.customer?.contact?.phone || order.client?.contact?.phone || ""}
+                  value={
+                    clientData?.phone ||
+                    order.customer?.contact?.phone ||
+                    order.client?.contact?.phone ||
+                    ""
+                  }
                 />
                 <ContactRow
                   icon={<IconsApp.Pin width="24" height="24" color="#BEBEBE" />}
                   label="Dirección"
-                  value={order.customer?.contact?.address || order.client?.contact?.address || ""}
+                  value={
+                    order.customer?.contact?.address ||
+                    order.client?.contact?.address ||
+                    ""
+                  }
                 />
               </>
             ) : (
@@ -290,13 +317,21 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
             <button className={styles.btnChat} onClick={onChatClick}>
               <IconsApp.ChatBlue /> Chat con{" "}
               {isProvider
-                ? order.customer?.fullName || order.customer?.username || order.client?.username || "Cliente"
+                ? order.customer?.fullName ||
+                  order.customer?.username ||
+                  order.client?.username ||
+                  "Cliente"
                 : order.provider.businessName}
             </button>
           )}
-          {!isProvider && onCancelClick && (
+          {!isProvider && onCancelClick && showCancelButton && (
             <button className={styles.btnCancel} onClick={onCancelClick}>
               Cancelar orden
+            </button>
+          )}
+          {!isProvider && showReviewButton && onReviewClick && (
+            <button className={styles.btnReview} onClick={onReviewClick}>
+              <IconsApp.StarFilled /> Calificar
             </button>
           )}
         </div>
