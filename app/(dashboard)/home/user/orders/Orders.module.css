@@ -178,6 +178,16 @@
   letter-spacing: 0.5px;
 }
 
+.badgePaymentPending {
+  background: #fff3e0;
+  color: #f57c00;
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
 .badgeCompleted {
   background: #fff4e6;
   color: #ff9800;

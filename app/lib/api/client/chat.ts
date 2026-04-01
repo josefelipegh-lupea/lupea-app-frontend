@@ -296,23 +296,30 @@ export async function markChatAsReadAsClient(
 
 export async function notifyClientPayment(
   jwt: string,
-  orderId: string
+  orderId: string,
+  content?: string,
+  proofFile?: File
 ): Promise<{
   ok: boolean;
   message: string;
 }> {
   try {
+    const formData = new FormData();
+    if (content?.trim()) {
+      formData.append("content", content.trim());
+    }
+    if (proofFile) {
+      formData.append("attachment", proofFile);
+    }
+
     const res = await fetch(
       `${API_URL}/orders/client/me/${orderId}/notify-payment`,
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${jwt}`,
         },
-        body: JSON.stringify({
-          content: "Adjunto comprobante de pago para validación",
-        }),
+        body: formData,
       }
     );
 

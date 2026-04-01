@@ -29,7 +29,14 @@ export default function ConversationPage({ params }: PageProps) {
   const router = useRouter();
   const { jwt, role } = useAuth();
   const { isExpanded } = useSidebar();
-  const { onNewChatMessage, onParticipantJoined, onParticipantLeft, joinChat, leaveChat, onlineParticipants } = useSocket();
+  const {
+    onNewChatMessage,
+    onParticipantJoined,
+    onParticipantLeft,
+    joinChat,
+    leaveChat,
+    onlineParticipants,
+  } = useSocket();
 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -90,14 +97,12 @@ export default function ConversationPage({ params }: PageProps) {
 
   useEffect(() => {
     const unsubscribe = onNewChatMessage((message) => {
-      console.log("=== New message received ===");
+      console.log("=== New message received ===", message);
       console.log("message.chatId:", message.chatId);
       console.log("chatId (from params):", chatId);
-      console.log("chatId type:", typeof chatId);
 
       const targetChatId =
         typeof chatId === "string" ? parseInt(chatId, 10) : Number(chatId);
-      console.log("targetChatId:", targetChatId, "isNaN:", isNaN(targetChatId));
 
       if (message.chatId && message.chatId === targetChatId) {
         console.log("✅ Adding message to state");
@@ -115,7 +120,7 @@ export default function ConversationPage({ params }: PageProps) {
 
   useEffect(() => {
     const numericChatId = parseInt(chatId, 10);
-    
+
     const checkProviderOnline = () => {
       const participants = onlineParticipants[numericChatId];
       if (participants && chat?.participants?.provider) {
@@ -123,26 +128,32 @@ export default function ConversationPage({ params }: PageProps) {
         setProviderOnline(isOnline);
       }
     };
-    
+
     checkProviderOnline();
-    
+
     const unsubJoined = onParticipantJoined((data) => {
       if (data.chatId === numericChatId && data.role === "provider") {
         setProviderOnline(true);
       }
     });
-    
+
     const unsubLeft = onParticipantLeft((data) => {
       if (data.chatId === numericChatId && data.role === "provider") {
         setProviderOnline(false);
       }
     });
-    
+
     return () => {
       unsubJoined();
       unsubLeft();
     };
-  }, [chatId, onlineParticipants, onParticipantJoined, onParticipantLeft, chat]);
+  }, [
+    chatId,
+    onlineParticipants,
+    onParticipantJoined,
+    onParticipantLeft,
+    chat,
+  ]);
 
   const handleNotifyPayment = async () => {
     if (
@@ -156,20 +167,27 @@ export default function ConversationPage({ params }: PageProps) {
 
     setNotifyingPayment(true);
     try {
-      const res = await notifyClientPayment(jwt, order.id.toString());
+      const res = await notifyClientPayment(
+        jwt,
+        order.id.toString(),
+        "Adjunto comprobante de pago para validación",
+        selectedFile || undefined,
+      );
+
       if (res.ok) {
         toast.success("Pago notificado al proveedor");
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       }
-    } catch (error) {
-      toast.error("Error al notificar el pago");
-      console.error("Error notifying payment:", error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message || "Error al notificar pago");
+      }
     } finally {
       setNotifyingPayment(false);
     }
-  };
-
-  const handleFileSelect = () => {
-    fileInputRef.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,32 +198,15 @@ export default function ConversationPage({ params }: PageProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!jwt || sending || chatStatus !== "active") return;
+    if (!jwt || sending || chatStatus !== "active" || !newMessage.trim())
+      return;
 
     setSending(true);
     try {
-      let res;
-      if (selectedFile) {
-        res = await sendMessageWithAttachmentAsClient(
-          jwt,
-          chatId,
-          newMessage.trim(),
-          selectedFile,
-        );
-      } else if (newMessage.trim()) {
-        res = await sendMessageAsClient(jwt, chatId, newMessage.trim());
-      } else {
-        setSending(false);
-        return;
-      }
-
+      const res = await sendMessageAsClient(jwt, chatId, newMessage.trim());
       if (res.ok) {
         setMessages((prev) => [...prev, res.data.message]);
         setNewMessage("");
-        setSelectedFile(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
       }
     } catch (error) {
       toast.error("Error al enviar mensaje");
@@ -327,17 +328,49 @@ export default function ConversationPage({ params }: PageProps) {
               <div className={styles.notifyPaymentInfo}>
                 <IconsApp.Camera color="#f08100" />
                 <span>
-                  ¿Ya pagaste? Envía el comprobante para que el proveedor
-                  valide.
+                  ¿Ya pagaste? Adjunta el comprobante y Notifica el pago para
+                  que el proveedor valide.
                 </span>
               </div>
-              <button
-                className={styles.notifyPaymentButton}
-                onClick={handleNotifyPayment}
-                disabled={notifyingPayment}
-              >
-                {notifyingPayment ? "Notificando..." : "Notificar pago"}
-              </button>
+              <div className={styles.paymentActionsRow}>
+                <div className={styles.attachPaymentContainer}>
+                  <div className={styles.attachPaymentInner}>
+                    <div className={styles.attachPaymentIcon}>
+                      {selectedFile ? (
+                        <IconsApp.Document color="#f08100" />
+                      ) : (
+                        <IconsApp.Plus color="#f08100" />
+                      )}
+                    </div>
+                    <span
+                      className={
+                        selectedFile
+                          ? styles.attachPaymentFileName
+                          : styles.attachPaymentPlaceholder
+                      }
+                    >
+                      {selectedFile ? selectedFile.name : "Comprobante de pago"}
+                    </span>
+                  </div>
+                  <label className={styles.attachPaymentBtn}>
+                    {selectedFile ? "CAMBIAR" : "SUBIR"}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      accept="image/*,.pdf,.doc,.docx"
+                      style={{ display: "none" }}
+                    />
+                  </label>
+                </div>
+                <button
+                  className={styles.notifyPaymentButton}
+                  onClick={handleNotifyPayment}
+                  disabled={notifyingPayment}
+                >
+                  {notifyingPayment ? "Notificando..." : "Notificar pago"}
+                </button>
+              </div>
             </div>
           )}
 
@@ -363,6 +396,20 @@ export default function ConversationPage({ params }: PageProps) {
                     >
                       <div className={styles.messageBubble}>
                         {message.content}
+                        {message.messageType === "payment_proof" &&
+                          message.attachment && (
+                            <div className={styles.attachment}>
+                              <IconsApp.Document color="#f08100" />
+                              <a
+                                href={message.attachment.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.attachmentLink}
+                              >
+                                Ver comprobante
+                              </a>
+                            </div>
+                          )}
                       </div>
                       <div className={styles.messageTime}>
                         {formatTime(message.createdAt)}
@@ -376,47 +423,14 @@ export default function ConversationPage({ params }: PageProps) {
           </div>
 
           <div className={styles.inputContainer}>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*,.pdf,.doc,.docx"
-              style={{ display: "none" }}
-            />
-            <button
-              type="button"
-              className={styles.attachButton}
-              onClick={handleFileSelect}
-              disabled={chatStatus !== "active"}
-            >
-              <IconsApp.Plus color="#f08100" />
-            </button>
             <div className={styles.inputWrapper}>
-              {selectedFile && (
-                <div className={styles.selectedFile}>
-                  <IconsApp.Document color="#f08100" />
-                  <span className={styles.fileName}>{selectedFile.name}</span>
-                  <button
-                    type="button"
-                    className={styles.removeFile}
-                    onClick={() => {
-                      setSelectedFile(null);
-                      if (fileInputRef.current) fileInputRef.current.value = "";
-                    }}
-                  >
-                    <IconsApp.Close color="#f08100" />
-                  </button>
-                </div>
-              )}
               <input
                 type="text"
                 className={styles.input}
                 placeholder={
                   chatStatus === "read_only"
                     ? "Chat cerrado"
-                    : selectedFile
-                      ? "Agrega un mensaje..."
-                      : "Escribe un mensaje..."
+                    : "Escribe un mensaje..."
                 }
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -428,9 +442,7 @@ export default function ConversationPage({ params }: PageProps) {
               className={styles.sendButton}
               onClick={handleSendMessage}
               disabled={
-                (!newMessage.trim() && !selectedFile) ||
-                sending ||
-                chatStatus !== "active"
+                !newMessage.trim() || sending || chatStatus !== "active"
               }
             >
               <IconsApp.Send />

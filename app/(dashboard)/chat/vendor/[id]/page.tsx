@@ -8,7 +8,6 @@ import { useSocket } from "@/context/SocketContext";
 import {
   getChatMessagesAsProvider,
   sendMessageAsProvider,
-  sendMessageWithAttachmentAsProvider,
   markChatAsReadAsProvider,
   confirmProviderPayment,
   ChatMessage,
@@ -29,7 +28,14 @@ export default function ConversationPage({ params }: PageProps) {
   const router = useRouter();
   const { jwt, role } = useAuth();
   const { isExpanded } = useSidebar();
-  const { onNewChatMessage, onParticipantJoined, onParticipantLeft, joinChat, leaveChat, onlineParticipants } = useSocket();
+  const {
+    onNewChatMessage,
+    onParticipantJoined,
+    onParticipantLeft,
+    joinChat,
+    leaveChat,
+    onlineParticipants,
+  } = useSocket();
 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -40,9 +46,7 @@ export default function ConversationPage({ params }: PageProps) {
   const [chatStatus, setChatStatus] = useState<string>("active");
   const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const [confirmingPayment, setConfirmingPayment] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [clientOnline, setClientOnline] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -101,7 +105,7 @@ export default function ConversationPage({ params }: PageProps) {
 
   useEffect(() => {
     const numericChatId = parseInt(chatId, 10);
-    
+
     const checkClientOnline = () => {
       const participants = onlineParticipants[numericChatId];
       if (participants && chat?.participants?.customer) {
@@ -109,33 +113,39 @@ export default function ConversationPage({ params }: PageProps) {
         setClientOnline(isOnline);
       }
     };
-    
+
     checkClientOnline();
-    
+
     const unsubJoined = onParticipantJoined((data) => {
       if (data.chatId === numericChatId && data.role === "client") {
         setClientOnline(true);
       }
     });
-    
+
     const unsubLeft = onParticipantLeft((data) => {
       if (data.chatId === numericChatId && data.role === "client") {
         setClientOnline(false);
       }
     });
-    
+
     return () => {
       unsubJoined();
       unsubLeft();
     };
-  }, [chatId, onlineParticipants, onParticipantJoined, onParticipantLeft, chat]);
+  }, [
+    chatId,
+    onlineParticipants,
+    onParticipantJoined,
+    onParticipantLeft,
+    chat,
+  ]);
 
   const handleConfirmPayment = async () => {
     if (
       !jwt ||
       !order ||
       !order.id ||
-      orderStatus !== "active" ||
+      orderStatus !== "payment_validation" ||
       confirmingPayment
     )
       return;
@@ -159,49 +169,21 @@ export default function ConversationPage({ params }: PageProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!jwt || sending || chatStatus !== "active") return;
+    if (!jwt || sending || chatStatus !== "active" || !newMessage.trim())
+      return;
 
     setSending(true);
     try {
-      let res;
-      if (selectedFile) {
-        res = await sendMessageWithAttachmentAsProvider(
-          jwt,
-          chatId,
-          newMessage.trim(),
-          selectedFile,
-        );
-      } else if (newMessage.trim()) {
-        res = await sendMessageAsProvider(jwt, chatId, newMessage.trim());
-      } else {
-        setSending(false);
-        return;
-      }
-
+      const res = await sendMessageAsProvider(jwt, chatId, newMessage.trim());
       if (res.ok) {
         setMessages((prev) => [...prev, res.data.message]);
         setNewMessage("");
-        setSelectedFile(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
       }
     } catch (error) {
       toast.error("Error al enviar mensaje");
       console.error("Error sending message:", error);
     } finally {
       setSending(false);
-    }
-  };
-
-  const handleFileSelect = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
     }
   };
 
@@ -310,21 +292,39 @@ export default function ConversationPage({ params }: PageProps) {
             </div>
           </div>
 
-          {orderStatus === "active" && (
+          {(orderStatus === "active" ||
+            orderStatus === "payment_validation") && (
             <div
-              className={`${styles.subHeader} ${styles.confirmPaymentBanner}`}
+              className={`${styles.subHeader} ${orderStatus === "payment_validation" ? styles.confirmPaymentBanner : styles.waitingPaymentBanner}`}
             >
-              <div className={styles.confirmPaymentInfo}>
-                <IconsApp.Check color="#22c55e" />
-                <span>
-                  El cliente ha realizado el pago. Confirma para completar la
-                  orden.
-                </span>
+              <div
+                className={
+                  orderStatus === "payment_validation"
+                    ? styles.confirmPaymentInfo
+                    : styles.waitingPaymentInfo
+                }
+              >
+                {orderStatus === "payment_validation" ? (
+                  <>
+                    <IconsApp.Check color="#22c55e" />
+                    <span>
+                      El cliente ha realizado el pago. Confirma para completar
+                      la orden.
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <IconsApp.OrangeClock color="#f08100" />
+                    <span>Esperando que el cliente notifique el pago...</span>
+                  </>
+                )}
               </div>
               <button
                 className={styles.confirmPaymentButton}
                 onClick={handleConfirmPayment}
-                disabled={confirmingPayment}
+                disabled={
+                  confirmingPayment || orderStatus !== "payment_validation"
+                }
               >
                 {confirmingPayment ? "Confirmando..." : "Confirmar pago"}
               </button>
@@ -353,6 +353,20 @@ export default function ConversationPage({ params }: PageProps) {
                     >
                       <div className={styles.messageBubble}>
                         {message.content}
+                        {message.messageType === "payment_proof" &&
+                          message.attachment && (
+                            <div className={styles.attachment}>
+                              <IconsApp.Document color="#f08100" />
+                              <a
+                                href={message.attachment.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.attachmentLink}
+                              >
+                                Ver comprobante
+                              </a>
+                            </div>
+                          )}
                       </div>
                       <div className={styles.messageTime}>
                         {formatTime(message.createdAt)}
@@ -366,47 +380,14 @@ export default function ConversationPage({ params }: PageProps) {
           </div>
 
           <div className={styles.inputContainer}>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*,.pdf,.doc,.docx"
-              style={{ display: "none" }}
-            />
-            <button
-              type="button"
-              className={styles.attachButton}
-              onClick={handleFileSelect}
-              disabled={chatStatus !== "active"}
-            >
-              <IconsApp.Plus color="#f08100" />
-            </button>
             <div className={styles.inputWrapper}>
-              {selectedFile && (
-                <div className={styles.selectedFile}>
-                  <IconsApp.Document color="#666" />
-                  <span className={styles.fileName}>{selectedFile.name}</span>
-                  <button
-                    type="button"
-                    className={styles.removeFile}
-                    onClick={() => {
-                      setSelectedFile(null);
-                      if (fileInputRef.current) fileInputRef.current.value = "";
-                    }}
-                  >
-                    <IconsApp.Close color="#666" />
-                  </button>
-                </div>
-              )}
               <input
                 type="text"
                 className={styles.input}
                 placeholder={
                   chatStatus === "read_only"
                     ? "Chat cerrado"
-                    : selectedFile
-                      ? "Agrega un mensaje..."
-                      : "Escribe un mensaje..."
+                    : "Escribe un mensaje..."
                 }
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -418,9 +399,7 @@ export default function ConversationPage({ params }: PageProps) {
               className={styles.sendButton}
               onClick={handleSendMessage}
               disabled={
-                (!newMessage.trim() && !selectedFile) ||
-                sending ||
-                chatStatus !== "active"
+                !newMessage.trim() || sending || chatStatus !== "active"
               }
             >
               <IconsApp.Send />
