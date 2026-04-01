@@ -174,16 +174,15 @@ export default function ConversationPage({ params }: PageProps) {
     if (!jwt || sending || chatStatus !== "active" || !newMessage.trim())
       return;
 
+    const messageText = newMessage.trim();
+    setNewMessage("");
     setSending(true);
     try {
-      const res = await sendMessageAsProvider(jwt, chatId, newMessage.trim());
-      if (res.ok) {
-        setMessages((prev) => [...prev, res.data.message]);
-        setNewMessage("");
-      }
+      await sendMessageAsProvider(jwt, chatId, messageText);
     } catch (error) {
       toast.error("Error al enviar mensaje");
       console.error("Error sending message:", error);
+      setNewMessage(messageText);
     } finally {
       setSending(false);
     }
