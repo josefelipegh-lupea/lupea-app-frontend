@@ -9,7 +9,7 @@ interface OrderProps {
   documentId: string;
   title: string;
   cantidadRepuestos: number;
-  status: "ACTIVA" | "COMPLETADA" | "CANCELADA";
+  status: "ACTIVA" | "COMPLETADA" | "CANCELADA" | "PAGO PENDIENTE";
   badge?: string;
   onViewOrder?: (documentId: string) => void;
 }
@@ -33,6 +33,8 @@ export const OrderCard: React.FC<OrderProps> = ({
         return styles.completada;
       case "CANCELADA":
         return styles.cancelada;
+      case "PAGO PENDIENTE":
+        return styles.pagoPendiente;
       default:
         return "";
     }

@@ -88,10 +88,12 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
 }) => {
   const formatStatus = (
     status: string,
-  ): "ACTIVA" | "CANCELADA" | "COMPLETADA" => {
+  ): "ACTIVA" | "CANCELADA" | "COMPLETADA" | "PAGO PENDIENTE" => {
     switch (status) {
       case "active":
         return "ACTIVA";
+      case "payment_validation":
+        return "PAGO PENDIENTE";
       case "cancelled":
         return "CANCELADA";
       case "completed":
@@ -158,7 +160,9 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
                 ? styles.badgeActive
                 : order.status === "completed"
                   ? styles.badgeCompleted
-                  : styles.badgeCancelled
+                  : order.status === "payment_validation"
+                    ? styles.badgePaymentPending
+                    : styles.badgeCancelled
             }
           >
             {formatStatus(order.status)}

@@ -140,6 +140,30 @@
   border-radius: 18px;
   font-size: 14px;
   line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: rgba(240, 129, 0, 0.1);
+  border-radius: 8px;
+}
+
+.attachmentLink {
+  color: #f08100;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.attachmentLink:hover {
+  text-decoration: underline;
 }
 
 .sent .messageBubble {
@@ -316,7 +340,7 @@
 }
 
 .confirmPaymentButton {
-  background-color: #22c55e;
+  background-color: #e07600;
   color: white;
   border: none;
   border-radius: 12px;
@@ -325,14 +349,37 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: fit-content;
 }
 
 .confirmPaymentButton:hover {
-  background-color: #16a34a;
+  background-color: #e07600;
 }
 
 .confirmPaymentButton:disabled {
-  background-color: #86efac;
+  background-color: #e07600;
+  cursor: not-allowed;
+}
+
+.waitingPaymentBanner {
+  padding: 12px 16px;
+  background-color: #fff7ed;
+  border-bottom: 1px solid #fed7aa;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.waitingPaymentInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #9a3412;
+}
+
+.confirmPaymentButton:disabled {
+  background-color: #fed7aa;
   cursor: not-allowed;
 }
 
@@ -342,7 +389,7 @@
   border-bottom: 1px solid #fed7aa;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .notifyPaymentInfo {
@@ -363,6 +410,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: fit-content;
 }
 
 .notifyPaymentButton:hover {
@@ -372,6 +420,70 @@
 .notifyPaymentButton:disabled {
   background-color: #fdba74;
   cursor: not-allowed;
+}
+
+.paymentActionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.attachPaymentContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+  border: 1px dashed #f08100;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: fit-content;
+  height: 44px;
+  background-color: #fff;
+}
+
+.attachPaymentContainer:hover {
+  border-color: #e07600;
+  background-color: #fff7ed;
+}
+
+.attachPaymentInner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.attachPaymentIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.attachPaymentFileName {
+  font-size: 11px;
+  color: #1a1a3d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.attachPaymentPlaceholder {
+  font-size: 11px;
+  color: #f08100;
+}
+
+.attachPaymentBtn {
+  color: #f08100;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px;
+  flex-shrink: 0;
 }
 
 @media (min-width: 768px) {
@@ -402,5 +514,9 @@
 
   .messagesContainer {
     height: calc(80vh - 130px);
+  }
+
+  .paymentActionsRow {
+    justify-content: space-between;
   }
 }

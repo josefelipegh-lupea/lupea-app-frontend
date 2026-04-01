@@ -45,7 +45,9 @@ export default function HomePage() {
 
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [featuredQuotes, setFeaturedQuotes] = useState<FeaturedQuoteData[]>([]);
-  const [requestsWithQuotes, setRequestsWithQuotes] = useState<RequestWithQuote[]>([]);
+  const [requestsWithQuotes, setRequestsWithQuotes] = useState<
+    RequestWithQuote[]
+  >([]);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
   const [newQuotesCount, setNewQuotesCount] = useState(0);
@@ -67,28 +69,28 @@ export default function HomePage() {
 
       try {
         setLoading(true);
-        
+
         await refreshLoginProfile();
-        
+
         const res = await getMyRequests(jwt);
         if (res.ok) {
           setRequests(res.data.requests);
 
           const newQuotes = res.data.requests.reduce(
             (sum, r) => sum + (r.matchingSummary?.pending || 0),
-            0
+            0,
           );
           setNewQuotesCount(newQuotes);
 
           const requestsWithQuotesList = res.data.requests.filter(
-            (r) => r.quotesReceived > 0
+            (r) => r.quotesReceived > 0,
           );
 
           const featuredData = await Promise.all(
             requestsWithQuotesList.slice(0, 3).map(async (request) => {
               const quotesRes = await getClientRequestQuotes(
                 jwt,
-                request.documentId
+                request.documentId,
               );
               if (quotesRes.ok && quotesRes.data.featuredQuote) {
                 return {
@@ -97,18 +99,18 @@ export default function HomePage() {
                 };
               }
               return null;
-            })
+            }),
           );
 
           setFeaturedQuotes(
-            featuredData.filter((d) => d !== null) as FeaturedQuoteData[]
+            featuredData.filter((d) => d !== null) as FeaturedQuoteData[],
           );
 
           const requestsQuotesData = await Promise.all(
             requestsWithQuotesList.slice(0, 3).map(async (request) => {
               const quotesRes = await getClientRequestQuotes(
                 jwt,
-                request.documentId
+                request.documentId,
               );
               if (quotesRes.ok && quotesRes.data.featuredQuote) {
                 return {
@@ -118,11 +120,11 @@ export default function HomePage() {
                 };
               }
               return null;
-            })
+            }),
           );
 
           setRequestsWithQuotes(
-            requestsQuotesData.filter((d) => d !== null) as RequestWithQuote[]
+            requestsQuotesData.filter((d) => d !== null) as RequestWithQuote[],
           );
         }
 
@@ -157,19 +159,19 @@ export default function HomePage() {
               setRequests(requestsRes.data.requests);
               const newQuotes = requestsRes.data.requests.reduce(
                 (sum, r) => sum + (r.matchingSummary?.pending || 0),
-                0
+                0,
               );
               setNewQuotesCount(newQuotes);
 
               const requestsWithQuotes = requestsRes.data.requests.filter(
-                (r) => r.quotesReceived > 0
+                (r) => r.quotesReceived > 0,
               );
 
               const featuredData = await Promise.all(
                 requestsWithQuotes.slice(0, 3).map(async (request) => {
                   const quotesRes = await getClientRequestQuotes(
                     jwt,
-                    request.documentId
+                    request.documentId,
                   );
                   if (quotesRes.ok && quotesRes.data.featuredQuote) {
                     return {
@@ -178,11 +180,11 @@ export default function HomePage() {
                     };
                   }
                   return null;
-                })
+                }),
               );
 
               setFeaturedQuotes(
-                featuredData.filter((d) => d !== null) as FeaturedQuoteData[]
+                featuredData.filter((d) => d !== null) as FeaturedQuoteData[],
               );
             }
             if (ordersRes.ok) {
@@ -221,7 +223,7 @@ export default function HomePage() {
               key={data.featuredQuote.documentId}
               id={quoteCodeShort}
               date={new Date(data.featuredQuote.createdAt).toLocaleDateString(
-                "es-ES"
+                "es-ES",
               )}
               workshop={data.featuredQuote.provider.businessName}
               amount={data.featuredQuote.priceTotal.toFixed(2)}
@@ -248,7 +250,7 @@ export default function HomePage() {
                   const res = await getQuoteOrder(jwt, quoteDocId);
                   if (res.ok && res.data.order) {
                     router.push(
-                      `/home/user/orders/${res.data.order.documentId}`
+                      `/home/user/orders/${res.data.order.documentId}`,
                     );
                   }
                 } catch (error) {
@@ -269,7 +271,7 @@ export default function HomePage() {
 
         return requests.slice(0, 3).map((req) => {
           const quoteData = requestsWithQuotes.find(
-            (r) => r.request.documentId === req.documentId
+            (r) => r.request.documentId === req.documentId,
           );
           const status = quoteData?.status;
           const quoteDocId = quoteData?.quoteDocumentId;
@@ -289,8 +291,12 @@ export default function HomePage() {
               documentId={req.documentId}
               matchingSummary={req.matchingSummary}
               status={status}
-              onViewOffers={(docId) => router.push(`/home/user/request/${docId}/quotes`)}
-              onViewQuote={(docId) => router.push(`/home/user/quotes/${quoteDocId}`)}
+              onViewOffers={(docId) =>
+                router.push(`/home/user/request/${docId}/quotes`)
+              }
+              onViewQuote={(docId) =>
+                router.push(`/home/user/quotes/${quoteDocId}`)
+              }
             />
           );
         });
@@ -312,11 +318,25 @@ export default function HomePage() {
               status={
                 (o.status === "active"
                   ? "ACTIVA"
-                  : o.status === "cancelled"
-                  ? "CANCELADA"
-                  : "COMPLETADA") as "ACTIVA" | "CANCELADA" | "COMPLETADA"
+                  : o.status === "payment_validation"
+                    ? "PAGO PENDIENTE"
+                    : o.status === "cancelled"
+                      ? "CANCELADA"
+                      : "COMPLETADA") as
+                  | "ACTIVA"
+                  | "CANCELADA"
+                  | "COMPLETADA"
+                  | "PAGO PENDIENTE"
               }
-              badge={o.status === "active" ? "Activa" : o.status === "cancelled" ? "Cancelada" : "Completada"}
+              badge={
+                o.status === "active"
+                  ? "Activa"
+                  : o.status === "payment_validation"
+                    ? "Pago Pendiente"
+                    : o.status === "cancelled"
+                      ? "Cancelada"
+                      : "Completada"
+              }
               onViewOrder={(docId) => router.push(`/home/user/orders/${docId}`)}
             />
           ));
@@ -459,11 +479,13 @@ export default function HomePage() {
                 {activeTab === "COTIZACIONES"
                   ? "Ofertas Recientes"
                   : activeTab === "SOLICITUDES"
-                  ? "Mis solicitudes"
-                  : "Órdenes generadas"}
+                    ? "Mis solicitudes"
+                    : "Órdenes generadas"}
               </h3>
               {activeTab === "COTIZACIONES" && newQuotesCount > 0 && (
-                <span className={styles.badgeNuevas}>{newQuotesCount} Nuevas</span>
+                <span className={styles.badgeNuevas}>
+                  {newQuotesCount} Nuevas
+                </span>
               )}
             </div>
 

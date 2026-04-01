@@ -57,7 +57,7 @@ export default function HomePage() {
       try {
         setLoading(true);
         await refreshLoginProfile();
-        
+
         const [requestsRes, quotesRes, ordersRes] = await Promise.all([
           getProviderRequests(jwt),
           getProviderQuotes(jwt),
@@ -71,7 +71,11 @@ export default function HomePage() {
         }
         if (ordersRes.ok) {
           setOrders(ordersRes.data.orders);
-          setNewOrdersCount(ordersRes.data.orders.filter((o: ProviderOrderData) => o.status === "active").length);
+          setNewOrdersCount(
+            ordersRes.data.orders.filter(
+              (o: ProviderOrderData) => o.status === "active",
+            ).length,
+          );
         }
       } catch (error) {
         console.error("Error loading data:", error);
@@ -92,7 +96,11 @@ export default function HomePage() {
             const ordersRes = await getProviderOrders(jwt);
             if (ordersRes.ok) {
               setOrders(ordersRes.data.orders);
-              setNewOrdersCount(ordersRes.data.orders.filter((o: ProviderOrderData) => o.status === "active").length);
+              setNewOrdersCount(
+                ordersRes.data.orders.filter(
+                  (o: ProviderOrderData) => o.status === "active",
+                ).length,
+              );
             }
             await refreshLoginProfile();
           } catch (error) {
@@ -185,11 +193,25 @@ export default function HomePage() {
               status={
                 (o.status === "active"
                   ? "ACTIVA"
-                  : o.status === "cancelled"
-                  ? "CANCELADA"
-                  : "COMPLETADA") as "ACTIVA" | "CANCELADA" | "COMPLETADA"
+                  : o.status === "payment_validation"
+                    ? "PAGO PENDIENTE"
+                    : o.status === "cancelled"
+                      ? "CANCELADA"
+                      : "COMPLETADA") as
+                  | "ACTIVA"
+                  | "CANCELADA"
+                  | "COMPLETADA"
+                  | "PAGO PENDIENTE"
               }
-              badge={o.status === "active" ? "Activa" : o.status === "cancelled" ? "Cancelada" : "Completada"}
+              badge={
+                o.status === "active"
+                  ? "Activa"
+                  : o.status === "payment_validation"
+                    ? "Pago Pendiente"
+                    : o.status === "cancelled"
+                      ? "Cancelada"
+                      : "Completada"
+              }
               onViewOrder={(docId) =>
                 router.push(`/home/vendor/orders/${docId}`)
               }
@@ -316,8 +338,8 @@ export default function HomePage() {
                 {activeTab === "COTIZACIONES"
                   ? "Cotizaciones enviadas"
                   : activeTab === "SOLICITUDES"
-                  ? "Solicitudes nuevas"
-                  : "Órdenes generadas"}
+                    ? "Solicitudes nuevas"
+                    : "Órdenes generadas"}
               </h3>
               {activeTab === "SOLICITUDES" && requests.length > 0 && (
                 <span className={styles.badgeNuevas}>

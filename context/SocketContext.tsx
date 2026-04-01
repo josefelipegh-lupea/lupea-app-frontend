@@ -35,8 +35,18 @@ export interface ChatMessage {
   senderType: "client" | "provider";
   senderId: number;
   senderName: string;
+  senderRole: "client" | "provider" | "system";
+  messageType: "text" | "image" | "file" | "payment_proof" | "system";
   createdAt: string;
   isRead: boolean;
+  attachment?: {
+    id: number;
+    documentId: string;
+    url: string;
+    name: string;
+    mime: string;
+    size: number;
+  } | null;
 }
 
 export interface ChatParticipant {
@@ -108,6 +118,9 @@ interface SocketContextType {
   onParticipantLeft: (
     callback: (data: { chatId: number; userId: number; role: string }) => void,
   ) => () => void;
+  onPaymentNotified: (
+    callback: (data: { chatId: number; orderId: number; message: ChatMessage }) => void,
+  ) => () => void;
   joinChat: (chatId: number) => void;
   leaveChat: (chatId: number) => void;
   updateChatUnreadCount: (count: number) => void;
@@ -167,6 +180,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const participantLeftCallbacksRef = useRef<
     Set<(data: { chatId: number; userId: number; role: string }) => void>
   >(new Set());
+  const paymentNotifiedCallbacksRef = useRef<
+    Set<(data: { chatId: number; orderId: number; message: ChatMessage }) => void>
+  >(new Set());
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -185,6 +201,16 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       chatReadCallbacksRef.current.add(callback);
       return () => {
         chatReadCallbacksRef.current.delete(callback);
+      };
+    },
+    [],
+  );
+
+  const onPaymentNotified = useCallback(
+    (callback: (data: { chatId: number; orderId: number; message: ChatMessage }) => void) => {
+      paymentNotifiedCallbacksRef.current.add(callback);
+      return () => {
+        paymentNotifiedCallbacksRef.current.delete(callback);
       };
     },
     [],
@@ -432,6 +458,14 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       });
     });
 
+    newSocket.on("chat.payment_notified", (data: { chatId: number; orderId: number; message: ChatMessage }) => {
+      console.log("Payment notified:", data);
+      setChatUnreadCount((prev) => prev + 1);
+      paymentNotifiedCallbacksRef.current.forEach((callback) => {
+        callback(data);
+      });
+    });
+
     return () => {
       socketRef.current?.disconnect();
       socketRef.current = null;
@@ -474,6 +508,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         onChatRead,
         onParticipantJoined,
         onParticipantLeft,
+        onPaymentNotified,
         joinChat,
         leaveChat,
         updateChatUnreadCount,
