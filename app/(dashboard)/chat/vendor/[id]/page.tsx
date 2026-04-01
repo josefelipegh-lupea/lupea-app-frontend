@@ -47,6 +47,7 @@ export default function ConversationPage({ params }: PageProps) {
   const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [clientOnline, setClientOnline] = useState(false);
+  const [numericChatId, setNumericChatId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function ConversationPage({ params }: PageProps) {
           setChat(messagesRes.data.chat);
           setChatStatus(messagesRes.data.chat.status);
           setOrderStatus(messagesRes.data.chat.order.status);
+          setNumericChatId(messagesRes.data.chat.id);
         }
 
         await markChatAsReadAsProvider(jwt, chatId);
@@ -92,7 +94,7 @@ export default function ConversationPage({ params }: PageProps) {
 
   useEffect(() => {
     const unsubscribe = onNewChatMessage((message) => {
-      if (message.chatId && message.chatId === parseInt(chatId)) {
+      if (numericChatId && message.chatId === numericChatId) {
         setMessages((prev) => {
           if (prev.some((m) => m.id === message.id)) return prev;
           return [...prev, message as unknown as ChatMessage];
@@ -101,7 +103,7 @@ export default function ConversationPage({ params }: PageProps) {
     });
 
     return unsubscribe;
-  }, [chatId, onNewChatMessage]);
+  }, [numericChatId, onNewChatMessage]);
 
   useEffect(() => {
     const numericChatId = parseInt(chatId, 10);

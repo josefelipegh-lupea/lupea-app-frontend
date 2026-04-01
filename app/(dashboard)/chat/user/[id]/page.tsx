@@ -49,6 +49,7 @@ export default function ConversationPage({ params }: PageProps) {
   const [notifyingPayment, setNotifyingPayment] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [providerOnline, setProviderOnline] = useState(false);
+  const [numericChatId, setNumericChatId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -65,6 +66,7 @@ export default function ConversationPage({ params }: PageProps) {
           setChat(messagesRes.data.chat);
           setChatStatus(messagesRes.data.chat.status);
           setOrderStatus(messagesRes.data.chat.order.status);
+          setNumericChatId(messagesRes.data.chat.id);
         }
 
         await markChatAsReadAsClient(jwt, chatId);
@@ -99,12 +101,9 @@ export default function ConversationPage({ params }: PageProps) {
     const unsubscribe = onNewChatMessage((message) => {
       console.log("=== New message received ===", message);
       console.log("message.chatId:", message.chatId);
-      console.log("chatId (from params):", chatId);
+      console.log("numericChatId:", numericChatId);
 
-      const targetChatId =
-        typeof chatId === "string" ? parseInt(chatId, 10) : Number(chatId);
-
-      if (message.chatId && message.chatId === targetChatId) {
+      if (numericChatId && message.chatId === numericChatId) {
         console.log("✅ Adding message to state");
         setMessages((prev) => {
           if (prev.some((m) => m.id === message.id)) return prev;
@@ -116,7 +115,7 @@ export default function ConversationPage({ params }: PageProps) {
     });
 
     return unsubscribe;
-  }, [chatId, onNewChatMessage]);
+  }, [numericChatId, onNewChatMessage]);
 
   useEffect(() => {
     const numericChatId = parseInt(chatId, 10);
