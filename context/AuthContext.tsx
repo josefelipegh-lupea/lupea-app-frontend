@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import { LoginResponse } from "@/app/lib/api/auth";
@@ -126,7 +127,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const refreshLoginProfile = async () => {
+  const refreshLoginProfile = useCallback(async () => {
     const jwt = localStorage.getItem("jwt");
     const currentUser = localStorage.getItem("userData");
     if (!jwt || !currentUser) return;
@@ -148,53 +149,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (response.ok) {
         const data = await response.json();
 
-        let loginProfileData;
+        setLoginProfile((prev) => {
+          let loginProfileData;
 
-        if (isProvider) {
-          loginProfileData = {
-            id: data.id,
-            displayName: data.businessName || data.username,
-            tokensAvailable: data.tokensAvailable || 0,
-            tokensTotal: data.tokensAvailable || 0,
-            tokensPurchasedThisMonth: 0,
-            tokensLastRenewal: data.tokensLastRenewal || "",
-            tokensNextRenewal: data.tokensNextRenewal || "",
-            monthlyConsumption: loginProfile?.monthlyConsumption || {
-              usedTokens: 0,
-              percentage: 0,
-            },
-            tokenMetricsMonth: loginProfile?.tokenMetricsMonth || "",
-            freeTokensGrantedThisMonth: 0,
-            privacyLevel: "public",
-          };
-        } else {
-          loginProfileData = {
-            id: data.id,
-            displayName: data.displayName,
-            tokensAvailable: data.tokensAvailable || 0,
-            tokensFreeAvailable: data.tokensFreeAvailable || 0,
-            tokensPurchasedAvailable: data.tokensPurchasedAvailable || 0,
-            tokensTotal: data.tokensTotal || data.tokensAvailable || 0,
-            tokensPurchasedThisMonth: data.tokensPurchasedThisMonth || 0,
-            tokensLastRenewal: data.tokensLastRenewal || "",
-            tokensNextRenewal: data.tokensNextRenewal || "",
-            monthlyConsumption: data.monthlyConsumption || {
-              usedTokens: 0,
-              percentage: 0,
-            },
-            tokenMetricsMonth: data.tokenMetricsMonth || "",
-            freeTokensGrantedThisMonth: data.freeTokensGrantedThisMonth || 0,
-            privacyLevel: data.privacyLevel,
-          };
-        }
+          if (isProvider) {
+            loginProfileData = {
+              id: data.id,
+              displayName: data.businessName || data.username,
+              tokensAvailable: data.tokensAvailable || 0,
+              tokensTotal: data.tokensAvailable || 0,
+              tokensPurchasedThisMonth: 0,
+              tokensLastRenewal: data.tokensLastRenewal || "",
+              tokensNextRenewal: data.tokensNextRenewal || "",
+              monthlyConsumption: prev?.monthlyConsumption || {
+                usedTokens: 0,
+                percentage: 0,
+              },
+              tokenMetricsMonth: prev?.tokenMetricsMonth || "",
+              freeTokensGrantedThisMonth: 0,
+              privacyLevel: "public",
+            };
+          } else {
+            loginProfileData = {
+              id: data.id,
+              displayName: data.displayName,
+              tokensAvailable: data.tokensAvailable || 0,
+              tokensFreeAvailable: data.tokensFreeAvailable || 0,
+              tokensPurchasedAvailable: data.tokensPurchasedAvailable || 0,
+              tokensTotal: data.tokensTotal || data.tokensAvailable || 0,
+              tokensPurchasedThisMonth: data.tokensPurchasedThisMonth || 0,
+              tokensLastRenewal: data.tokensLastRenewal || "",
+              tokensNextRenewal: data.tokensNextRenewal || "",
+              monthlyConsumption: data.monthlyConsumption || {
+                usedTokens: 0,
+                percentage: 0,
+              },
+              tokenMetricsMonth: data.tokenMetricsMonth || "",
+              freeTokensGrantedThisMonth: data.freeTokensGrantedThisMonth || 0,
+              privacyLevel: data.privacyLevel,
+            };
+          }
 
-        setLoginProfile(loginProfileData);
-        localStorage.setItem("loginProfile", JSON.stringify(loginProfileData));
+          localStorage.setItem("loginProfile", JSON.stringify(loginProfileData));
+          return loginProfileData;
+        });
       }
     } catch (error) {
       console.error("Error al refrescar loginProfile:", error);
     }
-  };
+  }, []);
 
   return (
     <AuthContext.Provider

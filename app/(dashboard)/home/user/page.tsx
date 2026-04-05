@@ -297,9 +297,7 @@ export default function HomePage() {
               onViewOffers={(docId) =>
                 router.push(`/home/user/request/${docId}/quotes`)
               }
-              onViewQuote={(_docId) =>
-                router.push(`/home/user/quotes/${quoteDocId}`)
-              }
+              onViewQuote={() => router.push(`/home/user/quotes/${quoteDocId}`)}
             />
           );
         });
