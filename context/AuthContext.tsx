@@ -38,7 +38,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<
     ClientProfileResponse | ProviderProfile | null
   >(null);
-  const [loginProfile, setLoginProfile] = useState<LoginResponse["profile"] | null>(null);
+  const [loginProfile, setLoginProfile] = useState<
+    LoginResponse["profile"] | null
+  >(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const role = user?.role === "provider" ? "provider" : user ? "client" : null;
@@ -60,12 +62,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("userData", JSON.stringify(data.user));
     setUser(data.user);
     setJwt(data.jwt);
-    
+
     if (data.profile) {
       setLoginProfile(data.profile);
       localStorage.setItem("loginProfile", JSON.stringify(data.profile));
     }
-    
+
     await fetchProfileData(data.jwt, data.user.role);
   };
 
@@ -75,17 +77,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const savedUser = localStorage.getItem("userData");
       const savedLoginProfile = localStorage.getItem("loginProfile");
       const savedProfile = localStorage.getItem("fullProfile");
-      
+
       if (jwt && savedUser) {
         const parsedUser = JSON.parse(savedUser);
         setJwt(jwt);
         setUser(parsedUser);
-        
+
         if (savedLoginProfile) {
           const parsed = JSON.parse(savedLoginProfile);
           setLoginProfile(parsed);
         }
-        
+
         if (savedProfile) {
           const parsedProfile = JSON.parse(savedProfile);
           setProfile(parsedProfile as ClientProfileResponse);
@@ -131,8 +133,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const userData = JSON.parse(currentUser);
     const isProvider = userData.role === "provider";
-    
-    const endpoint = isProvider 
+
+    const endpoint = isProvider
       ? `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/provider-profiles/me`
       : `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/client-profiles/me`;
 
@@ -142,12 +144,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           Authorization: `Bearer ${jwt}`,
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        
+
         let loginProfileData;
-        
+
         if (isProvider) {
           loginProfileData = {
             id: data.id,
@@ -155,9 +157,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             tokensAvailable: data.tokensAvailable || 0,
             tokensTotal: data.tokensAvailable || 0,
             tokensPurchasedThisMonth: 0,
-            tokensLastRenewal: loginProfile?.tokensLastRenewal || "",
-            tokensNextRenewal: loginProfile?.tokensNextRenewal || "",
-            monthlyConsumption: loginProfile?.monthlyConsumption || { usedTokens: 0, percentage: 0 },
+            tokensLastRenewal: data.tokensLastRenewal || "",
+            tokensNextRenewal: data.tokensNextRenewal || "",
+            monthlyConsumption: loginProfile?.monthlyConsumption || {
+              usedTokens: 0,
+              percentage: 0,
+            },
             tokenMetricsMonth: loginProfile?.tokenMetricsMonth || "",
             freeTokensGrantedThisMonth: 0,
             privacyLevel: "public",
@@ -166,18 +171,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           loginProfileData = {
             id: data.id,
             displayName: data.displayName,
-            tokensAvailable: data.tokensAvailable,
-            tokensTotal: data.tokensAvailable + (loginProfile?.tokensPurchasedThisMonth || 0),
-            tokensPurchasedThisMonth: loginProfile?.tokensPurchasedThisMonth || 0,
-            tokensLastRenewal: loginProfile?.tokensLastRenewal || "",
-            tokensNextRenewal: loginProfile?.tokensNextRenewal || "",
-            monthlyConsumption: loginProfile?.monthlyConsumption || { usedTokens: 0, percentage: 0 },
-            tokenMetricsMonth: loginProfile?.tokenMetricsMonth || "",
-            freeTokensGrantedThisMonth: loginProfile?.freeTokensGrantedThisMonth || 0,
+            tokensAvailable: data.tokensAvailable || 0,
+            tokensFreeAvailable: data.tokensFreeAvailable || 0,
+            tokensPurchasedAvailable: data.tokensPurchasedAvailable || 0,
+            tokensTotal: data.tokensTotal || data.tokensAvailable || 0,
+            tokensPurchasedThisMonth: data.tokensPurchasedThisMonth || 0,
+            tokensLastRenewal: data.tokensLastRenewal || "",
+            tokensNextRenewal: data.tokensNextRenewal || "",
+            monthlyConsumption: data.monthlyConsumption || {
+              usedTokens: 0,
+              percentage: 0,
+            },
+            tokenMetricsMonth: data.tokenMetricsMonth || "",
+            freeTokensGrantedThisMonth: data.freeTokensGrantedThisMonth || 0,
             privacyLevel: data.privacyLevel,
           };
         }
-        
+
         setLoginProfile(loginProfileData);
         localStorage.setItem("loginProfile", JSON.stringify(loginProfileData));
       }

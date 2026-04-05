@@ -55,13 +55,19 @@ export default function HomePage() {
   const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
   const tokensTotal = loginProfile?.tokensTotal ?? 0;
   const tokensPercentage = loginProfile?.monthlyConsumption?.percentage ?? 0;
-  const tokensLastRenewal = loginProfile?.tokensLastRenewal
-    ? new Date(loginProfile.tokensLastRenewal).toLocaleDateString("es-ES", {
+  const tokensNextRenewal = loginProfile?.tokensNextRenewal
+    ? new Date(loginProfile.tokensNextRenewal).toLocaleDateString("es-ES", {
         day: "2-digit",
         month: "short",
         year: "numeric",
       })
-    : "N/A";
+    : loginProfile?.tokensLastRenewal
+      ? new Date(loginProfile.tokensLastRenewal).toLocaleDateString("es-ES", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "N/A";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -380,7 +386,7 @@ export default function HomePage() {
 
             <div className={styles.renovacionRow}>
               <span className={styles.renovacionLabel}>Renovación mensual</span>
-              <span className={styles.dateText}>{tokensLastRenewal}</span>
+              <span className={styles.dateText}>{tokensNextRenewal}</span>
             </div>
           </section>
 
