@@ -15,6 +15,8 @@ export type LoginResponse = {
     id: number;
     displayName: string;
     tokensAvailable: number;
+    tokensFreeAvailable?: number;
+    tokensPurchasedAvailable?: number;
     tokensTotal: number;
     tokensPurchasedThisMonth: number;
     freeTokensGrantedThisMonth: number;
@@ -62,7 +64,7 @@ export type RegisterProviderResponse = {
 
 export async function loginClient(
   identifier: string,
-  password: string
+  password: string,
 ): Promise<LoginResponse> {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
@@ -90,7 +92,7 @@ export async function registerClient(
   username: string,
   email: string,
   password: string,
-  termsAccepted: boolean = true
+  termsAccepted: boolean = true,
 ): Promise<RegisterClientResponse> {
   const res = await fetch(`${API_URL}/auth/register-client`, {
     method: "POST",
@@ -120,7 +122,7 @@ export async function registerProvider(
   password: string,
   mainCategories: number[],
   subcategories: number[],
-  termsAccepted: boolean
+  termsAccepted: boolean,
 ): Promise<RegisterProviderResponse> {
   const res = await fetch(`${API_URL}/auth/register-provider`, {
     method: "POST",
@@ -150,13 +152,13 @@ export async function registerProvider(
 }
 
 export async function confirmClientEmail(
-  confirmationToken: string
+  confirmationToken: string,
 ): Promise<{ ok: boolean; message?: string }> {
   const res = await fetch(
     `${API_URL}/auth/email-confirmation-json?confirmation=${confirmationToken}`,
     {
       method: "GET",
-    }
+    },
   );
 
   const data = await res.json();
@@ -172,7 +174,7 @@ export async function confirmClientEmail(
 }
 
 export async function forgotPassword(
-  email: string
+  email: string,
 ): Promise<{ ok: boolean; message: string }> {
   const res = await fetch(`${API_URL}/auth/forgot-password`, {
     method: "POST",
@@ -196,7 +198,7 @@ export async function forgotPassword(
 
 export async function resetPassword(
   token: string,
-  password: string
+  password: string,
 ): Promise<{ ok: boolean; message: string }> {
   const res = await fetch(`${API_URL}/auth/reset-password`, {
     method: "POST",

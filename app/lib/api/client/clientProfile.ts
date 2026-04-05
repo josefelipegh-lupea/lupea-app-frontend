@@ -13,6 +13,18 @@ export type ClientProfileResponse = {
   notificationsEnabled: boolean;
   status: string | null;
   tokensAvailable: number;
+  tokensFreeAvailable?: number;
+  tokensPurchasedAvailable?: number;
+  tokensTotal?: number;
+  tokensPurchasedThisMonth?: number;
+  freeTokensGrantedThisMonth?: number;
+  monthlyConsumption?: {
+    usedTokens: number;
+    percentage: number;
+  };
+  tokenMetricsMonth?: string;
+  tokensLastRenewal?: string;
+  tokensNextRenewal?: string;
   avatar: AvatarData | null;
 };
 
@@ -63,7 +75,7 @@ export interface PasswordUpdateResponse {
 }
 
 export async function getClientProfile(
-  jwt: string
+  jwt: string,
 ): Promise<ClientProfileResponse> {
   const res = await fetch(`${API_URL}/client-profiles/me`, {
     method: "GET",
@@ -77,7 +89,7 @@ export async function getClientProfile(
 
   if (!res.ok) {
     throw new Error(
-      data.error?.message || "No se pudo obtener el perfil del cliente"
+      data.error?.message || "No se pudo obtener el perfil del cliente",
     );
   }
 
@@ -86,7 +98,7 @@ export async function getClientProfile(
 
 export async function getClientProfileById(
   jwt: string,
-  clientId: number
+  clientId: number,
 ): Promise<ClientProfileResponse> {
   const res = await fetch(`${API_URL}/client-profiles/${clientId}`, {
     method: "GET",
@@ -100,7 +112,7 @@ export async function getClientProfileById(
 
   if (!res.ok) {
     throw new Error(
-      data.error?.message || "No se pudo obtener el perfil del cliente"
+      data.error?.message || "No se pudo obtener el perfil del cliente",
     );
   }
 
@@ -109,7 +121,7 @@ export async function getClientProfileById(
 
 export async function updateClientProfile(
   jwt: string,
-  formData: Partial<ClientProfileResponse>
+  formData: Partial<ClientProfileResponse>,
 ): Promise<ClientProfileResponse> {
   const res = await fetch(`${API_URL}/client-profiles/me`, {
     method: "PUT",
@@ -131,7 +143,7 @@ export async function updateClientProfile(
 
 export async function updateClientAvatar(
   jwt: string,
-  imageFile: File
+  imageFile: File,
 ): Promise<AvatarResponse> {
   const formData = new FormData();
   formData.append("avatar", imageFile);
@@ -155,7 +167,7 @@ export async function updateClientAvatar(
 
 export async function updateClientPassword(
   jwt: string,
-  formData: { currentPassword: string; newPassword: string }
+  formData: { currentPassword: string; newPassword: string },
 ): Promise<PasswordUpdateResponse> {
   const res = await fetch(`${API_URL}/client-profiles/me/password`, {
     method: "PUT",
@@ -170,7 +182,7 @@ export async function updateClientPassword(
 
   if (!res.ok) {
     throw new Error(
-      responseData.error?.message || "Error al cambiar la contraseña"
+      responseData.error?.message || "Error al cambiar la contraseña",
     );
   }
 
