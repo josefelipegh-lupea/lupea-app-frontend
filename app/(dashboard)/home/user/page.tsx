@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
@@ -37,9 +37,9 @@ interface RequestWithQuote {
 }
 
 export default function HomePage() {
-  const { jwt, profile, loginProfile, refreshLoginProfile } = useAuth();
+  const { jwt, loginProfile, refreshLoginProfile } = useAuth();
   const { isExpanded } = useSidebar();
-  const { onNotification } = useSocket();
+  const { onNotification, notifications } = useSocket();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("COTIZACIONES");
 
@@ -50,7 +50,15 @@ export default function HomePage() {
   >([]);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newQuotesCount, setNewQuotesCount] = useState(0);
+
+  const newQuotesCount = useMemo(
+    () =>
+      notifications.filter(
+        (notification) =>
+          notification.type === "client.quote_received" && !notification.read,
+      ).length,
+    [notifications],
+  );
 
   const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
   const tokensTotal = loginProfile?.tokensTotal ?? 0;
@@ -81,12 +89,6 @@ export default function HomePage() {
         const res = await getMyRequests(jwt);
         if (res.ok) {
           setRequests(res.data.requests);
-
-          const newQuotes = res.data.requests.reduce(
-            (sum, r) => sum + (r.matchingSummary?.pending || 0),
-            0,
-          );
-          setNewQuotesCount(newQuotes);
 
           const requestsWithQuotesList = res.data.requests.filter(
             (r) => r.quotesReceived > 0,
@@ -146,7 +148,7 @@ export default function HomePage() {
     };
 
     fetchData();
-  }, [jwt]);
+  }, [jwt, refreshLoginProfile]);
 
   useEffect(() => {
     const unsubscribe = onNotification((notification) => {
@@ -163,11 +165,6 @@ export default function HomePage() {
             ]);
             if (requestsRes.ok) {
               setRequests(requestsRes.data.requests);
-              const newQuotes = requestsRes.data.requests.reduce(
-                (sum, r) => sum + (r.matchingSummary?.pending || 0),
-                0,
-              );
-              setNewQuotesCount(newQuotes);
 
               const requestsWithQuotes = requestsRes.data.requests.filter(
                 (r) => r.quotesReceived > 0,
@@ -300,7 +297,7 @@ export default function HomePage() {
               onViewOffers={(docId) =>
                 router.push(`/home/user/request/${docId}/quotes`)
               }
-              onViewQuote={(docId) =>
+              onViewQuote={(_docId) =>
                 router.push(`/home/user/quotes/${quoteDocId}`)
               }
             />
