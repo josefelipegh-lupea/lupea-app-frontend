@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
@@ -30,7 +30,7 @@ export default function HomePage() {
   const { jwt, loginProfile, refreshLoginProfile } = useAuth();
   const { isExpanded } = useSidebar();
   const router = useRouter();
-  const { onNotification } = useSocket();
+  const { onNotification, notifications } = useSocket();
   const [activeTab, setActiveTab] = useState("SOLICITUDES");
 
   const [requests, setRequests] = useState<ProviderQuoteRequest[]>([]);
@@ -39,16 +39,19 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
 
+  const newRequestsCount = useMemo(
+    () =>
+      notifications.filter(
+        (notification) =>
+          notification.type === "provider.request_assigned" &&
+          !notification.read,
+      ).length,
+    [notifications],
+  );
+
   const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
   const tokensTotal = loginProfile?.tokensTotal ?? 0;
   const tokensPercentage = loginProfile?.monthlyConsumption?.percentage ?? 0;
-  const tokensNextRenewal = loginProfile?.tokensNextRenewal
-    ? new Date(loginProfile.tokensNextRenewal).toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
-    : "N/A";
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -85,15 +88,24 @@ export default function HomePage() {
     };
 
     fetchHomeData();
-  }, [jwt]);
+  }, [jwt, refreshLoginProfile]);
 
   useEffect(() => {
     const unsubscribe = onNotification((notification) => {
-      if (notification.type === "provider.order_generated") {
+      if (
+        notification.type === "provider.order_generated" ||
+        notification.type === "provider.request_assigned"
+      ) {
         const fetchData = async () => {
           if (!jwt) return;
           try {
-            const ordersRes = await getProviderOrders(jwt);
+            const [requestsRes, ordersRes] = await Promise.all([
+              getProviderRequests(jwt),
+              getProviderOrders(jwt),
+            ]);
+            if (requestsRes.ok) {
+              setRequests(requestsRes.data.requests);
+            }
             if (ordersRes.ok) {
               setOrders(ordersRes.data.orders);
               setNewOrdersCount(
@@ -253,11 +265,6 @@ export default function HomePage() {
             </div>
 
             <div className={styles.divider}></div>
-
-            <div className={styles.renovacionRow}>
-              <span className={styles.renovacionLabel}>Renovación mensual</span>
-              <span className={styles.dateText}>{tokensNextRenewal}</span>
-            </div>
           </section>
 
           <section className={styles.metricsContainer}>
@@ -341,9 +348,9 @@ export default function HomePage() {
                     ? "Solicitudes nuevas"
                     : "Órdenes generadas"}
               </h3>
-              {activeTab === "SOLICITUDES" && requests.length > 0 && (
+              {activeTab === "SOLICITUDES" && newRequestsCount > 0 && (
                 <span className={styles.badgeNuevas}>
-                  {requests.length} Nuevas
+                  {newRequestsCount} Nuevas
                 </span>
               )}
               {activeTab === "ÓRDENES" && newOrdersCount > 0 && (
