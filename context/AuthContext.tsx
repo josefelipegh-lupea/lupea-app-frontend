@@ -190,7 +190,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             };
           }
 
-          localStorage.setItem("loginProfile", JSON.stringify(loginProfileData));
+          localStorage.setItem(
+            "loginProfile",
+            JSON.stringify(loginProfileData),
+          );
           return loginProfileData;
         });
       }
