@@ -521,10 +521,11 @@
 
 @media (min-width: 768px) {
   .pageWrapper {
-    height: auto;
-    min-height: calc(100vh - 65px);
-    overflow: visible;
-    padding: 40px 0;
+    height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+    padding: 24px 0;
+    box-sizing: border-box;
     margin-left: 230px;
     width: calc(100% - 230px);
     background-color: #f2f2f2;
@@ -540,9 +541,9 @@
   .mainContainer {
     width: 95%;
     max-width: 1000px;
-    height: auto;
-    min-height: 600px;
-    overflow: visible;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
     border-radius: 24px;
     background-color: #fff;
     display: flex;
@@ -559,9 +560,10 @@
 
   .messagesContainer {
     flex: 1;
+    min-height: 0;
     height: auto;
-    min-height: 300px;
     overflow-y: auto;
+    justify-content: flex-start;
   }
 
   .inputContainer {
