@@ -48,7 +48,7 @@ export default function HomePage() {
   const [requestsWithQuotes, setRequestsWithQuotes] = useState<
     RequestWithQuote[]
   >([]);
-  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [orders, setOrders] = useState<OrderData[]>([]); 
   const [loading, setLoading] = useState(true);
   const [newQuotesCount, setNewQuotesCount] = useState(0);
 
