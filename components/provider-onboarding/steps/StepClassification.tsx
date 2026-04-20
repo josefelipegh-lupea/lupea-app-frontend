@@ -8,6 +8,7 @@ import { Category, getCategories } from "@/app/lib/api/getCategories";
 import toast from "react-hot-toast";
 import { getBrands, VehicleItem } from "@/app/lib/api/client/vehicle";
 import { useAuth } from "@/context/AuthContext";
+import MultiSelectDropdown from "@/components/multi-select/MultiSelectDropdown";
 import {
   BaseEntity,
   ClassificationData,
@@ -36,8 +37,6 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
   const [lastSelectedCatId, setLastSelectedCatId] = useState<string | null>(
     null
   );
-  const [subcategorySearch, setSubcategorySearch] = useState("");
-  const [subcategoryDropdownOpen, setSubcategoryDropdownOpen] = useState(false);
 
   // NUEVO: Estado para evitar re-hidratación al borrar todo
   const [isHydrated, setIsHydrated] = useState(false);
@@ -71,22 +70,31 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
       );
   }, [formData.mainCategories, dbCategories]);
 
-  const filteredSubcategories = useMemo(() => {
-    if (!subcategorySearch.trim()) return allSubcategoriesFromSelected;
-    const searchLower = subcategorySearch.toLowerCase();
-    return allSubcategoriesFromSelected
-      .map((group) => ({
-        ...group,
-        subcategories: group.subcategories.filter((sub) =>
-          sub.name.toLowerCase().includes(searchLower)
-        ),
-      }))
-      .filter((group) => group.subcategories.length > 0);
-  }, [allSubcategoriesFromSelected, subcategorySearch]);
+  const mainCategoryGroups = useMemo(
+    () => [
+      {
+        key: "main-categories",
+        options: dbCategories.map((cat) => ({
+          id: cat.id,
+          label: cat.name,
+        })),
+      },
+    ],
+    [dbCategories]
+  );
 
-  const flatFilteredSubcategories = useMemo(() => {
-    return filteredSubcategories.flatMap((group) => group.subcategories);
-  }, [filteredSubcategories]);
+  const subcategoryGroups = useMemo(
+    () =>
+      allSubcategoriesFromSelected.map((group) => ({
+        key: group.categoryDocId,
+        label: group.categoryName,
+        options: group.subcategories.map((sub) => ({
+          id: sub.documentId,
+          label: sub.name,
+        })),
+      })),
+    [allSubcategoriesFromSelected]
+  );
 
   useEffect(() => {
     if (!jwt) return;
@@ -148,57 +156,12 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
 
   const handleSelectChange = (
     e: React.ChangeEvent<HTMLSelectElement>,
-    type: "mainCategories" | "brands" | "subcategories"
+    type: "brands"
   ) => {
     const selectedValue = e.target.value;
     if (!selectedValue) return;
 
     setFormData((prev) => {
-      if (type === "mainCategories") {
-        const item = dbCategories.find((c) => c.id === Number(selectedValue));
-        if (item) {
-          setLastSelectedCatId(item.documentId);
-          if (
-            !prev.mainCategories.some((c) => c.documentId === item.documentId)
-          ) {
-            return {
-              ...prev,
-              mainCategories: [
-                ...prev.mainCategories,
-                { id: item.id, name: item.name, documentId: item.documentId },
-              ],
-            };
-          }
-        }
-      }
-
-      if (type === "subcategories") {
-        const item = flatFilteredSubcategories.find(
-          (s) => s.id === Number(selectedValue)
-        );
-        const parent = dbCategories.find((c) =>
-          c.children?.some((child) => child.id === Number(selectedValue))
-        );
-        if (
-          item &&
-          parent &&
-          !prev.subcategories.some((s) => s.documentId === item.documentId)
-        ) {
-          return {
-            ...prev,
-            subcategories: [
-              ...prev.subcategories,
-              {
-                id: item.id,
-                documentId: item.documentId,
-                name: item.name,
-                parentName: parent.name,
-              },
-            ],
-          };
-        }
-      }
-
       if (type === "brands") {
         const item = dbBrands.find((b) => b.documentId === selectedValue);
         if (item) {
@@ -219,6 +182,34 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
     e.target.value = "";
   };
 
+  const toggleMainCategory = (id: string | number) => {
+    const categoryId = Number(id);
+    const selectedCategory = dbCategories.find((cat) => cat.id === categoryId);
+    if (!selectedCategory) return;
+
+    const exists = formData.mainCategories.some(
+      (cat) => cat.documentId === selectedCategory.documentId
+    );
+
+    if (exists) {
+      removeItem("mainCategories", selectedCategory.documentId);
+      return;
+    }
+
+    setLastSelectedCatId(selectedCategory.documentId);
+    setFormData((prev) => ({
+      ...prev,
+      mainCategories: [
+        ...prev.mainCategories,
+        {
+          id: selectedCategory.id,
+          name: selectedCategory.name,
+          documentId: selectedCategory.documentId,
+        },
+      ],
+    }));
+  };
+
   const handleSubcategorySelect = (sub: Category, categoryName: string) => {
     setFormData((prev) => {
       if (prev.subcategories.some((s) => s.documentId === sub.documentId)) {
@@ -237,6 +228,28 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
         ],
       };
     });
+  };
+
+  const toggleSubcategory = (id: string | number) => {
+    const documentId = String(id);
+    const existing = formData.subcategories.find(
+      (sub) => sub.documentId === documentId
+    );
+
+    if (existing) {
+      removeItem("subcategories", documentId);
+      return;
+    }
+
+    const parentGroup = allSubcategoriesFromSelected.find((group) =>
+      group.subcategories.some((sub) => sub.documentId === documentId)
+    );
+    const subcategory = parentGroup?.subcategories.find(
+      (sub) => sub.documentId === documentId
+    );
+
+    if (!parentGroup || !subcategory) return;
+    handleSubcategorySelect(subcategory, parentGroup.categoryName);
   };
 
   const removeItem = (type: EntityArrayKeys, documentId: string) => {
@@ -274,35 +287,16 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
         <label className={styles.label}>
           Categorías en la que clasifica tu negocio
         </label>
-        <div className={styles.selectWrapper}>
-          <span className={styles.icon}>
-            <IconsApp.ToolInput />
-          </span>
-          <select
-            className={styles.input}
-            onChange={(e) => handleSelectChange(e, "mainCategories")}
-            value=""
-          >
-            <option value="" disabled>
-              Selecciona categorías
-            </option>
-            {dbCategories
-              .filter(
-                (cat) =>
-                  !formData.mainCategories.some(
-                    (s) => s.documentId === cat.documentId
-                  )
-              )
-              .map((cat) => (
-                <option key={cat.documentId} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-          </select>
-          <div className={styles.iconOverlay}>
-            <IconsApp.DownArrow />
-          </div>
-        </div>
+        <MultiSelectDropdown
+          placeholder="Selecciona categorías"
+          selectedCountLabel="categorías"
+          groups={mainCategoryGroups}
+          selectedIds={formData.mainCategories.map((cat) => cat.id)}
+          onToggle={toggleMainCategory}
+          searchPlaceholder="Buscar categorías..."
+          noResultsText="No hay categorías"
+          icon={<IconsApp.ToolInput />}
+        />
         <div className={styles.tagsScrollContainer}>
           {formData.mainCategories.length === 0 ? (
             <p className={styles.emptyStateText}>Categorías vacías</p>
@@ -330,67 +324,21 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
       {/* SUBCATEGORÍAS */}
       <div className={styles.fullWidth} style={{ marginTop: "20px" }}>
         <label className={styles.label}>Subcategorías</label>
-        <div className={styles.subcategoryInputWrapper}>
-          <span className={styles.icon}>
-            <IconsApp.ToolInput />
-          </span>
-          <input
-            type="text"
-            className={styles.input}
-            placeholder={
-              formData.mainCategories.length === 0
-                ? "Selecciona categoría arriba"
-                : "Buscar subcategorías..."
-            }
-            value={subcategorySearch}
-            onChange={(e) => setSubcategorySearch(e.target.value)}
-            onFocus={() => setSubcategoryDropdownOpen(true)}
-            onBlur={() =>
-              setTimeout(() => setSubcategoryDropdownOpen(false), 200)
-            }
-            disabled={formData.mainCategories.length === 0}
-          />
-          {subcategorySearch && (
-            <button
-              type="button"
-              onClick={() => setSubcategorySearch("")}
-              className={styles.clearSearch}
-            >
-              ×
-            </button>
-          )}
-          {subcategoryDropdownOpen && filteredSubcategories.length > 0 && (
-            <div className={styles.subcategoryDropdown}>
-              {filteredSubcategories.map((group) => (
-                <div key={group.categoryDocId} className={styles.dropdownGroup}>
-                  <div className={styles.dropdownGroupHeader}>
-                    {group.categoryName}
-                  </div>
-                  {group.subcategories
-                    .filter(
-                      (sub) =>
-                        !formData.subcategories.some(
-                          (s) => s.documentId === sub.documentId
-                        )
-                    )
-                    .map((sub) => (
-                      <div
-                        key={sub.documentId}
-                        onClick={() => {
-                          handleSubcategorySelect(sub, group.categoryName);
-                          setSubcategorySearch("");
-                          setSubcategoryDropdownOpen(false);
-                        }}
-                        className={styles.dropdownItem}
-                      >
-                        {sub.name}
-                      </div>
-                    ))}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <MultiSelectDropdown
+          placeholder={
+            formData.mainCategories.length === 0
+              ? "Selecciona categoría arriba"
+              : "Selecciona subcategorías"
+          }
+          selectedCountLabel="subcategorías"
+          groups={subcategoryGroups}
+          selectedIds={formData.subcategories.map((sub) => sub.documentId)}
+          onToggle={toggleSubcategory}
+          disabled={formData.mainCategories.length === 0}
+          searchPlaceholder="Buscar subcategorías..."
+          noResultsText="No hay subcategorías"
+          icon={<IconsApp.ToolInput />}
+        />
         <div className={styles.tagsScrollContainer}>
           {formData.subcategories.length === 0 ? (
             <p className={styles.emptyStateText}>
