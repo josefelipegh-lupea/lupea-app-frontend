@@ -6,7 +6,7 @@ interface IconProps {
 }
 
 export const IconsApp = {
-  Username: ({ color = "A9A9A9" }: IconProps) => {
+  Username: ({ color = "#A9A9A9" }: IconProps) => {
     return (
       <svg
         width="16"
