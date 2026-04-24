@@ -173,7 +173,7 @@ export default function ComparisonPage({ params }: PageProps) {
           <div className={styles.requestSelectorRow}>
             <div className={styles.selectorItem}>
               <IconsApp.Document color="#A1A1A1" />
-              <span>Solicitud {id.slice(0, 5)}</span>
+              <span>Consulta {id.slice(0, 5)}</span>
               <IconsApp.DownArrow />
             </div>
             <span className={styles.quoteCount}>
@@ -219,7 +219,7 @@ export default function ComparisonPage({ params }: PageProps) {
               return (
                 <div key={quote.id} className={styles.quoteCard}>
                   <div className={styles.cardHeader}>
-                    <span>Solicitud {id.slice(0, 5)}</span>
+                    <span>Consulta {id.slice(0, 5)}</span>
                     <span>
                       {new Date(quote.createdAt).toLocaleDateString("es-ES", {
                         day: "numeric",

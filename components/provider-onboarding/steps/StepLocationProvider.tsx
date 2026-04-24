@@ -190,35 +190,41 @@ export default function StepLocationProvider({
   }, [localFormData.municipality, municipalities]);
 
   // 4. EL PIN MANDA: handleLocationUpdate
+  // REGLA: el GPS/pin NUNCA sobreescribe lo que el usuario ya tipeo o selecciono.
+  // Solo actualiza lat/lng y mueve el mapa. El smart-fill de selects solo ocurre
+  // si el campo esta vacio — preservando siempre la seleccion manual del usuario.
   const handleLocationUpdate = (lat: number, lng: number) => {
     if (!isWithinVenezuela(lat, lng)) {
       toast.error("Ubicación fuera de Venezuela");
       return;
     }
 
+    // Mover el mapa inmediatamente al detectar la posicion
+    if (mapRef.current) {
+      mapRef.current.panTo({ lat, lng });
+      mapRef.current.setZoom(17);
+    }
+
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ location: { lat, lng } }, (results, status) => {
       if (status === "OK" && results?.[0]) {
-        const matchedState = findMatchInResults(
-          results,
-          states.map((s) => s.name)
-        );
-        const matchedMuni = findMatchInResults(
-          results,
-          municipalities.map((m) => m.name)
-        );
-        const matchedParish = findMatchInResults(results, parishes);
-
         setLocalFormData((prev) => {
-          const hasStateChanged = matchedState && matchedState !== prev.state;
-          const hasMuniChanged =
-            matchedMuni && matchedMuni !== prev.municipality;
-          const hasParishChanged =
-            matchedParish && matchedParish !== prev.parish;
+          // Solo hacer smart-fill si el campo esta vacio — nunca sobreescribir
+          let newState = prev.state;
+          let newMunicipality = prev.municipality;
+          let newParish = prev.parish;
 
-          let newExactAddress = prev.exactAddress;
-          if (hasStateChanged || hasMuniChanged || hasParishChanged) {
-            newExactAddress = ""; // Solo borramos si el pin se movió a otro municipio/estado
+          if (!prev.state) {
+            newState = findMatchInResults(results, states.map((s) => s.name));
+          }
+          if (!prev.municipality) {
+            newMunicipality = findMatchInResults(
+              results,
+              municipalities.map((m) => m.name)
+            );
+          }
+          if (!prev.parish) {
+            newParish = findMatchInResults(results, parishes);
           }
 
           return {
@@ -227,13 +233,20 @@ export default function StepLocationProvider({
             longitude: lng,
             placeId: results[0].place_id,
             address: results[0].formatted_address,
-            exactAddress: newExactAddress,
-            state: matchedState || prev.state,
-            municipality:
-              matchedMuni || (hasStateChanged ? "" : prev.municipality),
-            parish: matchedParish || (hasMuniChanged ? "" : prev.parish),
+            // Los campos de texto/seleccion del usuario se preservan intactos
+            state: newState,
+            municipality: newMunicipality,
+            parish: newParish,
+            // exactAddress nunca se toca desde el GPS
           };
         });
+      } else {
+        // Si geocode falla, igual actualizamos coordenadas
+        setLocalFormData((prev) => ({
+          ...prev,
+          latitude: lat,
+          longitude: lng,
+        }));
       }
     });
   };
@@ -338,7 +351,7 @@ export default function StepLocationProvider({
       <div className={styles.layoutContent}>
         <section className={styles.formSection}>
           <InputField
-            label="Nombre de la Sede"
+            label="Nombre de la Sede Principal"
             name="name"
             value={localFormData.name}
             onChange={(e) =>

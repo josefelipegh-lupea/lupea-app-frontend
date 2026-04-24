@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import { IconsApp } from "@/components/icons/Icons";
@@ -76,6 +76,14 @@ function NewQuotePageContent() {
   >({});
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Estado de fotos por item: itemId -> { file, previewUrl, uploadedId }
+  const [itemPhotos, setItemPhotos] = useState<
+    Record<number, { file: File | null; previewUrl: string | null; uploadedId: number | null; uploading: boolean }>
+  >({});
+
+  // Refs de los inputs file, indexados por itemId
+  const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -181,6 +189,52 @@ function NewQuotePageContent() {
     });
   };
 
+  const handlePhotoSelect = async (itemId: number, file: File) => {
+    if (!jwt) return;
+
+    // Mostrar preview inmediatamente
+    const previewUrl = URL.createObjectURL(file);
+    setItemPhotos((prev) => ({
+      ...prev,
+      [itemId]: { file, previewUrl, uploadedId: null, uploading: true },
+    }));
+
+    try {
+      // Subir imagen a Strapi upload
+      const formData = new FormData();
+      formData.append("files", file);
+
+      const API_BASE = process.env.NEXT_PUBLIC_STRAPI_API_URL?.replace("/api", "") || "http://localhost:1337";
+      const res = await fetch(`${API_BASE}/api/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error("Error al subir la imagen");
+      }
+
+      const uploaded = await res.json();
+      const uploadedFile = Array.isArray(uploaded) ? uploaded[0] : uploaded;
+
+      setItemPhotos((prev) => ({
+        ...prev,
+        [itemId]: { file, previewUrl, uploadedId: uploadedFile.id, uploading: false },
+      }));
+
+      toast.success("Foto cargada correctamente");
+    } catch (error) {
+      toast.error("No se pudo subir la foto");
+      setItemPhotos((prev) => ({
+        ...prev,
+        [itemId]: { file: null, previewUrl: null, uploadedId: null, uploading: false },
+      }));
+    }
+  };
+
   const handleSubmitQuote = async () => {
     if (!request || !jwt) return;
 
@@ -192,6 +246,7 @@ function NewQuotePageContent() {
       unitPrice: parseFloat(itemData[item.id]?.unitPrice) || 0,
       warranty: itemData[item.id]?.warranty || undefined,
       notes: itemData[item.id]?.notes || undefined,
+      photoId: itemPhotos[item.id]?.uploadedId ?? undefined,
     }));
 
     const payload = {
@@ -288,7 +343,7 @@ function NewQuotePageContent() {
   if (!request) {
     return (
       <div>
-        <p>Solicitud no encontrada</p>
+        <p>Consulta no encontrada</p>
         <button onClick={() => router.push("/home/vendor")}>Volver</button>
       </div>
     );
@@ -317,7 +372,7 @@ function NewQuotePageContent() {
             <div className={styles.headerCenter}>
               <div className={styles.headerTitleRow}>
                 <h1 className={styles.requestId}>
-                  Solicitud #{request.id.toString().padStart(5, "0")}
+                  Consulta #{request.id.toString().padStart(5, "0")}
                 </h1>
                 <span className={styles.badgePending}>
                   {request.status.toUpperCase()}
@@ -409,9 +464,9 @@ function NewQuotePageContent() {
               <div className={styles.tableHeader}>
                 <span className={styles.colProduct}>Producto / Detalle</span>
                 <span className={styles.colCant}>Cant.</span>
-                <span className={styles.colPrice}>Precio Unit. ($)</span>
+                <span className={styles.colPrice}>Precio Unitario ($)</span>
                 <span className={styles.colStock}>Disp.</span>
-                <span className={styles.colWarranty}>Garantía / OBS.</span>
+                <span className={styles.colWarranty}>Garantía / Descripción</span>
                 <span className={styles.colPhoto}>Foto</span>
               </div>
 
@@ -443,7 +498,7 @@ function NewQuotePageContent() {
                     <div className={styles.colCant} data-label="Cant.">
                       <span className={styles.cantValue}>{item.quantity}</span>
                     </div>
-                    <div className={styles.colPrice} data-label="Precio ($)">
+                    <div className={styles.colPrice} data-label="Precio Unitario ($)">
                       <input
                         type="text"
                         placeholder="0"
@@ -502,7 +557,7 @@ function NewQuotePageContent() {
 
                   <div
                     className={styles.colWarranty}
-                    data-label="Garantía / OBS"
+                    data-label="Garantía / Descripción"
                   >
                     <div className={styles.obsContainer}>
                       <input
@@ -516,7 +571,7 @@ function NewQuotePageContent() {
                       />
                       <input
                         type="text"
-                        placeholder="Observaciones"
+                        placeholder="Descripción del producto"
                         className={styles.capsuleInput}
                         value={itemData[item.id]?.notes || ""}
                         onChange={(e) =>
@@ -526,9 +581,42 @@ function NewQuotePageContent() {
                     </div>
                   </div>
                   <div className={styles.colPhoto} data-label="Foto">
-                    <div className={styles.photoCircle}>
-                      <IconsApp.Camera />
-                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      ref={(el) => {
+                        fileInputRefs.current[item.id] = el;
+                      }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handlePhotoSelect(item.id, file);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className={styles.photoCircle}
+                      onClick={() => fileInputRefs.current[item.id]?.click()}
+                      title="Subir foto del producto"
+                      disabled={itemPhotos[item.id]?.uploading}
+                    >
+                      {itemPhotos[item.id]?.previewUrl ? (
+                        <img
+                          src={itemPhotos[item.id].previewUrl!}
+                          alt="preview"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            borderRadius: "50%",
+                          }}
+                        />
+                      ) : itemPhotos[item.id]?.uploading ? (
+                        <span style={{ fontSize: "10px" }}>...</span>
+                      ) : (
+                        <IconsApp.Camera />
+                      )}
+                    </button>
                   </div>
                 </div>
               ))}

@@ -111,7 +111,7 @@ export const PriceCard: React.FC<PriceProps> = ({
   return (
     <div ref={cardRef} className={styles.card}>
       <div className={styles.header}>
-        <span>Solicitud {id}</span>
+        <span>Consulta {id}</span>
         <span>{date}</span>
       </div>
 

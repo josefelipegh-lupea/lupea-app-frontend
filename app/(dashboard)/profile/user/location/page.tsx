@@ -188,34 +188,54 @@ export default function LocationPage() {
       return;
     }
     lastValidPos.current = { lat, lng };
+
+    // Mover el mapa inmediatamente al detectar la posicion
+    if (mapRef.current) {
+      mapRef.current.panTo({ lat, lng });
+      mapRef.current.setZoom(17);
+    }
+
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ location: { lat, lng } }, (results, status) => {
       if (status === "OK" && results?.[0]) {
-        const matchedState = findMatchInResults(
-          results,
-          states.map((s) => s.name)
-        );
-        const matchedMuni = findMatchInResults(
-          results,
-          municipalities.map((m) => m.name)
-        );
-        const matchedParish = findMatchInResults(results, parishes);
+        setFormData((prev) => {
+          // REGLA: solo hacer smart-fill si el campo esta vacio.
+          // Nunca sobreescribir lo que el usuario ya selecciono o tipeo.
+          let newState = prev.state;
+          let newMunicipality = prev.municipality;
+          let newParish = prev.parish;
 
+          if (!prev.state) {
+            newState = findMatchInResults(results, states.map((s) => s.name));
+          }
+          if (!prev.municipality) {
+            newMunicipality = findMatchInResults(
+              results,
+              municipalities.map((m) => m.name)
+            );
+          }
+          if (!prev.parish) {
+            newParish = findMatchInResults(results, parishes);
+          }
+
+          return {
+            ...prev,
+            latitude: lat,
+            longitude: lng,
+            address: results[0].formatted_address,
+            placeId: results[0].place_id,
+            state: newState,
+            municipality: newMunicipality,
+            parish: newParish,
+            // exactAddress nunca se toca desde el GPS
+          };
+        });
+      } else {
+        // Si geocode falla, igual actualizamos coordenadas
         setFormData((prev) => ({
           ...prev,
           latitude: lat,
           longitude: lng,
-          address: results[0].formatted_address,
-          placeId: results[0].place_id,
-          state: matchedState || prev.state,
-          municipality:
-            matchedState && matchedState !== prev.state
-              ? ""
-              : matchedMuni || prev.municipality,
-          parish:
-            matchedMuni && matchedMuni !== prev.municipality
-              ? ""
-              : matchedParish || prev.parish,
         }));
       }
     });
@@ -293,12 +313,8 @@ export default function LocationPage() {
   const handleGPS = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((p) => {
+        // handleLocationUpdate ya mueve el mapa internamente
         handleLocationUpdate(p.coords.latitude, p.coords.longitude);
-        mapRef.current?.panTo({
-          lat: p.coords.latitude,
-          lng: p.coords.longitude,
-        });
-        mapRef.current?.setZoom(17);
       });
     }
   };

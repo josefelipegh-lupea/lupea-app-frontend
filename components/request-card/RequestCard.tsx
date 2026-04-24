@@ -108,7 +108,7 @@ export const RequestCard: React.FC<RequestProps> = ({
       <div className={styles.header}>
         <div className={styles.headerTitle}>
           <IconsApp.Document />
-          <span>Solicitud {id}</span>
+          <span>Consulta {id}</span>
         </div>
         <span className={styles.headerDate}>{date}</span>
       </div>

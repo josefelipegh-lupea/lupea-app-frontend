@@ -32,6 +32,7 @@ export default function ConversationPage({ params }: PageProps) {
     onNewChatMessage,
     onParticipantJoined,
     onParticipantLeft,
+    onPaymentNotified,
     joinChat,
     leaveChat,
     onlineParticipants,
@@ -104,6 +105,26 @@ export default function ConversationPage({ params }: PageProps) {
 
     return unsubscribe;
   }, [numericChatId, onNewChatMessage]);
+
+  // Escuchar notificacion de pago del cliente en tiempo real
+  // Cuando el cliente notifica el pago, habilitamos el boton "Confirmar pago"
+  useEffect(() => {
+    const unsubscribe = onPaymentNotified((data) => {
+      if (numericChatId && data.chatId === numericChatId) {
+        setOrderStatus("payment_validation");
+        // Agregar el mensaje del comprobante a la lista si viene en el payload
+        if (data.message) {
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === data.message.id)) return prev;
+            return [...prev, data.message as unknown as ChatMessage];
+          });
+        }
+        toast.success("El cliente ha notificado el pago");
+      }
+    });
+
+    return unsubscribe;
+  }, [numericChatId, onPaymentNotified]);
 
   useEffect(() => {
     const numericChatId = parseInt(chatId, 10);

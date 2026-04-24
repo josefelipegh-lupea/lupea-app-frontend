@@ -171,7 +171,7 @@ const QuoteDetailPage: React.FC = () => {
           {/* <div className={styles.requestSelectorRow}>
           <div className={styles.selectorItem}>
             <IconsApp.Document color="#A1A1A1" />
-            <span>Solicitud {quote.request.documentId.slice(0, 5)}</span>
+            <span>Consulta {quote.request.documentId.slice(0, 5)}</span>
             <IconsApp.DownArrow />
           </div>
           <span className={styles.quoteCount}>
