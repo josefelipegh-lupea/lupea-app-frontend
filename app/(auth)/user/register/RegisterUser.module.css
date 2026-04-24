@@ -386,3 +386,21 @@ select.input {
   overflow-y: auto;
   max-height: 90vh;
 }
+
+.required {
+  color: #e53e3e;
+}
+
+.fieldError {
+  color: #e53e3e;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.hidden {
+  display: none;
+}
+
+.labelSpaced {
+  margin-top: 15px;
+}

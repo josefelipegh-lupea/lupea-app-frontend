@@ -63,17 +63,16 @@ export default function DeliveryStep({
       <div className={styles.divider} />
 
       <div className={styles.cardBody}>
-        <div className={styles.field} style={{ marginTop: "20px" }}>
-          <label>Ubicación</label>
+        <div className={`${styles.field} ${styles.fieldMarginTop}`}>
+          <label>Ubicación <span className={styles.required}>*</span></label>
           <div className={styles.selectWrapper}>
             <div
-              className={styles.iconOverlay}
-              style={{ left: "16px", right: "auto" }}
+              className={`${styles.iconOverlay} ${styles.iconOverlayLeft}`}
             >
               <IconsApp.Pin />
             </div>
             <select
-              style={{ paddingLeft: "45px" }}
+              className={styles.selectWithLeftIcon}
               name="deliveryCity"
               value={formData.deliveryCity}
               onChange={handleCityChange}
@@ -131,7 +130,7 @@ export default function DeliveryStep({
         </div>
 
         {locations.length === 0 && (
-          <p style={{ fontSize: "12px", color: "#f97316", marginTop: "8px" }}>
+          <p className={styles.warningText}>
             * No tienes direcciones guardadas. Ve a tu perfil para agregar una.
           </p>
         )}

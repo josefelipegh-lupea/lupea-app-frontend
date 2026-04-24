@@ -28,6 +28,8 @@ export type LoginResponse = {
     tokensLastRenewal?: string;
     tokensNextRenewal?: string;
     privacyLevel: string;
+    /** Provider-only: approval/onboarding status */
+    status?: string;
   };
 };
 

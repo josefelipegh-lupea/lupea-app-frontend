@@ -341,7 +341,7 @@ const VehiclesPage = () => {
                 <div className={styles.layoutContent}>
                   {/* MARCA */}
                   <div className={styles.inputContainer}>
-                    <label className={styles.label}>Marca</label>
+                    <label className={styles.label}>Marca <span className={styles.required}>*</span></label>
                     <div className={styles.selectWrapper}>
                       <select
                         name="brand"
@@ -364,7 +364,7 @@ const VehiclesPage = () => {
 
                   {/* MODELO */}
                   <div className={styles.inputContainer}>
-                    <label className={styles.label}>Modelo</label>
+                    <label className={styles.label}>Modelo <span className={styles.required}>*</span></label>
                     <div className={styles.selectWrapper}>
                       <select
                         name="model"
@@ -415,7 +415,7 @@ const VehiclesPage = () => {
                   <div className={styles.row}>
                     {/* AÑO */}
                     <div className={styles.inputContainer}>
-                      <label className={styles.label}>Año</label>
+                      <label className={styles.label}>Año <span className={styles.required}>*</span></label>
                       <div className={styles.selectWrapper}>
                         <select
                           name="year"
@@ -439,7 +439,7 @@ const VehiclesPage = () => {
 
                     {/* MOTOR */}
                     <div className={styles.inputContainer}>
-                      <label className={styles.label}>Motor</label>
+                      <label className={styles.label}>Motor <span className={styles.required}>*</span></label>
                       <div className={styles.selectWrapper}>
                         <select
                           name="engine"

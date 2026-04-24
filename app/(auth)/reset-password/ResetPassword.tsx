@@ -18,6 +18,7 @@ export default function ResetPassword() {
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const { isValid, errors } = useResetPasswordValidation(values);
 
@@ -27,6 +28,7 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
     if (!isValid || !code) {
       if (!code) toast.error("Código de recuperación no encontrado");
       return;
@@ -63,7 +65,9 @@ export default function ResetPassword() {
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputGroup}>
-            <label className={styles.label}>Contraseña nueva</label>
+            <label className={styles.label}>
+              Contraseña nueva <span className={styles.required}>*</span>
+            </label>
             <div className={styles.inputWrapper}>
               <span className={styles.icon}>
                 <IconsApp.Password />
@@ -77,10 +81,15 @@ export default function ResetPassword() {
                 placeholder="Mínimo 8 caracteres"
               />
             </div>
+            {submitted && errors.password && (
+              <span className={styles.errorText}>{errors.password[0]}</span>
+            )}
           </div>
 
           <div className={styles.inputGroup}>
-            <label className={styles.label}>Confirmar contraseña</label>
+            <label className={styles.label}>
+              Confirmar contraseña <span className={styles.required}>*</span>
+            </label>
             <div className={styles.inputWrapper}>
               <span className={styles.icon}>
                 <IconsApp.Password />
@@ -94,7 +103,7 @@ export default function ResetPassword() {
                 placeholder="Repite tu contraseña"
               />
             </div>
-            {values.confirmPassword && errors.confirmPassword && (
+            {submitted && errors.confirmPassword && (
               <span className={styles.errorText}>
                 {errors.confirmPassword[0]}
               </span>

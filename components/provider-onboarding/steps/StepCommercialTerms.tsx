@@ -40,8 +40,7 @@ export default function StepCommercialTerms({
 
   return (
     <div
-      className={styles.container}
-      style={{ gap: mode === "all" ? "30px" : "0" }}
+      className={`${styles.container} ${mode === "all" ? styles.containerWithGap : ""}`}
     >
       {/* SECCIÓN: CONDICIONES DE VENTA */}
       {(mode === "all" || mode === "sales") && (
@@ -50,7 +49,7 @@ export default function StepCommercialTerms({
             <h3 className={styles.title}>Condiciones de Venta</h3>
           )}
 
-          <label className={styles.label}>Métodos de pago aceptados *</label>
+          <label className={styles.label}>Métodos de pago aceptados <span className={styles.required}>*</span></label>
           <div className={styles.chips}>
             {[
               "Zelle",

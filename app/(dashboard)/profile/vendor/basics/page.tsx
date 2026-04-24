@@ -22,6 +22,7 @@ export default function BasicsEditPage() {
   const { profile, user, jwt, isLoading, refreshProfile } = useAuth();
   const { isExpanded } = useSidebar();
   const [isSaving, setIsSaving] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const router = useRouter();
 
   const vendor = profile as unknown as ProviderProfileData;
@@ -45,7 +46,6 @@ export default function BasicsEditPage() {
   });
 
   const basics = useBasicsValidation(formData);
-
   useEffect(() => {
     if (vendor) {
       setFormData((prev) => ({
@@ -91,7 +91,8 @@ export default function BasicsEditPage() {
   };
 
   const handleSave = async () => {
-    if (!jwt) return;
+    setSubmitted(true);
+    if (!basics.isValid || !jwt) return;
     setIsSaving(true);
 
     const payload: UpdateCommercialDataDTO = {
@@ -146,13 +147,16 @@ export default function BasicsEditPage() {
             updateFormData={updateFormData}
             setFormData={handleSetFormData}
             handleChange={handleChange}
+            errors={submitted ? Object.fromEntries(
+              Object.entries(basics.errors).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])
+            ) : undefined}
           />
 
           <div className={styles.footer}>
             <Button
               className={styles.saveBtn}
               onClick={handleSave}
-              disabled={!basics.isValid || isSaving}
+              disabled={isSaving}
             >
               {isSaving ? "Guardando..." : "Guardar Cambios"}
             </Button>

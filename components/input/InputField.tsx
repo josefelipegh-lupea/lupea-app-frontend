@@ -2,7 +2,7 @@ import React from "react";
 import styles from "./InputField.module.css";
 
 interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
+  label?: React.ReactNode;
   icon?: React.ReactNode;
   name: string;
   rightElement?: React.ReactNode;

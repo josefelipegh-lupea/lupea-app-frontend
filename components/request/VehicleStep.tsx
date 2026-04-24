@@ -329,7 +329,7 @@ export default function VehicleStep({
           ) : (
             <div className={styles.subStepContainer}>
               <div className={styles.field}>
-                <label>Marca</label>
+                <label>Marca <span className={styles.required}>*</span></label>
                 <div className={styles.selectWrapper}>
                   <select
                     name="brand"
@@ -350,7 +350,7 @@ export default function VehicleStep({
               </div>
 
               <div className={styles.field}>
-                <label>Modelo</label>
+                <label>Modelo <span className={styles.required}>*</span></label>
                 <div className={styles.selectWrapper}>
                   <select
                     name="model"
@@ -403,7 +403,7 @@ export default function VehicleStep({
 
               <div className={styles.row}>
                 <div className={styles.field}>
-                  <label>Año</label>
+                  <label>Año <span className={styles.required}>*</span></label>
                   <div className={styles.selectWrapper}>
                     <select
                       name="year"
@@ -424,7 +424,7 @@ export default function VehicleStep({
                   </div>
                 </div>
                 <div className={styles.field}>
-                  <label>Motor</label>
+                  <label>Motor <span className={styles.required}>*</span></label>
                   <div className={styles.selectWrapper}>
                     <select
                       name="engine"

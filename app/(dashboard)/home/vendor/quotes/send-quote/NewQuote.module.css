@@ -1119,6 +1119,27 @@
     border-top: 1px solid #e0e0e0;
   }
 
+  .productRowGroup {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .offerVariantRow .colProduct {
+    display: block;
+    visibility: hidden;
+  }
+
+  .colProductPlaceholder {
+    visibility: hidden;
+  }
+
+  .colAddOffer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .colCant,
   .colPhoto {
     display: flex;
@@ -1409,4 +1430,79 @@
   .content {
     padding-bottom: 0;
   }
+}
+
+/* ── Issue 11: múltiples variantes por ítem ─────────────────────── */
+
+.productRowGroup {
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.productRowGroup:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.offerVariantRow .colProduct {
+  display: none;
+}
+
+.colProductPlaceholder {
+  /* mantiene el espacio de la columna producto en variantes adicionales (desktop grid) */
+}
+
+.colAddOffer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.addOfferBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px dashed #f08400;
+  color: #f08400;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.addOfferBtn:hover {
+  background: rgba(240, 132, 0, 0.06);
+}
+
+.removeOfferBtn {
+  background: none;
+  border: none;
+  color: #b0b0b0;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.removeOfferBtn:hover {
+  color: #e53935;
+  background: rgba(229, 57, 53, 0.06);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.photoPreview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.uploadingText {
+  font-size: 10px;
 }

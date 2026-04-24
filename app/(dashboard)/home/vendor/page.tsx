@@ -11,6 +11,7 @@ import { RequestCard } from "@/components/request-card/RequestCard";
 import { PriceCard } from "@/components/price-card/PriceCard";
 import { OrderCard } from "@/components/order-card/OrderCard";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
 import {
@@ -30,7 +31,7 @@ export default function HomePage() {
   const { jwt, loginProfile, refreshLoginProfile } = useAuth();
   const { isExpanded } = useSidebar();
   const router = useRouter();
-  const { onNotification, notifications } = useSocket();
+  const { onNotification, notifications, onProviderStatusChanged } = useSocket();
   const [activeTab, setActiveTab] = useState("SOLICITUDES");
 
   const [requests, setRequests] = useState<ProviderQuoteRequest[]>([]);
@@ -52,6 +53,14 @@ export default function HomePage() {
   const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
   const tokensTotal = loginProfile?.tokensTotal ?? 0;
   const tokensPercentage = loginProfile?.monthlyConsumption?.percentage ?? 0;
+
+  useEffect(() => {
+    const unsubscribe = onProviderStatusChanged(async (data) => {
+      toast.success(`${data.title}: ${data.message}`, { duration: 6000 });
+      await refreshLoginProfile();
+    });
+    return unsubscribe;
+  }, [onProviderStatusChanged, refreshLoginProfile]);
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -191,11 +200,15 @@ export default function HomePage() {
       case "ÓRDENES":
         if (loading)
           return <p className={styles.loadingText}>Cargando órdenes...</p>;
-        if (orders.length === 0)
-          return <p className={styles.emptyText}>No tienes órdenes todavía.</p>;
-        return orders
-          .slice(0, 3)
-          .map((o) => (
+        {
+          const activeOrders = orders.filter(
+            (o) => o.status !== "completed" && o.status !== "cancelled"
+          );
+          if (activeOrders.length === 0)
+            return <p className={styles.emptyText}>No tienes órdenes activas.</p>;
+          return activeOrders
+            .slice(0, 3)
+            .map((o) => (
             <OrderCard
               key={o.documentId}
               id={o.documentId}
@@ -229,9 +242,48 @@ export default function HomePage() {
               }
             />
           ));
+        }
       default:
         return null;
     }
+  };
+
+  const providerStatus = loginProfile?.status;
+
+  const statusBannerConfig: Record<
+    string,
+    { title: string; body: string; linkLabel?: string; linkPath?: string }
+  > = {
+    incomplete: {
+      title: "Perfil incompleto",
+      body: "Para recibir consultas debes completar tu perfil comercial.",
+      linkLabel: "Completar perfil",
+      linkPath: "/profile/vendor",
+    },
+    pending: {
+      title: "Cuenta pendiente de confirmación",
+      body: "Revisa tu correo para confirmar tu cuenta y continuar con el registro.",
+    },
+    in_review: {
+      title: "Perfil en revisión",
+      body: "El equipo de Lupea está revisando tu información. Te notificaremos cuando se active tu cuenta.",
+    },
+    suspended: {
+      title: "Cuenta suspendida",
+      body: "Tu cuenta ha sido suspendida. Contacta a soporte para más información.",
+    },
+  };
+
+  const activeBanner =
+    providerStatus && providerStatus !== "active"
+      ? statusBannerConfig[providerStatus] ?? null
+      : null;
+
+  const bannerIcon: Record<string, string> = {
+    incomplete: "⚠️",
+    pending: "📧",
+    in_review: "🔍",
+    suspended: "🚫",
   };
 
   return (
@@ -241,6 +293,27 @@ export default function HomePage() {
       }`}
     >
       <div className={styles.mainContainer}>
+        {activeBanner && providerStatus && (
+          <div
+            className={`${styles.statusBanner} ${styles[providerStatus]}`}
+          >
+            <span className={styles.statusBannerIcon}>
+              {bannerIcon[providerStatus]}
+            </span>
+            <div className={styles.statusBannerText}>
+              <div className={styles.statusBannerTitle}>{activeBanner.title}</div>
+              <div className={styles.statusBannerBody}>{activeBanner.body}</div>
+              {activeBanner.linkLabel && activeBanner.linkPath && (
+                <button
+                  className={styles.statusBannerLink}
+                  onClick={() => router.push(activeBanner.linkPath!)}
+                >
+                  {activeBanner.linkLabel}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         <div className={styles.leftSection}>
           <section className={styles.summaryCard}>
             <p className={styles.summaryLabel}>MIS LUPAS DISPONIBLES</p>
