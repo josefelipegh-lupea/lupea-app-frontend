@@ -460,7 +460,7 @@ export default function LocationPage() {
                 <div className={styles.layoutContent}>
                   <section className={styles.formSection}>
                     <InputField
-                      label="Nombre de ubicación"
+                      label={<>Nombre de ubicación <span className={styles.required}>*</span></>}
                       name="name"
                       value={formData.name}
                       onChange={(e) =>
@@ -487,7 +487,7 @@ export default function LocationPage() {
                     </div>
 
                     <div className={styles.selectGroup}>
-                      <label className={styles.label}>Estado</label>
+                      <label className={styles.label}>Estado <span className={styles.required}>*</span></label>
                       <div className={styles.selectWrapper}>
                         <select
                           className={styles.input}
@@ -517,7 +517,7 @@ export default function LocationPage() {
                     </div>
 
                     <div className={styles.selectGroup}>
-                      <label className={styles.label}>Municipio</label>
+                      <label className={styles.label}>Municipio <span className={styles.required}>*</span></label>
                       <div className={styles.selectWrapper}>
                         <select
                           className={styles.input}
@@ -548,7 +548,7 @@ export default function LocationPage() {
                     </div>
 
                     <div className={styles.selectGroup}>
-                      <label className={styles.label}>Parroquia</label>
+                      <label className={styles.label}>Parroquia <span className={styles.required}>*</span></label>
                       <div className={styles.selectWrapper}>
                         <select
                           className={styles.input}
@@ -578,7 +578,7 @@ export default function LocationPage() {
                     </div>
 
                     <InputField
-                      label="Dirección"
+                      label={<>Dirección <span className={styles.required}>*</span></>}
                       name="address"
                       value={formData.exactAddress}
                       onChange={handleInputChange}

@@ -15,10 +15,12 @@ export default function ForgotPasswordPage() {
   const router = useRouter();
 
   const { isValid } = useForgotPasswordValidation({ email });
+  const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return toast.error("Ingresa tu correo electrónico");
+    setSubmitted(true);
+    if (!email) return;
 
     setLoading(true);
     try {
@@ -55,7 +57,9 @@ export default function ForgotPasswordPage() {
         {!sent ? (
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.inputGroup}>
-              <label className={styles.label}>Correo electrónico</label>
+              <label className={styles.label}>
+                Correo electrónico <span className={styles.required}>*</span>
+              </label>
               <div className={styles.inputWrapper}>
                 <span className={styles.icon}>
                   <IconsApp.Email />
@@ -70,6 +74,9 @@ export default function ForgotPasswordPage() {
                   required
                 />
               </div>
+              {submitted && !email && (
+                <p className={styles.fieldError}>Ingresa tu correo electrónico</p>
+              )}
             </div>
 
             <button

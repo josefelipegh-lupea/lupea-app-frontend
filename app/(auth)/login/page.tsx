@@ -24,13 +24,17 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
 
-  const { isValid } = useLoginValidation({
+  const { isValid, errors } = useLoginValidation({
     email,
     password,
   });
 
+  const [submitted, setSubmitted] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
+    if (!isValid) return;
     setIsLoading(true);
     setApiError("");
 
@@ -86,7 +90,7 @@ export default function LoginPage() {
 
         {/* IDENTIFICADOR */}
         <label className={styles.label} htmlFor="email">
-          Correo electrónico o usuario
+          Correo electrónico o usuario <span className={styles.required}>*</span>
         </label>
         <div className={styles.inputWrapper}>
           <span className={styles.inputIcon}>
@@ -103,10 +107,13 @@ export default function LoginPage() {
             required
           />
         </div>
+        {submitted && errors.email && (
+          <p className={styles.fieldError}>{errors.email[0]}</p>
+        )}
 
         {/* CONTRASEÑA */}
         <label className={styles.label} htmlFor="password">
-          Contraseña
+          Contraseña <span className={styles.required}>*</span>
         </label>
         <div className={styles.inputWrapper}>
           <span className={styles.inputIcon}>
@@ -138,6 +145,9 @@ export default function LoginPage() {
             )}
           </button>
         </div>
+        {submitted && errors.password && (
+          <p className={styles.fieldError}>{errors.password[0]}</p>
+        )}
 
         {/* OLVIDÉ MI CONTRASEÑA */}
         <div className={styles.forgotPasswordRow}>
@@ -149,10 +159,16 @@ export default function LoginPage() {
         <button
           type="submit"
           className={styles.submitButton}
-          disabled={!isValid || loading}
+          disabled={loading}
         >
           {loading ? "Cargando..." : "Iniciar Sesión"}
         </button>
+
+        {apiError && (
+          <p className={`${styles.fieldError} ${styles.fieldErrorCenter}`}>
+            {apiError}
+          </p>
+        )}
 
         <div className={styles.loginRow}>
           <span>¿No tienes una cuenta? </span>

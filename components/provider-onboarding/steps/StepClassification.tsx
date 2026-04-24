@@ -285,7 +285,7 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
       {/* CATEGORÍAS */}
       <div className={styles.fullWidth}>
         <label className={styles.label}>
-          Categorías en la que clasifica tu negocio
+          Categorías en la que clasifica tu negocio <span className={styles.required}>*</span>
         </label>
         <MultiSelectDropdown
           placeholder="Selecciona categorías"
@@ -322,8 +322,8 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
       </div>
 
       {/* SUBCATEGORÍAS */}
-      <div className={styles.fullWidth} style={{ marginTop: "20px" }}>
-        <label className={styles.label}>Subcategorías</label>
+      <div className={`${styles.fullWidth} ${styles.sectionMarginTop}`}>
+        <label className={styles.label}>Subcategorías <span className={styles.required}>*</span></label>
         <MultiSelectDropdown
           placeholder={
             formData.mainCategories.length === 0
@@ -373,7 +373,7 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
 
       {/* MARCAS */}
       <div className={`${styles.fullWidth} ${styles.sectionMarginTop} `}>
-        <label className={styles.label}>Marcas que manejas</label>
+        <label className={styles.label}>Marcas que manejas <span className={styles.required}>*</span></label>
         <div className={styles.selectWrapper}>
           <span className={styles.icon}>
             <IconsApp.ToolInput />

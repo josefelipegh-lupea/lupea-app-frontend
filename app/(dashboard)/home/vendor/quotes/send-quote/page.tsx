@@ -61,29 +61,25 @@ function NewQuotePageContent() {
   const [validityDate, setValidityDate] = useState("");
   const [noteGeneral, setNoteGeneral] = useState("");
 
-  const [itemData, setItemData] = useState<
-    Record<
-      number,
-      {
-        unitPrice: string;
-        availableQuantity: string;
-        deliveryTime: string;
-        warranty: string;
-        notes: string;
-        offeredBrand: string;
-      }
-    >
-  >({});
+  type OfferEntry = {
+    unitPrice: string;
+    availableQuantity: string;
+    warranty: string;
+    notes: string;
+    offeredBrand: string;
+  };
+
+  const [itemData, setItemData] = useState<Record<number, OfferEntry[]>>({});
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Estado de fotos por item: itemId -> { file, previewUrl, uploadedId }
+  // Estado de fotos por oferta: clave `${itemId}_${offerIdx}`
   const [itemPhotos, setItemPhotos] = useState<
-    Record<number, { file: File | null; previewUrl: string | null; uploadedId: number | null; uploading: boolean }>
+    Record<string, { file: File | null; previewUrl: string | null; uploadedId: number | null; uploading: boolean }>
   >({});
 
-  // Refs de los inputs file, indexados por itemId
-  const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
+  // Refs de los inputs file, indexados por `${itemId}_${offerIdx}`
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -104,26 +100,17 @@ function NewQuotePageContent() {
           setRequest(found || null);
 
           if (found) {
-            const initialItemData: Record<
-              number,
-              {
-                unitPrice: string;
-                availableQuantity: string;
-                deliveryTime: string;
-                warranty: string;
-                notes: string;
-                offeredBrand: string;
-              }
-            > = {};
+            const initialItemData: Record<number, OfferEntry[]> = {};
             found.request.items.forEach((item) => {
-              initialItemData[item.id] = {
-                unitPrice: "",
-                availableQuantity: item.quantity.toString(),
-                deliveryTime: "",
-                warranty: "",
-                notes: "",
-                offeredBrand: "",
-              };
+              initialItemData[item.id] = [
+                {
+                  unitPrice: "",
+                  availableQuantity: item.quantity.toString(),
+                  warranty: "",
+                  notes: "",
+                  offeredBrand: "",
+                },
+              ];
             });
             setItemData(initialItemData);
           }
@@ -174,29 +161,58 @@ function NewQuotePageContent() {
     );
   };
 
-  const handleItemChange = (itemId: number, field: string, value: string) => {
-    setItemData((prev) => ({
-      ...prev,
-      [itemId]: {
-        ...prev[itemId],
-        [field]: value,
-      },
-    }));
+  const handleItemChange = (itemId: number, offerIdx: number, field: string, value: string) => {
+    setItemData((prev) => {
+      const offers = [...(prev[itemId] || [])];
+      offers[offerIdx] = { ...offers[offerIdx], [field]: value };
+      return { ...prev, [itemId]: offers };
+    });
     setErrors((prev) => {
       const newErrors = { ...prev };
-      delete newErrors[`items.${itemId}.${field}`];
+      delete newErrors[`items.${itemId}.${offerIdx}.${field}`];
       return newErrors;
     });
   };
 
-  const handlePhotoSelect = async (itemId: number, file: File) => {
+  const addOffer = (itemId: number, requestedQty: number) => {
+    setItemData((prev) => ({
+      ...prev,
+      [itemId]: [
+        ...(prev[itemId] || []),
+        {
+          unitPrice: "",
+          availableQuantity: requestedQty.toString(),
+          warranty: "",
+          notes: "",
+          offeredBrand: "",
+        },
+      ],
+    }));
+  };
+
+  const removeOffer = (itemId: number, offerIdx: number) => {
+    setItemData((prev) => {
+      const offers = (prev[itemId] || []).filter((_, i) => i !== offerIdx);
+      return { ...prev, [itemId]: offers };
+    });
+    // Limpiar foto asociada
+    const photoKey = `${itemId}_${offerIdx}`;
+    setItemPhotos((prev) => {
+      const next = { ...prev };
+      delete next[photoKey];
+      return next;
+    });
+  };
+
+  const handlePhotoSelect = async (itemId: number, offerIdx: number, file: File) => {
     if (!jwt) return;
+    const photoKey = `${itemId}_${offerIdx}`;
 
     // Mostrar preview inmediatamente
     const previewUrl = URL.createObjectURL(file);
     setItemPhotos((prev) => ({
       ...prev,
-      [itemId]: { file, previewUrl, uploadedId: null, uploading: true },
+      [photoKey]: { file, previewUrl, uploadedId: null, uploading: true },
     }));
 
     try {
@@ -222,15 +238,15 @@ function NewQuotePageContent() {
 
       setItemPhotos((prev) => ({
         ...prev,
-        [itemId]: { file, previewUrl, uploadedId: uploadedFile.id, uploading: false },
+        [photoKey]: { file, previewUrl, uploadedId: uploadedFile.id, uploading: false },
       }));
 
       toast.success("Foto cargada correctamente");
-    } catch (error) {
+    } catch {
       toast.error("No se pudo subir la foto");
       setItemPhotos((prev) => ({
         ...prev,
-        [itemId]: { file: null, previewUrl: null, uploadedId: null, uploading: false },
+        [photoKey]: { file: null, previewUrl: null, uploadedId: null, uploading: false },
       }));
     }
   };
@@ -238,16 +254,18 @@ function NewQuotePageContent() {
   const handleSubmitQuote = async () => {
     if (!request || !jwt) return;
 
-    const items = request.request.items.map((item) => ({
-      requestItemId: item.id,
-      offeredBrand: itemData[item.id]?.offeredBrand || undefined,
-      availableQuantity:
-        parseInt(itemData[item.id]?.availableQuantity) || undefined,
-      unitPrice: parseFloat(itemData[item.id]?.unitPrice) || 0,
-      warranty: itemData[item.id]?.warranty || undefined,
-      notes: itemData[item.id]?.notes || undefined,
-      photoId: itemPhotos[item.id]?.uploadedId ?? undefined,
-    }));
+    const items = request.request.items.flatMap((item) => {
+      const offers = itemData[item.id] || [];
+      return offers.map((offer, offerIdx) => ({
+        requestItemId: item.id,
+        offeredBrand: offer.offeredBrand || undefined,
+        availableQuantity: parseInt(offer.availableQuantity) || undefined,
+        unitPrice: parseFloat(offer.unitPrice) || 0,
+        warranty: offer.warranty || undefined,
+        notes: offer.notes || undefined,
+        photoId: itemPhotos[`${item.id}_${offerIdx}`]?.uploadedId ?? undefined,
+      }));
+    });
 
     const payload = {
       deliveryTime,
@@ -265,39 +283,23 @@ function NewQuotePageContent() {
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
 
+      // Validación directa sobre datos locales (más confiable con variantes)
+      request.request.items.forEach((item) => {
+        const offers = itemData[item.id] || [];
+        offers.forEach((offer, offerIdx) => {
+          if (!offer.unitPrice || parseFloat(offer.unitPrice) <= 0) {
+            fieldErrors[`items.${item.id}.${offerIdx}.unitPrice`] = "El precio es obligatorio";
+          }
+          if (!offer.availableQuantity || parseInt(offer.availableQuantity) < 1) {
+            fieldErrors[`items.${item.id}.${offerIdx}.availableQuantity`] = "La disponibilidad es obligatoria";
+          }
+        });
+      });
+
+      // Errores de condiciones comerciales del schema
       result.error.issues.forEach((issue) => {
         const path = issue.path.join(".");
-
-        if (
-          path.startsWith("items.") &&
-          (path.includes(".unitPrice") || path.includes(".availableQuantity"))
-        ) {
-          const itemIndexMatch = path.match(/items\.(\d+)\./);
-          if (itemIndexMatch) {
-            const itemIndex = parseInt(itemIndexMatch[1]);
-            const item = request.request.items[itemIndex];
-            if (item) {
-              const field = path.includes("unitPrice")
-                ? "unitPrice"
-                : "availableQuantity";
-              fieldErrors[`items.${item.id}.${field}`] = issue.message;
-            }
-          }
-        } else if (path === "items") {
-          request.request.items.forEach((item) => {
-            if (!itemData[item.id]?.unitPrice) {
-              fieldErrors[`items.${item.id}.unitPrice`] =
-                "El precio es obligatorio";
-            }
-            if (
-              !itemData[item.id]?.availableQuantity ||
-              parseInt(itemData[item.id]?.availableQuantity) < 1
-            ) {
-              fieldErrors[`items.${item.id}.availableQuantity`] =
-                "La disponibilidad es obligatoria";
-            }
-          });
-        } else {
+        if (!path.startsWith("items")) {
           fieldErrors[path] = issue.message;
         }
       });
@@ -406,7 +408,7 @@ function NewQuotePageContent() {
                 {(() => {
                   const total = request.request.items.length;
                   const quoted = request.request.items.filter(
-                    (item) => itemData[item.id]?.unitPrice,
+                    (item) => itemData[item.id]?.[0]?.unitPrice,
                   ).length;
                   return `${quoted} de ${total} productos completados`;
                 })()}
@@ -419,7 +421,7 @@ function NewQuotePageContent() {
                 style={{
                   width: `${
                     (request.request.items.filter(
-                      (item) => itemData[item.id]?.unitPrice,
+                      (item) => itemData[item.id]?.[0]?.unitPrice,
                     ).length /
                       request.request.items.length) *
                     100
@@ -468,32 +470,42 @@ function NewQuotePageContent() {
                 <span className={styles.colStock}>Disp.</span>
                 <span className={styles.colWarranty}>Garantía / Descripción</span>
                 <span className={styles.colPhoto}>Foto</span>
+                <span className={styles.colAddOffer}>Añadir oferta</span>
               </div>
 
               {/* Filas de Productos */}
-              {request.request.items.map((item, index) => (
-                <div key={index} className={styles.productRow}>
-                  <div
-                    className={styles.colProduct}
-                    data-label="Producto / Detalle"
-                  >
-                    <div className={styles.productInfoWrapper}>
-                      <div className={styles.gearIcon}>
-                        <IconsApp.Gear />
-                      </div>
-                      <div className={styles.nameContent}>
-                        <p className={styles.prodName}>{item.productName}</p>
-                        <p className={styles.prodSub}>
-                          {request.request.vehicle.brand}{" "}
-                          {request.request.vehicle.model}{" "}
-                          {request.request.vehicle.year} •{" "}
-                          {item.conditionPreferred === "no_importa"
-                            ? "Cualquiera"
-                            : item.conditionPreferred}
-                        </p>
+              {request.request.items.map((item, index) => {
+                const offers = itemData[item.id] || [];
+                return (
+                <div key={index} className={styles.productRowGroup}>
+                  {offers.map((offer, offerIdx) => (
+                  <div key={offerIdx} className={`${styles.productRow} ${offerIdx > 0 ? styles.offerVariantRow : ""}`}>
+                    {/* Columna producto: solo en la primera oferta */}
+                    {offerIdx === 0 ? (
+                    <div
+                      className={styles.colProduct}
+                      data-label="Producto / Detalle"
+                    >
+                      <div className={styles.productInfoWrapper}>
+                        <div className={styles.gearIcon}>
+                          <IconsApp.Gear />
+                        </div>
+                        <div className={styles.nameContent}>
+                          <p className={styles.prodName}>{item.productName}</p>
+                          <p className={styles.prodSub}>
+                            {request.request.vehicle.brand}{" "}
+                            {request.request.vehicle.model}{" "}
+                            {request.request.vehicle.year} •{" "}
+                            {item.conditionPreferred === "no_importa"
+                              ? "Cualquiera"
+                              : item.conditionPreferred}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                    ) : (
+                    <div className={styles.colProductPlaceholder} />
+                  )}
                   <div className={styles.quickFields}>
                     <div className={styles.colCant} data-label="Cant.">
                       <span className={styles.cantValue}>{item.quantity}</span>
@@ -502,38 +514,27 @@ function NewQuotePageContent() {
                       <input
                         type="text"
                         placeholder="0"
-                        className={`${styles.smallInput} ${errors[`items.${item.id}.unitPrice`] ? styles.inputError : ""}`}
-                        value={itemData[item.id]?.unitPrice || ""}
+                        className={`${styles.smallInput} ${errors[`items.${item.id}.${offerIdx}.unitPrice`] ? styles.inputError : ""}`}
+                        value={offer.unitPrice}
                         onChange={(e) =>
-                          handleItemChange(item.id, "unitPrice", e.target.value)
+                          handleItemChange(item.id, offerIdx, "unitPrice", e.target.value)
                         }
                       />
                     </div>
-                    <div
-                      className={styles.colStock}
-                      data-label="Disponibilidad"
-                    >
+                    <div className={styles.colStock} data-label="Disponibilidad">
                       <div className={styles.offeredInputWrapper}>
                         <input
                           type="number"
                           min="1"
-                          className={`${styles.smallInput} ${errors[`items.${item.id}.availableQuantity`] ? styles.inputError : ""}`}
-                          value={itemData[item.id]?.availableQuantity || ""}
+                          className={`${styles.smallInput} ${errors[`items.${item.id}.${offerIdx}.availableQuantity`] ? styles.inputError : ""}`}
+                          value={offer.availableQuantity}
                           onChange={(e) =>
-                            handleItemChange(
-                              item.id,
-                              "availableQuantity",
-                              e.target.value,
-                            )
+                            handleItemChange(item.id, offerIdx, "availableQuantity", e.target.value)
                           }
                           onBlur={(e) => {
                             const value = parseInt(e.target.value);
                             if (!value || value < 1) {
-                              handleItemChange(
-                                item.id,
-                                "availableQuantity",
-                                "1",
-                              );
+                              handleItemChange(item.id, offerIdx, "availableQuantity", "1");
                             }
                           }}
                         />
@@ -541,11 +542,7 @@ function NewQuotePageContent() {
                           type="button"
                           className={styles.resetQtyBtn}
                           onClick={() =>
-                            handleItemChange(
-                              item.id,
-                              "availableQuantity",
-                              item.quantity.toString(),
-                            )
+                            handleItemChange(item.id, offerIdx, "availableQuantity", item.quantity.toString())
                           }
                           title="Restablecer a cantidad solicitada"
                         >
@@ -555,71 +552,91 @@ function NewQuotePageContent() {
                     </div>
                   </div>
 
-                  <div
-                    className={styles.colWarranty}
-                    data-label="Garantía / Descripción"
-                  >
+                  <div className={styles.colWarranty} data-label="Garantía / Descripción">
                     <div className={styles.obsContainer}>
                       <input
                         type="text"
                         placeholder="Garantía"
                         className={styles.capsuleInput}
-                        value={itemData[item.id]?.warranty || ""}
+                        value={offer.warranty}
                         onChange={(e) =>
-                          handleItemChange(item.id, "warranty", e.target.value)
+                          handleItemChange(item.id, offerIdx, "warranty", e.target.value)
                         }
                       />
                       <input
                         type="text"
                         placeholder="Descripción del producto"
                         className={styles.capsuleInput}
-                        value={itemData[item.id]?.notes || ""}
+                        value={offer.notes}
                         onChange={(e) =>
-                          handleItemChange(item.id, "notes", e.target.value)
+                          handleItemChange(item.id, offerIdx, "notes", e.target.value)
                         }
                       />
                     </div>
                   </div>
+
                   <div className={styles.colPhoto} data-label="Foto">
                     <input
                       type="file"
                       accept="image/*"
-                      style={{ display: "none" }}
+                      className={styles.hiddenInput}
                       ref={(el) => {
-                        fileInputRefs.current[item.id] = el;
+                        fileInputRefs.current[`${item.id}_${offerIdx}`] = el;
                       }}
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file) handlePhotoSelect(item.id, file);
+                        if (file) handlePhotoSelect(item.id, offerIdx, file);
                       }}
                     />
                     <button
                       type="button"
                       className={styles.photoCircle}
-                      onClick={() => fileInputRefs.current[item.id]?.click()}
+                      onClick={() => fileInputRefs.current[`${item.id}_${offerIdx}`]?.click()}
                       title="Subir foto del producto"
-                      disabled={itemPhotos[item.id]?.uploading}
+                      disabled={itemPhotos[`${item.id}_${offerIdx}`]?.uploading}
                     >
-                      {itemPhotos[item.id]?.previewUrl ? (
+                      {itemPhotos[`${item.id}_${offerIdx}`]?.previewUrl ? (
                         <img
-                          src={itemPhotos[item.id].previewUrl!}
+                          src={itemPhotos[`${item.id}_${offerIdx}`].previewUrl!}
                           alt="preview"
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            borderRadius: "50%",
-                          }}
+                          className={styles.photoPreview}
                         />
-                      ) : itemPhotos[item.id]?.uploading ? (
-                        <span style={{ fontSize: "10px" }}>...</span>
+                      ) : itemPhotos[`${item.id}_${offerIdx}`]?.uploading ? (
+                        <span className={styles.uploadingText}>...</span>
                       ) : (
                         <IconsApp.Camera />
                       )}
                     </button>
                   </div>
+
+                  {/* Columna + Oferta: botón en última variante, eliminar en extras */}
+                  <div className={styles.colAddOffer} data-label="Añadir oferta">
+                    {offerIdx === offers.length - 1 ? (
+                      <button
+                        type="button"
+                        className={styles.addOfferBtn}
+                        onClick={() => addOffer(item.id, item.quantity)}
+                        title="Añadir otra oferta para este producto"
+                      >
+                        <IconsApp.PlusAddNew />
+                        <span>Oferta</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.removeOfferBtn}
+                        onClick={() => removeOffer(item.id, offerIdx)}
+                        title="Eliminar esta oferta"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
                 </div>
-              ))}
+                  ))}
+                </div>
+                );
+              })}
             </div>
 
             <div className={styles.commercialCard}>
@@ -779,11 +796,13 @@ function NewQuotePageContent() {
                   $
                   {request.request.items
                     .reduce((total, item) => {
-                      const price =
-                        parseFloat(itemData[item.id]?.unitPrice) || 0;
-                      const qty =
-                        parseInt(itemData[item.id]?.availableQuantity) || 0;
-                      return total + price * qty;
+                      const offers = itemData[item.id] || [];
+                      const itemTotal = offers.reduce((sum, offer) => {
+                        const price = parseFloat(offer.unitPrice) || 0;
+                        const qty = parseInt(offer.availableQuantity) || 0;
+                        return sum + price * qty;
+                      }, 0);
+                      return total + itemTotal;
                     }, 0)
                     .toFixed(2)}
                 </span>
@@ -794,7 +813,7 @@ function NewQuotePageContent() {
               <div
                 className={`${styles.warningBadge}${
                   request.request.items.every(
-                    (item) => itemData[item.id]?.unitPrice,
+                    (item) => itemData[item.id]?.[0]?.unitPrice,
                   )
                     ? ` ${styles.warningBadgeSuccess}`
                     : ""
@@ -802,7 +821,7 @@ function NewQuotePageContent() {
               >
                 {(() => {
                   const missingCount = request.request.items.filter(
-                    (item) => !itemData[item.id]?.unitPrice,
+                    (item) => !itemData[item.id]?.[0]?.unitPrice,
                   ).length;
 
                   if (missingCount === 0) {

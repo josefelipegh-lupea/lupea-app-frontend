@@ -642,3 +642,29 @@
     border-bottom-right-radius: 0;
   }
 }
+
+/* ── Issue 27: cantidad editable ─────────────────────────────────── */
+.deliveryTimeText {
+  color: #419700;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.quantityInput {
+  width: 44px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 2px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a3d;
+  text-align: center;
+  background: #f9f9f9;
+  -moz-appearance: textfield;
+}
+
+.quantityInput::-webkit-outer-spin-button,
+.quantityInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

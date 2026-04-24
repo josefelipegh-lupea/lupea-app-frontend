@@ -323,7 +323,7 @@ export default function SparePartsStep({
           ) : (
             <div className={styles.subStepContainer}>
               <div className={styles.field}>
-                <label>Categoría</label>
+                <label>Categoría <span className={styles.required}>*</span></label>
                 <div className={styles.selectWrapper}>
                   <select
                     name="category"
@@ -344,7 +344,7 @@ export default function SparePartsStep({
               </div>
 
               <div className={styles.field}>
-                <label>Nombre del repuesto</label>
+                <label>Nombre del repuesto <span className={styles.required}>*</span></label>
                 <div className={styles.selectWrapper}>
                   <select
                     name="partName"
@@ -425,7 +425,7 @@ export default function SparePartsStep({
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  style={{ display: "none" }}
+                  className={styles.hidden}
                   accept="image/*"
                   disabled={isUploading}
                 />
@@ -483,24 +483,22 @@ export default function SparePartsStep({
                 </div>
               </div>
 
-              <div className={styles.field} style={{ marginTop: "10px" }}>
+              <div className={`${styles.field} ${styles.fieldSmallMarginTop}`}>
                 <label>Notas del repuesto (Opcional)</label>
                 <textarea
                   name="description"
-                  className={styles.textarea}
+                  className={`${styles.textarea} ${styles.textareaMinHeight}`}
                   placeholder="Ej: Lado derecho, compatible con..."
                   value={localPart.description}
                   onChange={handleChange}
-                  style={{ minHeight: "80px" }}
                 />
               </div>
 
               <button
                 type="button"
-                className={styles.addVehicleBtn}
+                className={`${styles.addVehicleBtn} ${styles.addButtonMarginTop}`}
                 onClick={handleAddSparePart}
                 disabled={!localPart.partName || isUploading}
-                style={{ marginTop: "20px" }}
               >
                 <div className={styles.addIconCircle}>
                   <IconsApp.PlusAddNew />

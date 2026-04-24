@@ -168,6 +168,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               tokenMetricsMonth: prev?.tokenMetricsMonth || "",
               freeTokensGrantedThisMonth: 0,
               privacyLevel: "public",
+              status: data.status,
             };
           } else {
             loginProfileData = {

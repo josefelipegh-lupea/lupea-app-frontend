@@ -713,3 +713,13 @@
 
 
 
+
+.required {
+  color: #e53e3e;
+}
+
+.fieldError {
+  color: #e53e3e;
+  font-size: 12px;
+  margin-top: 4px;
+}

@@ -351,7 +351,7 @@ export default function StepLocationProvider({
       <div className={styles.layoutContent}>
         <section className={styles.formSection}>
           <InputField
-            label="Nombre de la Sede Principal"
+            label={<>Nombre de la Sede Principal <span className={styles.required}>*</span></>}
             name="name"
             value={localFormData.name}
             onChange={(e) =>
@@ -375,7 +375,7 @@ export default function StepLocationProvider({
           </div>
 
           <div className={styles.selectGroup}>
-            <label className={styles.label}>Estado</label>
+            <label className={styles.label}>Estado <span className={styles.required}>*</span></label>
             <div className={styles.selectWrapper}>
               <select
                 value={localFormData.state}
@@ -406,7 +406,7 @@ export default function StepLocationProvider({
           </div>
 
           <div className={styles.selectGroup}>
-            <label className={styles.label}>Municipio</label>
+            <label className={styles.label}>Municipio <span className={styles.required}>*</span></label>
             <div className={styles.selectWrapper}>
               <select
                 value={localFormData.municipality}
@@ -438,7 +438,7 @@ export default function StepLocationProvider({
           </div>
 
           <div className={styles.selectGroup}>
-            <label className={styles.label}>Parroquia</label>
+            <label className={styles.label}>Parroquia <span className={styles.required}>*</span></label>
             <div className={styles.selectWrapper}>
               <select
                 value={localFormData.parish}
@@ -472,7 +472,7 @@ export default function StepLocationProvider({
           </div>
 
           <InputField
-            label="Dirección Específica"
+            label={<>Dirección Específica <span className={styles.required}>*</span></>}
             name="exactAddress"
             value={localFormData.exactAddress}
             onChange={handleInputChange}

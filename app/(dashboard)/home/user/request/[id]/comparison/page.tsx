@@ -37,6 +37,9 @@ export default function ComparisonPage({ params }: PageProps) {
   const [showInfoBox, setShowInfoBox] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [customQuantities, setCustomQuantities] = useState<Map<string, number>>(
+    new Map(),
+  );
 
   // ... (Fetch y lógica de toggleItem/Totales se mantienen igual)
   useEffect(() => {
@@ -76,6 +79,37 @@ export default function ComparisonPage({ params }: PageProps) {
     });
   };
 
+  const getEffectiveQty = (
+    quoteId: number,
+    productId: number,
+    defaultQty: number,
+  ): number => {
+    const key = `${quoteId}_${productId}`;
+    return customQuantities.get(key) ?? defaultQty;
+  };
+
+  const handleQuantityChange = (
+    quoteId: number,
+    productId: number,
+    value: string,
+  ) => {
+    const num = parseInt(value);
+    if (!value) {
+      setCustomQuantities((prev) => {
+        const m = new Map(prev);
+        m.delete(`${quoteId}_${productId}`);
+        return m;
+      });
+      return;
+    }
+    if (isNaN(num) || num < 1) return;
+    setCustomQuantities((prev) => {
+      const m = new Map(prev);
+      m.set(`${quoteId}_${productId}`, num);
+      return m;
+    });
+  };
+
   const selectAllFromQuote = (quoteId: number) => {
     const quote = comparisonData.find((q) => q.id === quoteId);
     if (!quote) return;
@@ -93,7 +127,11 @@ export default function ComparisonPage({ params }: PageProps) {
     return (
       quote?.products
         .filter((p) => selected.has(p.id))
-        .reduce((sum, p) => sum + p.price * p.quantity, 0) || 0
+        .reduce(
+          (sum, p) =>
+            sum + p.price * getEffectiveQty(quoteId, p.id, p.quantity),
+          0,
+        ) || 0
     );
   };
 
@@ -286,13 +324,42 @@ export default function ComparisonPage({ params }: PageProps) {
                             </div>
                             <span className={styles.partPrice}>
                               <span className={styles.quantity}>
-                                x{product.quantity}
+                                {isSelected ? (
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    className={styles.quantityInput}
+                                    value={getEffectiveQty(
+                                      quote.id,
+                                      product.id,
+                                      product.quantity,
+                                    )}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={(e) =>
+                                      handleQuantityChange(
+                                        quote.id,
+                                        product.id,
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                ) : (
+                                  `x${product.quantity}`
+                                )}
                               </span>
                               <span className={styles.unitPrice}>
                                 ${product.price.toFixed(0)} c/u
                               </span>
                               <span className={styles.totalPrice}>
-                                ${(product.price * product.quantity).toFixed(0)}
+                                $
+                                {(
+                                  product.price *
+                                  getEffectiveQty(
+                                    quote.id,
+                                    product.id,
+                                    product.quantity,
+                                  )
+                                ).toFixed(0)}
                               </span>
                             </span>
                           </div>
@@ -303,13 +370,7 @@ export default function ComparisonPage({ params }: PageProps) {
                     <div className={styles.cardFooter}>
                       <span className={styles.deliveryTime}>
                         <IconsApp.GreenClock />
-                        <span
-                          style={{
-                            color: "#419700",
-                            fontWeight: 600,
-                            fontSize: 13,
-                          }}
-                        >
+                        <span className={styles.deliveryTimeText}>
                           Hoy 2:00 PM
                         </span>
                       </span>

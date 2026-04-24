@@ -16,8 +16,7 @@ const StepBasics: React.FC<ExtendedStepProps> = ({
   <div className={styles.gridContainer}>
     {/* Campo: Username */}
     <div className={styles.fieldGroup}>
-      <label className={styles.label}>Nombre de usuario (Único)</label>
-      <div className={` ${errors?.username ? styles.inputError : ""}`}>
+      <label className={styles.label}>Nombre de usuario (Único)</label>      <div className={` ${errors?.username ? styles.inputError : ""}`}>
         <InputField
           name="username"
           className={styles.inputMargin}
@@ -53,7 +52,7 @@ const StepBasics: React.FC<ExtendedStepProps> = ({
 
     {/* Campo: Razón Social */}
     <div className={styles.fieldGroup}>
-      <label className={styles.label}>Razón Social</label>
+      <label className={styles.label}>Razón Social <span className={styles.required}>*</span></label>
       <div className={` ${errors?.businessName ? styles.inputError : ""}`}>
         <InputField
           name="businessName"
@@ -71,8 +70,8 @@ const StepBasics: React.FC<ExtendedStepProps> = ({
 
     {/* Campo: WhatsApp */}
     <div className={styles.fieldGroup}>
-      <label className={styles.label}>Teléfono</label>
-      <div className={` ${errors?.phone ? styles.inputError : ""}`}>
+      <label className={styles.label}>Teléfono <span className={styles.required}>*</span></label>
+      <div className={` ${errors?.phoneNumber ? styles.inputError : ""}`}>
         <InputField
           name="phoneNumber"
           className={styles.inputMargin}
@@ -82,7 +81,7 @@ const StepBasics: React.FC<ExtendedStepProps> = ({
           icon={<IconsApp.Whatsapp />}
         />
       </div>
-      {errors?.phone && <p className={styles.errorMessage}>{errors.phone}</p>}
+      {errors?.phoneNumber && <p className={styles.errorMessage}>{errors.phoneNumber}</p>}
     </div>
   </div>
 );

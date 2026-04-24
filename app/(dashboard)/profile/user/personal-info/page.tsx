@@ -30,7 +30,8 @@ export default function PersonalInfoPage() {
     phone: "",
   });
 
-  const { isValid } = useProfileValidation(formData);
+  const { isValid, errors } = useProfileValidation(formData);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -57,7 +58,8 @@ export default function PersonalInfoPage() {
   };
 
   const handleSave = async () => {
-    if (!jwt) return;
+    setSubmitted(true);
+    if (!isValid || !jwt) return;
 
     setIsSaving(true);
     try {
@@ -129,20 +131,26 @@ export default function PersonalInfoPage() {
                     label: "Nombre de usuario",
                     name: "username",
                     icon: <IconsApp.Username />,
+                    required: false,
                   },
                   {
                     label: "Nombre",
                     name: "firstName",
                     icon: <IconsApp.Username />,
+                    required: true,
                   },
                   {
                     label: "Apellido",
                     name: "lastName",
                     icon: <IconsApp.Username />,
+                    required: true,
                   },
                 ].map((field) => (
                   <div key={field.name} className={styles.inputContainer}>
-                    <label className={styles.label}>{field.label}</label>
+                    <label className={styles.label}>
+                      {field.label}{" "}
+                      {field.required && <span className={styles.required}>*</span>}
+                    </label>
 
                     <InputField
                       name={field.name}
@@ -151,6 +159,11 @@ export default function PersonalInfoPage() {
                       icon={field.icon}
                       disabled={field.name === "username" ? true : !isEditing}
                     />
+                    {submitted && errors[field.name as keyof typeof errors] && (
+                      <p className={styles.fieldError}>
+                        {(errors[field.name as keyof typeof errors] as string[])[0]}
+                      </p>
+                    )}
                   </div>
                 ))}
               </section>
@@ -173,7 +186,7 @@ export default function PersonalInfoPage() {
                   />
                 </div>
                 <div className={styles.inputContainer}>
-                  <label className={styles.label}>Teléfono / WhatsApp</label>
+                  <label className={styles.label}>Teléfono / WhatsApp <span className={styles.required}>*</span></label>
 
                   <InputField
                     name="phone"
@@ -182,6 +195,9 @@ export default function PersonalInfoPage() {
                     icon={<IconsApp.Whatsapp />}
                     disabled={!isEditing}
                   />
+                  {submitted && errors.phone && (
+                    <p className={styles.fieldError}>{errors.phone[0]}</p>
+                  )}
                 </div>
               </section>
             </div>
@@ -190,7 +206,7 @@ export default function PersonalInfoPage() {
           <div className={styles.buttonGroup}>
             <Button
               className={styles.btnSave}
-              disabled={!isEditing || !isValid || isSaving}
+              disabled={!isEditing || isSaving}
               onClick={handleSave}
             >
               {isSaving ? "Guardando..." : "Guardar cambios"}

@@ -98,7 +98,7 @@ export default function VendorRegisterPage() {
 
   const subIds = useMemo(() => selectedSubs.map((s) => s.id), [selectedSubs]);
 
-  const { isValid } = useProviderRegisterValidation({
+  const { isValid, errors } = useProviderRegisterValidation({
     username,
     email,
     password,
@@ -107,6 +107,7 @@ export default function VendorRegisterPage() {
     termsAccepted,
   });
   const router = useRouter();
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -190,6 +191,7 @@ export default function VendorRegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
     if (!isValid || isLoading) return;
 
     setIsLoading(true);
@@ -234,7 +236,7 @@ export default function VendorRegisterPage() {
           </div>
 
           <div className={vendorStyles.leftColumn}>
-            <label className={styles.label}>Nombre de usuario</label>
+            <label className={styles.label}>Nombre de usuario <span className={styles.required}>*</span></label>
             <div className={styles.inputWrapper}>
               <span className={styles.inputIcon}>
                 <IconsApp.Username />
@@ -247,8 +249,11 @@ export default function VendorRegisterPage() {
                 placeholder="respuestos-jhon"
               />
             </div>
+            {submitted && errors.username && (
+              <p className={styles.fieldError}>{errors.username[0]}</p>
+            )}
 
-            <label className={styles.label}>Correo comercial</label>
+            <label className={styles.label}>Correo comercial <span className={styles.required}>*</span></label>
             <div className={styles.inputWrapper}>
               <span className={styles.inputIcon}>
                 <IconsApp.Email />
@@ -261,8 +266,11 @@ export default function VendorRegisterPage() {
                 placeholder="correo@empresa.com"
               />
             </div>
+            {submitted && errors.email && (
+              <p className={styles.fieldError}>{errors.email[0]}</p>
+            )}
 
-            <label className={styles.label}>Contraseña</label>
+            <label className={styles.label}>Contraseña <span className={styles.required}>*</span></label>
             <div className={styles.inputWrapper}>
               <span className={styles.inputIcon}>
                 <IconsApp.Password />
@@ -286,10 +294,13 @@ export default function VendorRegisterPage() {
                 )}
               </button>
             </div>
+            {submitted && errors.password && (
+              <p className={styles.fieldError}>{errors.password[0]}</p>
+            )}
           </div>
 
           <div className={vendorStyles.rightColumn}>
-            <label className={styles.label}>¿Qué repuestos vendes?</label>
+            <label className={styles.label}>¿Qué repuestos vendes? <span className={styles.required}>*</span></label>
             <MultiSelectDropdown
               placeholder="Selecciona categorías"
               selectedCountLabel="categorías"
@@ -321,8 +332,8 @@ export default function VendorRegisterPage() {
               )}
             </div>
 
-            <label className={styles.label} style={{ marginTop: "15px" }}>
-              Especifica las subcategorías
+            <label className={`${styles.label} ${styles.labelSpaced}`}>
+              Especifica las subcategorías <span className={styles.required}>*</span>
             </label>
             <MultiSelectDropdown
               placeholder={

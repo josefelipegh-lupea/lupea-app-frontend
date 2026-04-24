@@ -22,15 +22,19 @@ export default function RegisterPage() {
 
   const router = useRouter();
 
-  const { isValid } = useRegisterValidation({
+  const { isValid, errors } = useRegisterValidation({
     username,
     email,
     password,
     termsAccepted,
   });
 
+  const [submitted, setSubmitted] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
+    if (!isValid) return;
     setIsLoading(true);
 
     const loadingToast = toast.loading("Creando tu cuenta...");
@@ -81,14 +85,14 @@ export default function RegisterPage() {
         <input
           type="text"
           name="chrome-bug-preventer"
-          style={{ display: "none" }}
+          className={styles.hidden}
         />
         <div className={styles.formBar} />
         <h1 className={styles.title}>Registrarme</h1>
         <p className={styles.subtitle}>Ingresa tus datos para registrarte</p>
 
         <label className={styles.label} htmlFor="register-name">
-          Nombre de usuario
+          Nombre de usuario <span className={styles.required}>*</span>
         </label>
         <div className={styles.inputWrapper}>
           <span className={styles.inputIcon}>
@@ -107,9 +111,12 @@ export default function RegisterPage() {
             required
           />
         </div>
+        {submitted && errors.username && (
+          <p className={styles.fieldError}>{errors.username[0]}</p>
+        )}
 
         <label className={styles.label} htmlFor="email">
-          Correo electrónico
+          Correo electrónico <span className={styles.required}>*</span>
         </label>
         <div className={styles.inputWrapper}>
           <span className={styles.inputIcon}>
@@ -125,9 +132,12 @@ export default function RegisterPage() {
             required
           />
         </div>
+        {submitted && errors.email && (
+          <p className={styles.fieldError}>{errors.email[0]}</p>
+        )}
 
         <label className={styles.label} htmlFor="password">
-          Contraseña
+          Contraseña <span className={styles.required}>*</span>
         </label>
         <div className={styles.inputWrapper}>
           <span className={styles.inputIcon}>
@@ -159,6 +169,9 @@ export default function RegisterPage() {
             )}
           </button>
         </div>
+        {submitted && errors.password && (
+          <p className={styles.fieldError}>{errors.password[0]}</p>
+        )}
 
         <div className={styles.termsRow}>
           <label className={styles.checkboxLabel}>
@@ -177,11 +190,14 @@ export default function RegisterPage() {
               </a>
             </span>
           </label>
+          {submitted && errors.termsAccepted && (
+            <p className={styles.fieldError}>{errors.termsAccepted[0]}</p>
+          )}
         </div>
 
         <button
           className={styles.submitButton}
-          disabled={!isValid || isLoading}
+          disabled={isLoading}
           onClick={handleSubmit}
         >
           {isLoading ? "Registrando..." : "Registrarme"}

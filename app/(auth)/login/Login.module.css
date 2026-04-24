@@ -393,3 +393,17 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
   }
 }
+
+.required {
+  color: #e53e3e;
+}
+
+.fieldError {
+  color: #e53e3e;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.fieldErrorCenter {
+  text-align: center;
+}

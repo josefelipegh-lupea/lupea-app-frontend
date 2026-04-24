@@ -121,6 +121,9 @@ interface SocketContextType {
   onPaymentNotified: (
     callback: (data: { chatId: number; orderId: number; message: ChatMessage }) => void,
   ) => () => void;
+  onProviderStatusChanged: (
+    callback: (data: { status: string; title: string; message: string }) => void,
+  ) => () => void;
   joinChat: (chatId: number) => void;
   leaveChat: (chatId: number) => void;
   updateChatUnreadCount: (count: number) => void;
@@ -183,6 +186,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const paymentNotifiedCallbacksRef = useRef<
     Set<(data: { chatId: number; orderId: number; message: ChatMessage }) => void>
   >(new Set());
+  const providerStatusChangedCallbacksRef = useRef<
+    Set<(data: { status: string; title: string; message: string }) => void>
+  >(new Set());
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -211,6 +217,16 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       paymentNotifiedCallbacksRef.current.add(callback);
       return () => {
         paymentNotifiedCallbacksRef.current.delete(callback);
+      };
+    },
+    [],
+  );
+
+  const onProviderStatusChanged = useCallback(
+    (callback: (data: { status: string; title: string; message: string }) => void) => {
+      providerStatusChangedCallbacksRef.current.add(callback);
+      return () => {
+        providerStatusChangedCallbacksRef.current.delete(callback);
       };
     },
     [],
@@ -466,6 +482,13 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       });
     });
 
+    newSocket.on("provider.status_changed", (data: { status: string; title: string; message: string }) => {
+      console.log("Provider status changed:", data);
+      providerStatusChangedCallbacksRef.current.forEach((callback) => {
+        callback(data);
+      });
+    });
+
     return () => {
       socketRef.current?.disconnect();
       socketRef.current = null;
@@ -509,6 +532,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         onParticipantJoined,
         onParticipantLeft,
         onPaymentNotified,
+        onProviderStatusChanged,
         joinChat,
         leaveChat,
         updateChatUnreadCount,

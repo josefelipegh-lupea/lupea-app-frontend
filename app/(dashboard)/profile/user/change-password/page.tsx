@@ -27,6 +27,8 @@ export default function PasswordPage() {
     confirmPassword: "",
   });
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -34,15 +36,15 @@ export default function PasswordPage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (formData.newPassword !== formData.confirmPassword) {
-      return toast.error("Las contraseñas nuevas no coinciden");
-    }
+    const newFieldErrors: Record<string, string> = {};
+    if (!formData.currentPassword) newFieldErrors.currentPassword = "Ingresa tu contraseña actual";
+    if (!formData.newPassword) newFieldErrors.newPassword = "Ingresa una nueva contraseña";
+    else if (formData.newPassword.length < 8) newFieldErrors.newPassword = "Debe tener al menos 8 caracteres";
+    if (!formData.confirmPassword) newFieldErrors.confirmPassword = "Confirma tu nueva contraseña";
+    else if (formData.newPassword !== formData.confirmPassword) newFieldErrors.confirmPassword = "Las contraseñas no coinciden";
 
-    if (formData.newPassword.length < 8) {
-      return toast.error(
-        "La nueva contraseña debe tener al menos 8 caracteres"
-      );
-    }
+    setFieldErrors(newFieldErrors);
+    if (Object.keys(newFieldErrors).length > 0) return;
 
     setLoading(true);
     try {
@@ -94,7 +96,7 @@ export default function PasswordPage() {
 
           <div className={styles.inputGroup}>
             <label className={styles.label} htmlFor="currentPassword">
-              Contraseña Actual
+              Contraseña Actual <span className={styles.required}>*</span>
             </label>
             <div className={styles.inputWrapper}>
               <span className={styles.inputIcon}>
@@ -124,11 +126,14 @@ export default function PasswordPage() {
                 )}
               </button>
             </div>
+            {fieldErrors.currentPassword && (
+              <p className={styles.fieldError}>{fieldErrors.currentPassword}</p>
+            )}
           </div>
 
           <div className={styles.inputGroup}>
             <label className={styles.label} htmlFor="newPassword">
-              Nueva Contraseña
+              Nueva Contraseña <span className={styles.required}>*</span>
             </label>
             <div className={styles.inputWrapper}>
               <span className={styles.inputIcon}>
@@ -158,11 +163,14 @@ export default function PasswordPage() {
                 )}
               </button>
             </div>
+            {fieldErrors.newPassword && (
+              <p className={styles.fieldError}>{fieldErrors.newPassword}</p>
+            )}
           </div>
 
           <div className={styles.inputGroup}>
             <label className={styles.label} htmlFor="confirmPassword">
-              Confirmar Nueva Contraseña
+              Confirmar Nueva Contraseña <span className={styles.required}>*</span>
             </label>
             <div className={styles.inputWrapper}>
               <span className={styles.inputIcon}>
@@ -192,6 +200,9 @@ export default function PasswordPage() {
                 )}
               </button>
             </div>
+            {fieldErrors.confirmPassword && (
+              <p className={styles.fieldError}>{fieldErrors.confirmPassword}</p>
+            )}
           </div>
 
           <div className={styles.buttonGroup}>
