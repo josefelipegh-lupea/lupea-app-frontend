@@ -79,7 +79,7 @@ export default function AllRequestsPage() {
         }`}
       >
         <main className={styles.mainContainer}>
-          <Header title="Solicitudes" />
+          <Header title="Consultas" />
           <div className={styles.content}>
             <SkeletonComparison />
           </div>
@@ -95,11 +95,11 @@ export default function AllRequestsPage() {
       }`}
     >
       <main className={styles.mainContainer}>
-        <Header title="Solicitudes" />
+        <Header title="Consultas" />
 
         <div className={styles.content}>
           {requests.length === 0 ? (
-            <p className={styles.emptyText}>No tienes solicitudes todavía.</p>
+            <p className={styles.emptyText}>No tienes consultas todavía.</p>
           ) : (
             requests.map((req) => {
               const quoteData = requestsWithQuotes.find(

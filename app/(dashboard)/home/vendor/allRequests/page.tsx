@@ -49,7 +49,7 @@ export default function AllVendorRequestsPage() {
         }`}
       >
         <main className={styles.mainContainer}>
-          <Header title="Solicitudes" />
+          <Header title="Consultas" />
           <div className={styles.content}>
             <SkeletonComparison />
           </div>
@@ -65,11 +65,11 @@ export default function AllVendorRequestsPage() {
       }`}
     >
       <main className={styles.mainContainer}>
-        <Header title="Solicitudes" />
+        <Header title="Consultas" />
 
         <div className={styles.content}>
           {requests.length === 0 ? (
-            <p className={styles.emptyText}>No hay solicitudes aún.</p>
+            <p className={styles.emptyText}>No hay consultas aún.</p>
           ) : (
             requests.map((req) => (
               <RequestCard

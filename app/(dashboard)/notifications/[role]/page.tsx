@@ -24,9 +24,10 @@ export default function NotificationsPage() {
   const { jwt, role: userRole } = useAuth();
   const { notifications, markAsRead, markAllAsRead, unreadCount } = useSocket();
   const [cachedData, setCachedData] = useState<{
-    requests: Array<{ id: number; documentId: string }>;
+    // matches: id numerico del match -> documentId del match (para provider.request_assigned)
+    matches: Array<{ id: number; documentId: string }>;
     orders: Array<{ id: number; documentId: string }>;
-  }>({ requests: [], orders: [] });
+  }>({ matches: [], orders: [] });
 
   useEffect(() => {
     const fetchCachedData = async () => {
@@ -39,7 +40,9 @@ export default function NotificationsPage() {
             getProviderOrders(jwt),
           ]);
           setCachedData({
-            requests: requestsRes.data?.requests?.map((r: { id: number; documentId: string }) => ({ id: r.id, documentId: r.documentId })) || [],
+            // Guardamos el id/documentId del MATCH (no del request interno)
+            // porque la pagina /home/vendor/request/[id] espera el documentId del match
+            matches: requestsRes.data?.requests?.map((r: { id: number; documentId: string }) => ({ id: r.id, documentId: r.documentId })) || [],
             orders: ordersRes.data?.orders?.map((o: { id: number; documentId: string }) => ({ id: o.id, documentId: o.documentId })) || [],
           });
         } else {
@@ -48,7 +51,7 @@ export default function NotificationsPage() {
             getMyClientOrders(jwt),
           ]);
           setCachedData({
-            requests: requestsRes.data?.requests?.map((r: { id: number; documentId: string }) => ({ id: r.id, documentId: r.documentId })) || [],
+            matches: requestsRes.data?.requests?.map((r: { id: number; documentId: string }) => ({ id: r.id, documentId: r.documentId })) || [],
             orders: ordersRes.data?.orders?.map((o: { id: number; documentId: string }) => ({ id: o.id, documentId: o.documentId })) || [],
           });
         }
@@ -79,13 +82,16 @@ export default function NotificationsPage() {
 
     switch (type) {
       case "provider.request_assigned": {
-        const requestDocId = data?.requestDocumentId as string | undefined;
-        if (requestDocId) return `/home/vendor/request/${requestDocId}`;
-        
-        const requestId = data?.requestId as number | undefined;
-        const cachedDocId = requestId ? findDocumentId(requestId, cachedData.requests) : null;
-        if (cachedDocId) return `/home/vendor/request/${cachedDocId}`;
-        
+        // 1. Usar matchDocumentId si viene en la notificacion (campo nuevo)
+        const matchDocId = data?.matchDocumentId as string | undefined;
+        if (matchDocId) return `/home/vendor/request/${matchDocId}`;
+
+        // 2. Usar matchId numerico para buscar en el cache de matches
+        const matchId = data?.matchId as number | undefined;
+        const cachedMatchDocId = matchId ? findDocumentId(matchId, cachedData.matches) : null;
+        if (cachedMatchDocId) return `/home/vendor/request/${cachedMatchDocId}`;
+
+        // 3. Fallback al home del proveedor
         return "/home/vendor";
       }
       case "client.quote_received": {

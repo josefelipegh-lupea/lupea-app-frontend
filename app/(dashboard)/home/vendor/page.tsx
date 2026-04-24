@@ -345,7 +345,7 @@ export default function HomePage() {
                 {activeTab === "COTIZACIONES"
                   ? "Cotizaciones enviadas"
                   : activeTab === "SOLICITUDES"
-                    ? "Solicitudes nuevas"
+                    ? "Consultas nuevas"
                     : "Órdenes generadas"}
               </h3>
               {activeTab === "SOLICITUDES" && newRequestsCount > 0 && (

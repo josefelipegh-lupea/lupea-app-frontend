@@ -197,7 +197,7 @@ const ProviderOnboarding: React.FC = () => {
 
   const getStepTitle = () => {
     const titles: Record<number, string> = {
-      1: "Información Personal",
+      1: "Información de la Empresa",
       2: "Información Comercial",
       3: "Documentación Legal",
       4: "Sede Principal",

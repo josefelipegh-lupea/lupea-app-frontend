@@ -58,7 +58,7 @@ export default function RequestDetailPage() {
           }`}
         >
           <div className={styles.mainContainer}>
-            <Header title="Detalle de Solicitud" />
+            <Header title="Detalle de Consulta" />
             <div className={styles.content}>
               <SkeletonRequestDetail />
             </div>
@@ -76,7 +76,7 @@ export default function RequestDetailPage() {
         }`}
       >
         <div className={styles.errorContainer}>
-          <p>Solicitud no encontrada</p>
+          <p>Consulta no encontrada</p>
           <Button onClick={() => router.push("/home/vendor")}>
             Volver al inicio
           </Button>
@@ -103,7 +103,7 @@ export default function RequestDetailPage() {
                 <div className={styles.idBadge}>
                   <IconsApp.Document />
                   <span>
-                    Solicitud {request.id.toString().padStart(5, "0")}
+                    Consulta {request.id.toString().padStart(5, "0")}
                   </span>
                 </div>
                 <span className={styles.statusBadge}>{request.status}</span>

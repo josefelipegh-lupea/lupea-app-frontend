@@ -675,7 +675,8 @@
   font-size: 13px;
   resize: none;
   outline: none;
-  background-color: #fafafa;
+  background-color: #f2f2f2;
+  color: #555;
   transition: all 0.3s ease-in-out;
 }
 

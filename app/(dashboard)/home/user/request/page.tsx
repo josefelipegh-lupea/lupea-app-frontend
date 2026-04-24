@@ -115,7 +115,7 @@ export default function RequestPage() {
         clearDraft();
         await refreshProfile();
         await refreshLoginProfile();
-        toast.success("¡Solicitud enviada con éxito!");
+        toast.success("¡Consulta enviada con éxito!");
         setTimeout(() => router.push("/home/user"), 1500);
       }
     } catch (error) {
