@@ -97,7 +97,10 @@ export default function HomePage() {
     };
 
     fetchHomeData();
-  }, [jwt, refreshLoginProfile]);
+    // refreshLoginProfile is a stable useCallback(fn,[]) — intentionally omitted
+    // to prevent re-running this effect on every render cycle
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jwt]);
 
   useEffect(() => {
     const unsubscribe = onNotification((notification) => {
@@ -123,7 +126,6 @@ export default function HomePage() {
                 ).length,
               );
             }
-            await refreshLoginProfile();
           } catch (error) {
             console.error("Error refreshing data:", error);
           }
@@ -133,7 +135,7 @@ export default function HomePage() {
     });
 
     return unsubscribe;
-  }, [jwt, onNotification, refreshLoginProfile]);
+  }, [jwt, onNotification]);
 
   const renderTabContent = () => {
     switch (activeTab) {
