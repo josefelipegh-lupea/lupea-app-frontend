@@ -68,6 +68,7 @@ const OrderDetailPage: React.FC = () => {
 
   const handleReviewClick = () => {
     if (order) {
+      setHasReview(true);
       router.push(`/home/user/orders/${order.id}/review`);
     }
   };

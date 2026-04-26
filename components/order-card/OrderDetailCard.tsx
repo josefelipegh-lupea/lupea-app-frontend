@@ -26,6 +26,12 @@ interface OrderProvider {
     phone: string;
     address: string;
   };
+  location?: {
+    name: string;
+    state: string;
+    municipality: string;
+    parish: string;
+  } | null;
 }
 
 interface OrderQuote {
@@ -311,7 +317,11 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
                 <ContactRow
                   icon={<IconsApp.Pin width="24" height="24" color="#BEBEBE" />}
                   label="Dirección"
-                  value={order.provider.contact.address}
+                  value={
+                    order.provider.location
+                      ? `${order.provider.location.name} — ${order.provider.location.municipality}, ${order.provider.location.parish}, ${order.provider.location.state}`
+                      : order.provider.contact.address
+                  }
                 />
               </>
             )}
