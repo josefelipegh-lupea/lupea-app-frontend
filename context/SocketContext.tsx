@@ -289,6 +289,8 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       callback(notification);
     });
 
+    new Audio("/sounds/notification.mp3").play().catch(() => {});
+
     toast(notification.message, {
       icon: <IconsApp.Notification />,
       duration: 10000,
@@ -450,6 +452,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       chatMessageCallbacksRef.current.forEach((callback) => {
         callback(messageWithChatId);
       });
+      new Audio("/sounds/notification.mp3").play().catch(() => {});
       setChatUnreadCount((prev) => prev + 1);
     });
 

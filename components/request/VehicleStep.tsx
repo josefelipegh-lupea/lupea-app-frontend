@@ -432,7 +432,7 @@ export default function VehicleStep({
                       onChange={handleChange}
                       disabled={!formData.year}
                     >
-                      <option value="">Motor</option>
+                      <option value="">Seleccionar</option>
                       {engines.map((e) => (
                         <option key={e.documentId} value={e.documentId}>
                           {e.name}
