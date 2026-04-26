@@ -171,3 +171,27 @@ export async function getClientRequestComparison(
     throw error;
   }
 }
+
+export async function rejectQuote(
+  jwt: string,
+  quoteDocumentId: string
+): Promise<{ ok: boolean; message: string }> {
+  const res = await fetch(
+    `${API_URL}/quotes/client/me/${quoteDocumentId}/reject`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+    }
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error?.message || "Error al rechazar la cotización");
+  }
+
+  return data;
+}

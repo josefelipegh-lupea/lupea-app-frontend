@@ -6,6 +6,7 @@ import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
 import {
   getClientRequestComparison,
+  rejectQuote,
   ComparisonQuote,
 } from "@/app/lib/api/client/home/comparison";
 import {
@@ -40,6 +41,8 @@ export default function ComparisonPage({ params }: PageProps) {
   const [customQuantities, setCustomQuantities] = useState<Map<string, number>>(
     new Map(),
   );
+  const [confirmRejectId, setConfirmRejectId] = useState<string | null>(null);
+  const [rejectingQuoteId, setRejectingQuoteId] = useState<string | null>(null);
 
   // ... (Fetch y lógica de toggleItem/Totales se mantienen igual)
   useEffect(() => {
@@ -143,8 +146,24 @@ export default function ComparisonPage({ params }: PageProps) {
     return total;
   };
 
-  const handleGenerateOrders = async () => {
-    if (selectedItems.size === 0 || !jwt) return;
+  const handleRejectQuote = async () => {
+    if (!confirmRejectId || !jwt) return;
+    setRejectingQuoteId(confirmRejectId);
+    try {
+      await rejectQuote(jwt, confirmRejectId);
+      setComparisonData((prev) =>
+        prev.filter((q) => q.documentId !== confirmRejectId),
+      );
+      toast.success("Cotización rechazada");
+    } catch (error) {
+      toast.error("Error al rechazar la cotización. Intenta de nuevo.");
+    } finally {
+      setRejectingQuoteId(null);
+      setConfirmRejectId(null);
+    }
+  };
+
+  const handleGenerateOrders = async () => {    if (selectedItems.size === 0 || !jwt) return;
 
     setIsGenerating(true);
     try {
@@ -321,6 +340,11 @@ export default function ComparisonPage({ params }: PageProps) {
                                 {product.brand} •{" "}
                                 {product.availability || "Original"}
                               </p>
+                              {product.notes && (
+                                <p className={styles.partNotes}>
+                                  {product.notes}
+                                </p>
+                              )}
                             </div>
                             <span className={styles.partPrice}>
                               <span className={styles.quantity}>
@@ -386,6 +410,12 @@ export default function ComparisonPage({ params }: PageProps) {
                       >
                         Aceptar oferta completa
                       </button>
+                      <button
+                        className={styles.btnReject}
+                        onClick={() => setConfirmRejectId(quote.documentId)}
+                      >
+                        Rechazar
+                      </button>
                     </div>
                     <div className={styles.selectionSummary}>
                       <span>
@@ -430,6 +460,33 @@ export default function ComparisonPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+
+      {confirmRejectId && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalBox}>
+            <p className={styles.modalTitle}>¿Rechazar cotización?</p>
+            <p className={styles.modalBody}>
+              Esta acción no se puede deshacer. El proveedor será notificado.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                className={styles.modalBtnCancel}
+                onClick={() => setConfirmRejectId(null)}
+                disabled={!!rejectingQuoteId}
+              >
+                Cancelar
+              </button>
+              <button
+                className={styles.modalBtnConfirm}
+                onClick={handleRejectQuote}
+                disabled={!!rejectingQuoteId}
+              >
+                {rejectingQuoteId ? "Rechazando..." : "Confirmar rechazo"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageAnimation>
   );
 }
