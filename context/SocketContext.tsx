@@ -124,6 +124,9 @@ interface SocketContextType {
   onProviderStatusChanged: (
     callback: (data: { status: string; title: string; message: string }) => void,
   ) => () => void;
+  onQuoteRejected: (
+    callback: (data: { quoteId: number; quoteDocumentId: string; requestId: number; requestDocumentId: string }) => void,
+  ) => () => void;
   joinChat: (chatId: number) => void;
   leaveChat: (chatId: number) => void;
   updateChatUnreadCount: (count: number) => void;
@@ -189,6 +192,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const providerStatusChangedCallbacksRef = useRef<
     Set<(data: { status: string; title: string; message: string }) => void>
   >(new Set());
+  const quoteRejectedCallbacksRef = useRef<
+    Set<(data: { quoteId: number; quoteDocumentId: string; requestId: number; requestDocumentId: string }) => void>
+  >(new Set());
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -227,6 +233,16 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       providerStatusChangedCallbacksRef.current.add(callback);
       return () => {
         providerStatusChangedCallbacksRef.current.delete(callback);
+      };
+    },
+    [],
+  );
+
+  const onQuoteRejected = useCallback(
+    (callback: (data: { quoteId: number; quoteDocumentId: string; requestId: number; requestDocumentId: string }) => void) => {
+      quoteRejectedCallbacksRef.current.add(callback);
+      return () => {
+        quoteRejectedCallbacksRef.current.delete(callback);
       };
     },
     [],
@@ -489,6 +505,13 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       });
     });
 
+    newSocket.on("quote.rejected", (data: { quoteId: number; quoteDocumentId: string; requestId: number; requestDocumentId: string }) => {
+      console.log("Quote rejected:", data);
+      quoteRejectedCallbacksRef.current.forEach((callback) => {
+        callback(data);
+      });
+    });
+
     return () => {
       socketRef.current?.disconnect();
       socketRef.current = null;
@@ -533,6 +556,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         onParticipantLeft,
         onPaymentNotified,
         onProviderStatusChanged,
+        onQuoteRejected,
         joinChat,
         leaveChat,
         updateChatUnreadCount,
