@@ -1,38 +1,44 @@
-.skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 8px;
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding: 8px 12px;
+  box-sizing: border-box;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+.card {
+  background: #fff;
+  border-radius: 28px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f1f1;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.headerSkeleton {
-  width: 150px;
-  height: 24px;
+.providerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
-.selectorSkeleton {
+.providerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconSkeleton {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.nameSkeleton {
   width: 120px;
-  height: 20px;
-}
-
-.countSkeleton {
-  width: 80px;
-  height: 20px;
-}
-
-.searchSkeleton {
-  width: 100px;
-  height: 36px;
-  border-radius: 25px;
+  height: 18px;
 }
 
 .filterSkeleton {
@@ -41,38 +47,25 @@
   border-radius: 6px;
 }
 
-.infoIconSkeleton {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.textSkeleton {
-  width: 100%;
-  height: 16px;
-  margin-bottom: 8px;
-}
-
-.textSkeletonShort {
-  width: 70%;
-  height: 16px;
-}
-
-.cardHeaderSkeleton {
-  width: 100px;
+.partsSkeleton {
+  width: 60%;
   height: 14px;
+  margin-bottom: 12px;
 }
 
-.providerSkeleton {
-  width: 120px;
-  height: 40px;
-  border-radius: 10px;
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
-.ratingSkeleton {
-  width: 60px;
-  height: 24px;
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px;
+  background: #f9f9fb;
   border-radius: 12px;
 }
 
@@ -80,33 +73,42 @@
   width: 24px;
   height: 24px;
   border-radius: 8px;
-  margin-right: 15px;
 }
 
-.partContentSkeleton {
+.itemContent {
   flex: 1;
-  height: 40px;
-  border-radius: 8px;
+}
+
+.itemNameSkeleton {
+  width: 80%;
+  height: 14px;
+  margin-bottom: 4px;
+}
+
+.itemSubSkeleton {
+  width: 50%;
+  height: 12px;
 }
 
 .priceSkeleton {
-  width: 50px;
-  height: 24px;
-  border-radius: 8px;
+  width: 60px;
+  height: 20px;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #18144033;
 }
 
 .timeSkeleton {
-  width: 80px;
+  width: 100px;
   height: 20px;
 }
 
 .totalSkeleton {
-  width: 60px;
+  width: 80px;
   height: 24px;
-}
-
-.buttonSkeleton {
-  width: 100%;
-  height: 48px;
-  border-radius: 14px;
 }

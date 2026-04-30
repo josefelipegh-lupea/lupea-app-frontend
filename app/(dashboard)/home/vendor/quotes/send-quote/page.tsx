@@ -195,11 +195,19 @@ function NewQuotePageContent() {
       const offers = (prev[itemId] || []).filter((_, i) => i !== offerIdx);
       return { ...prev, [itemId]: offers };
     });
-    // Limpiar foto asociada
-    const photoKey = `${itemId}_${offerIdx}`;
+    // Reconstruir mapa de fotos renumerando índices tras la eliminación
     setItemPhotos((prev) => {
-      const next = { ...prev };
-      delete next[photoKey];
+      const next: typeof prev = {};
+      Object.entries(prev).forEach(([key, val]) => {
+        const [kItemId, kIdx] = key.split("_").map(Number);
+        if (kItemId === itemId) {
+          if (kIdx === offerIdx) return; // eliminar la foto de la oferta borrada
+          const newIdx = kIdx > offerIdx ? kIdx - 1 : kIdx;
+          next[`${kItemId}_${newIdx}`] = val;
+        } else {
+          next[key] = val;
+        }
+      });
       return next;
     });
   };
