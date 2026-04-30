@@ -32,6 +32,7 @@ export default function ComparisonPage({ params }: PageProps) {
   const { isExpanded } = useSidebar();
   const [loading, setLoading] = useState(true);
   const [comparisonData, setComparisonData] = useState<ComparisonQuote[]>([]);
+  const [requestItemsCount, setRequestItemsCount] = useState(0);
   const [selectedItems, setSelectedItems] = useState<Map<number, Set<number>>>(
     new Map(),
   );
@@ -59,6 +60,7 @@ export default function ComparisonPage({ params }: PageProps) {
           //   return;
           // }
           setComparisonData(res.data.quotes);
+          setRequestItemsCount(res.data.summary?.requestItemsCount ?? 0);
         }
       } catch (error) {
         console.error("Error loading comparison:", error);
@@ -301,14 +303,14 @@ export default function ComparisonPage({ params }: PageProps) {
                         <span>
                           {quote.provider.rating
                             ? quote.provider.rating.toFixed(1)
-                            : "4.9"}
+                            : "N/A"}
                         </span>
                       </div>
                     </div>
 
                     <p className={styles.partsCount}>
                       {String(quote.products.length).padStart(2, "0")} de{" "}
-                      {String(quote.products.length).padStart(2, "0")} Repuestos
+                      {String(requestItemsCount || quote.products.length).padStart(2, "0")} Repuestos
                       solicitados
                     </p>
 
@@ -395,7 +397,9 @@ export default function ComparisonPage({ params }: PageProps) {
                       <span className={styles.deliveryTime}>
                         <IconsApp.GreenClock />
                         <span className={styles.deliveryTimeText}>
-                          Hoy 2:00 PM
+                          {quote.deliveryTime
+                            ? `Entrega: ${quote.deliveryTime}`
+                            : "Entrega: a convenir"}
                         </span>
                       </span>
                       <div className={styles.cardTotal}>
@@ -419,7 +423,7 @@ export default function ComparisonPage({ params }: PageProps) {
                     </div>
                     <div className={styles.selectionSummary}>
                       <span>
-                        {selectedItems.get(quote.id)?.size} Seleccionado
+                        {selectedItems.get(quote.id)?.size ?? 0} Seleccionado/s
                       </span>
                       <span>${getQuoteSelectedTotal(quote.id).toFixed(0)}</span>
                     </div>
@@ -440,7 +444,7 @@ export default function ComparisonPage({ params }: PageProps) {
                 (a, b) => a + b.size,
                 0,
               )}{" "}
-              productos {selectedItems.size} proveedores
+              producto/s de {selectedItems.size} proveedor/es
             </p>
             <div className={styles.footerActionRow}>
               <div className={styles.totalFinal}>
@@ -455,7 +459,7 @@ export default function ComparisonPage({ params }: PageProps) {
               </Button>
             </div>
             <p className={styles.footerSub}>
-              Se generará {selectedItems.size} ordenes de compra
+              Se generarán {selectedItems.size} órdenes de compra
             </p>
           </div>
         </div>
