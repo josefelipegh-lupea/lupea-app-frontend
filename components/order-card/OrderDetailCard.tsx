@@ -73,10 +73,6 @@ interface OrderDetailCardProps {
   showExpandButton?: boolean;
   showReviewButton?: boolean;
   showCancelButton?: boolean;
-  clientData?: {
-    email: string;
-    phone: string;
-  } | null;
 }
 
 const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
@@ -90,7 +86,6 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
   showReviewButton = false,
   showCancelButton = true,
   isProvider = false,
-  clientData,
 }) => {
   const formatStatus = (
     status: string,
@@ -266,7 +261,7 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
           </h3>
           <div className={styles.contactContainer}>
             {isProvider &&
-            (clientData || order.client?.contact || order.customer?.contact) ? (
+            (order.client?.contact || order.customer?.contact) ? (
               <>
                 <ContactRow
                   icon={
@@ -274,7 +269,6 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
                   }
                   label="Correo electrónico"
                   value={
-                    clientData?.email ||
                     order.customer?.contact?.email ||
                     order.client?.contact?.email ||
                     ""
@@ -284,7 +278,6 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
                   icon={<IconsApp.Phone />}
                   label="Teléfono"
                   value={
-                    clientData?.phone ||
                     order.customer?.contact?.phone ||
                     order.client?.contact?.phone ||
                     ""
