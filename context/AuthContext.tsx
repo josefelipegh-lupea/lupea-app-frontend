@@ -149,7 +149,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (response.ok) {
         const data = await response.json();
 
-        setLoginProfile((prev) => {
+        setLoginProfile(() => {
           let loginProfileData;
 
           if (isProvider) {
@@ -157,16 +157,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               id: data.id,
               displayName: data.businessName || data.username,
               tokensAvailable: data.tokensAvailable || 0,
-              tokensTotal: data.tokensAvailable || 0,
-              tokensPurchasedThisMonth: 0,
-              tokensLastRenewal: data.tokensLastRenewal || "",
-              tokensNextRenewal: data.tokensNextRenewal || "",
-              monthlyConsumption: prev?.monthlyConsumption || {
-                usedTokens: 0,
-                percentage: 0,
-              },
-              tokenMetricsMonth: prev?.tokenMetricsMonth || "",
-              freeTokensGrantedThisMonth: 0,
               privacyLevel: "public",
               status: data.status,
             };
