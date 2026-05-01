@@ -292,7 +292,7 @@ export default function ConversationPage(_props: PageProps) {
                 disabled={notifyingPayment}
                 type="button"
               >
-                <IconsApp.Document color="#f08100" />
+                <IconsApp.Document color="#1b5e20" />
                 Notificar pago
               </button>
             </div>
