@@ -51,8 +51,6 @@ export default function HomePage() {
   );
 
   const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
-  const tokensTotal = loginProfile?.tokensTotal ?? 0;
-  const tokensPercentage = loginProfile?.monthlyConsumption?.percentage ?? 0;
 
   useEffect(() => {
     const unsubscribe = onProviderStatusChanged(async (data) => {
@@ -322,22 +320,6 @@ export default function HomePage() {
             <h2 className={styles.summaryValue}>
               {tokensAvailable.toLocaleString()}
             </h2>
-            <p className={styles.summaryTotal}>
-              de {tokensTotal.toLocaleString()} totales
-            </p>
-
-            <div className={styles.progressHeader}>
-              <span>Consumo del mes</span>
-              <span className={styles.percentaje}>
-                {tokensPercentage.toFixed(2)}%
-              </span>
-            </div>
-            <div className={styles.progressBar}>
-              <div
-                className={styles.progressFill}
-                style={{ width: `${Math.min(tokensPercentage, 100)}%` }}
-              ></div>
-            </div>
 
             <div className={styles.divider}></div>
           </section>

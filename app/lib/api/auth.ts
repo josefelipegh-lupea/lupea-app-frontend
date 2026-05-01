@@ -13,22 +13,31 @@ export type LoginResponse = {
   profileType: string;
   profile: {
     id: number;
-    displayName: string;
+    /** Client-only */
+    displayName?: string;
+    /** Provider-only */
+    businessName?: string;
     tokensAvailable: number;
+    /** Client-only */
     tokensFreeAvailable?: number;
+    /** Client-only */
     tokensPurchasedAvailable?: number;
-    tokensTotal: number;
-    tokensPurchasedThisMonth: number;
-    freeTokensGrantedThisMonth: number;
-    monthlyConsumption: {
+    /** Client-only */
+    tokensTotal?: number;
+    /** Client-only */
+    tokensPurchasedThisMonth?: number;
+    /** Client-only */
+    freeTokensGrantedThisMonth?: number;
+    /** Client-only */
+    monthlyConsumption?: {
       usedTokens: number;
       percentage: number;
     };
-    tokenMetricsMonth: string;
+    /** Client-only */
+    tokenMetricsMonth?: string;
     tokensLastRenewal?: string;
     tokensNextRenewal?: string;
-    privacyLevel: string;
-    /** Provider-only: approval/onboarding status */
+    privacyLevel?: string;
     status?: string;
   };
 };
