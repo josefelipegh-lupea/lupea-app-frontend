@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
@@ -8,6 +8,7 @@ import { useSocket } from "@/context/SocketContext";
 import {
   getChatMessagesAsProvider,
   sendMessageAsProvider,
+  sendMessageWithAttachmentAsProvider,
   markChatAsReadAsProvider,
   confirmProviderPayment,
   ChatMessage,
@@ -15,15 +16,47 @@ import {
   ChatListItem,
 } from "@/app/lib/api/provider/chat";
 import { PageAnimation } from "@/components/page-animation/PageAnimation";
+import ChatHeader from "@/components/chat/ChatHeader";
+import MessageBubble from "@/components/chat/MessageBubble";
+import DateSeparator from "@/components/chat/DateSeparator";
+import ChatInput from "@/components/chat/ChatInput";
 import styles from "../../user/[id]/Conversation.module.css";
-import { IconsApp } from "@/components/icons/Icons";
 import toast from "react-hot-toast";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function ConversationPage({ params }: PageProps) {
+function formatDateLabel(dateString: string): string {
+  const date = new Date(dateString);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) return "HOY";
+  if (date.toDateString() === yesterday.toDateString()) return "AYER";
+  return date
+    .toLocaleDateString("es-VE", { day: "numeric", month: "short" })
+    .toUpperCase();
+}
+
+function groupMessagesByDate(
+  msgs: ChatMessage[]
+): { date: string; messages: ChatMessage[] }[] {
+  const groups: { date: string; messages: ChatMessage[] }[] = [];
+  let currentDate = "";
+  msgs.forEach((msg) => {
+    const label = formatDateLabel(msg.createdAt);
+    if (label !== currentDate) {
+      currentDate = label;
+      groups.push({ date: label, messages: [] });
+    }
+    groups[groups.length - 1].messages.push(msg);
+  });
+  return groups;
+}
+
+export default function ConversationPage(_props: PageProps) {
   const { id: chatId } = useParams() as { id: string };
   const router = useRouter();
   const { jwt, role } = useAuth();
@@ -41,22 +74,22 @@ export default function ConversationPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [newMessage, setNewMessage] = useState("");
   const [order, setOrder] = useState<ChatOrder | null>(null);
   const [chat, setChat] = useState<ChatListItem | null>(null);
   const [chatStatus, setChatStatus] = useState<string>("active");
   const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const [confirmingPayment, setConfirmingPayment] = useState(false);
-  const [clientOnline, setClientOnline] = useState(false);
+  const [isClientOnline, setIsClientOnline] = useState(false);
+  const [clientLeftAt, setClientLeftAt] = useState<Date | null>(null);
   const [numericChatId, setNumericChatId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Fetch messages on mount
   useEffect(() => {
     const fetchChat = async () => {
       if (!jwt || role !== "provider") return;
       try {
         setLoading(true);
-
         const messagesRes = await getChatMessagesAsProvider(jwt, chatId);
         if (messagesRes.ok) {
           setMessages(messagesRes.data.messages);
@@ -66,7 +99,6 @@ export default function ConversationPage({ params }: PageProps) {
           setOrderStatus(messagesRes.data.chat.order.status);
           setNumericChatId(messagesRes.data.chat.id);
         }
-
         await markChatAsReadAsProvider(jwt, chatId);
       } catch (error) {
         console.error("Error loading chat:", error);
@@ -74,25 +106,23 @@ export default function ConversationPage({ params }: PageProps) {
         setLoading(false);
       }
     };
-
     fetchChat();
   }, [jwt, role, chatId]);
 
+  // Join/leave socket room
   useEffect(() => {
-    if (chatId) {
-      joinChat(parseInt(chatId));
-    }
+    if (chatId) joinChat(parseInt(chatId));
     return () => {
-      if (chatId) {
-        leaveChat(parseInt(chatId));
-      }
+      if (chatId) leaveChat(parseInt(chatId));
     };
   }, [chatId, joinChat, leaveChat]);
 
+  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Real-time: new messages
   useEffect(() => {
     const unsubscribe = onNewChatMessage((message) => {
       if (numericChatId && message.chatId === numericChatId) {
@@ -102,17 +132,14 @@ export default function ConversationPage({ params }: PageProps) {
         });
       }
     });
-
     return unsubscribe;
   }, [numericChatId, onNewChatMessage]);
 
-  // Escuchar notificacion de pago del cliente en tiempo real
-  // Cuando el cliente notifica el pago, habilitamos el boton "Confirmar pago"
+  // Real-time: payment notified by client
   useEffect(() => {
     const unsubscribe = onPaymentNotified((data) => {
       if (numericChatId && data.chatId === numericChatId) {
         setOrderStatus("payment_validation");
-        // Agregar el mensaje del comprobante a la lista si viene en el payload
         if (data.message) {
           setMessages((prev) => {
             if (prev.some((m) => m.id === data.message.id)) return prev;
@@ -122,32 +149,29 @@ export default function ConversationPage({ params }: PageProps) {
         toast.success("El cliente ha notificado el pago");
       }
     });
-
     return unsubscribe;
   }, [numericChatId, onPaymentNotified]);
 
+  // Real-time: online presence
   useEffect(() => {
-    const numericChatId = parseInt(chatId, 10);
+    const numId = parseInt(chatId, 10);
 
-    const checkClientOnline = () => {
-      const participants = onlineParticipants[numericChatId];
-      if (participants && chat?.participants?.customer) {
-        const isOnline = participants.has(chat.participants.customer.id);
-        setClientOnline(isOnline);
-      }
-    };
-
-    checkClientOnline();
+    const participants = onlineParticipants[numId];
+    if (participants && chat?.participants?.customer) {
+      setIsClientOnline(participants.has(chat.participants.customer.id));
+    }
 
     const unsubJoined = onParticipantJoined((data) => {
-      if (data.chatId === numericChatId && data.role === "client") {
-        setClientOnline(true);
+      if (data.chatId === numId && data.role === "client") {
+        setIsClientOnline(true);
+        setClientLeftAt(null);
       }
     });
 
     const unsubLeft = onParticipantLeft((data) => {
-      if (data.chatId === numericChatId && data.role === "client") {
-        setClientOnline(false);
+      if (data.chatId === numId && data.role === "client") {
+        setIsClientOnline(false);
+        setClientLeftAt(new Date());
       }
     });
 
@@ -155,29 +179,20 @@ export default function ConversationPage({ params }: PageProps) {
       unsubJoined();
       unsubLeft();
     };
-  }, [
-    chatId,
-    onlineParticipants,
-    onParticipantJoined,
-    onParticipantLeft,
-    chat,
-  ]);
+  }, [chatId, onlineParticipants, onParticipantJoined, onParticipantLeft, chat]);
 
+  // Confirm payment
   const handleConfirmPayment = async () => {
-    if (
-      !jwt ||
-      !order ||
-      !order.id ||
-      orderStatus !== "payment_validation" ||
-      confirmingPayment
-    )
+    if (!jwt || !order?.id || orderStatus !== "payment_validation" || confirmingPayment)
       return;
-
-    const note = "Pago validado correctamente. Procedo a completar la orden.";
 
     setConfirmingPayment(true);
     try {
-      const res = await confirmProviderPayment(jwt, order.id.toString(), note);
+      const res = await confirmProviderPayment(
+        jwt,
+        order.id.toString(),
+        "Pago validado correctamente. Procedo a completar la orden."
+      );
       if (res.ok) {
         toast.success("Pago confirmado y orden completada");
         setOrderStatus("completed");
@@ -191,78 +206,33 @@ export default function ConversationPage({ params }: PageProps) {
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!jwt || sending || chatStatus !== "active" || !newMessage.trim())
-      return;
+  // Send message (text or with attachment)
+  const handleSend = useCallback(
+    async (content: string, file?: File) => {
+      if (!jwt || sending || chatStatus !== "active") return;
+      if (!content.trim() && !file) return;
 
-    const messageText = newMessage.trim();
-    setNewMessage("");
-    setSending(true);
-    try {
-      await sendMessageAsProvider(jwt, chatId, messageText);
-    } catch (error) {
-      toast.error("Error al enviar mensaje");
-      console.error("Error sending message:", error);
-      setNewMessage(messageText);
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("es-ES", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) return "Hoy";
-    if (date.toDateString() === yesterday.toDateString()) return "Ayer";
-    return date.toLocaleDateString("es-ES", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const groupMessagesByDate = (msgs: ChatMessage[]) => {
-    const groups: { date: string; messages: ChatMessage[] }[] = [];
-    let currentDate = "";
-
-    msgs.forEach((msg) => {
-      const msgDate = formatDate(msg.createdAt);
-      if (msgDate !== currentDate) {
-        currentDate = msgDate;
-        groups.push({ date: msgDate, messages: [] });
+      setSending(true);
+      try {
+        if (file) {
+          await sendMessageWithAttachmentAsProvider(jwt, chatId, content, file);
+        } else {
+          await sendMessageAsProvider(jwt, chatId, content);
+        }
+      } catch (error) {
+        toast.error("Error al enviar mensaje");
+        console.error("Error sending message:", error);
+      } finally {
+        setSending(false);
       }
-      groups[groups.length - 1].messages.push(msg);
-    });
+    },
+    [jwt, sending, chatStatus, chatId]
+  );
 
-    return groups;
-  };
+  // Client last message date for lastSeen fallback
+  const clientLastMessageAt = messages
+    .filter((m) => m.senderRole === "client")
+    .at(-1)?.createdAt ?? chat?.lastMessageAt ?? null;
 
   if (loading) {
     return (
@@ -280,6 +250,7 @@ export default function ConversationPage({ params }: PageProps) {
     );
   }
 
+  const clientName = chat?.participants?.customer?.username || "Cliente";
   const messageGroups = groupMessagesByDate(messages);
 
   return (
@@ -290,69 +261,52 @@ export default function ConversationPage({ params }: PageProps) {
         }`}
       >
         <main className={styles.mainContainer}>
-          <div className={styles.chatHeader}>
-            <button className={styles.backButton} onClick={() => router.back()}>
-              <IconsApp.BackArrow />
-            </button>
-            <div className={styles.avatar}>
-              {chat?.participants?.customer
-                ? getInitials(chat.participants.customer.username)
-                : "?"}
-            </div>
-            <div className={styles.headerInfo}>
-              <div className={styles.headerName}>
-                {chat?.participants?.customer?.username || "Chat"}
-                {clientOnline && (
-                  <span className={styles.onlineIndicator} title="En línea">
-                    <span className={styles.onlineDot}></span>
-                  </span>
-                )}
-              </div>
-              <div className={styles.headerOrder}>
-                Orden: {order?.orderCode || ""}
-              </div>
-            </div>
-          </div>
+          {/* Header */}
+          <ChatHeader
+            name={clientName}
+            orderCode={order?.orderCode ?? null}
+            orderStatus={orderStatus}
+            isOtherOnline={isClientOnline}
+            participantLeftAt={clientLeftAt}
+            lastMessageAt={clientLastMessageAt}
+            onBack={() => router.back()}
+          />
 
-          {(orderStatus === "active" ||
-            orderStatus === "payment_validation") && (
-            <div
-              className={`${styles.subHeader} ${orderStatus === "payment_validation" ? styles.confirmPaymentBanner : styles.waitingPaymentBanner}`}
-            >
-              <div
-                className={
-                  orderStatus === "payment_validation"
-                    ? styles.confirmPaymentInfo
-                    : styles.waitingPaymentInfo
-                }
+          {/* Payment banners (provider side) */}
+          {orderStatus === "active" && (
+            <div className={`${styles.subHeader} ${styles.waitingPaymentBanner}`}>
+              <div className={styles.waitingPaymentInfo}>
+                <span className={styles.bannerIcon}>⏳</span>
+                <span>Esperando que el cliente notifique el pago...</span>
+              </div>
+              <button
+                className={styles.confirmPaymentButton}
+                disabled
+                type="button"
               >
-                {orderStatus === "payment_validation" ? (
-                  <>
-                    <IconsApp.Check color="#22c55e" />
-                    <span>
-                      El cliente ha realizado el pago. Confirma para completar
-                      la orden.
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <IconsApp.OrangeClock color="#f08100" />
-                    <span>Esperando que el cliente notifique el pago...</span>
-                  </>
-                )}
+                Confirmar pago
+              </button>
+            </div>
+          )}
+
+          {orderStatus === "payment_validation" && (
+            <div className={`${styles.subHeader} ${styles.confirmPaymentBanner}`}>
+              <div className={styles.confirmPaymentInfo}>
+                <span className={styles.bannerIcon}>✅</span>
+                <span>El cliente ha realizado el pago. Confirma para completar la orden.</span>
               </div>
               <button
                 className={styles.confirmPaymentButton}
                 onClick={handleConfirmPayment}
-                disabled={
-                  confirmingPayment || orderStatus !== "payment_validation"
-                }
+                disabled={confirmingPayment}
+                type="button"
               >
                 {confirmingPayment ? "Confirmando..." : "Confirmar pago"}
               </button>
             </div>
           )}
 
+          {/* Messages */}
           <div className={styles.messagesContainer}>
             {messages.length === 0 ? (
               <div className={styles.emptyState}>
@@ -363,37 +317,13 @@ export default function ConversationPage({ params }: PageProps) {
             ) : (
               messageGroups.map((group, groupIndex) => (
                 <div key={groupIndex}>
-                  <div className={styles.dateSeparator}>{group.date}</div>
+                  <DateSeparator label={group.date} />
                   {group.messages.map((message, msgIndex) => (
-                    <div
+                    <MessageBubble
                       key={message.id || msgIndex}
-                      className={`${styles.messageWrapper} ${
-                        message.senderRole === "provider"
-                          ? styles.sent
-                          : styles.received
-                      }`}
-                    >
-                      <div className={styles.messageBubble}>
-                        {message.content}
-                        {message.messageType === "payment_proof" &&
-                          message.attachment && (
-                            <div className={styles.attachment}>
-                              <IconsApp.Document color="#f08100" />
-                              <a
-                                href={message.attachment.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={styles.attachmentLink}
-                              >
-                                Ver comprobante
-                              </a>
-                            </div>
-                          )}
-                      </div>
-                      <div className={styles.messageTime}>
-                        {formatTime(message.createdAt)}
-                      </div>
-                    </div>
+                      message={message}
+                      isOwn={message.senderRole === "provider"}
+                    />
                   ))}
                 </div>
               ))
@@ -401,32 +331,16 @@ export default function ConversationPage({ params }: PageProps) {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className={styles.inputContainer}>
-            <div className={styles.inputWrapper}>
-              <input
-                type="text"
-                className={styles.input}
-                placeholder={
-                  chatStatus === "read_only"
-                    ? "Chat cerrado"
-                    : "Escribe un mensaje..."
-                }
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={chatStatus !== "active"}
-              />
-            </div>
-            <button
-              className={styles.sendButton}
-              onClick={handleSendMessage}
-              disabled={
-                !newMessage.trim() || sending || chatStatus !== "active"
-              }
-            >
-              <IconsApp.Send />
-            </button>
-          </div>
+          {/* Input */}
+          <ChatInput
+            onSend={handleSend}
+            disabled={chatStatus !== "active" || sending}
+            placeholder={
+              chatStatus === "read_only"
+                ? "Chat cerrado"
+                : "Escribir un mensaje..."
+            }
+          />
         </main>
       </div>
     </PageAnimation>
