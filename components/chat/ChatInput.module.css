@@ -1,0 +1,132 @@
+.container {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  background-color: #ffffff;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* File preview strip */
+.filePreview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+}
+
+.filePreviewIcon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.filePreviewName {
+  font-size: 12px;
+  color: #1a1a3d;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filePreviewRemove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+/* Main input row */
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  background-color: #f5f5f5;
+  border-radius: 24px;
+  padding: 4px 4px 4px 14px;
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+/* Textarea */
+.textarea {
+  flex: 1;
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #1a1a3d;
+  background: transparent;
+  padding: 8px 0;
+  min-height: 36px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+
+.textarea::placeholder {
+  color: #bdbdbd;
+}
+
+.textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Clip button */
+.clipButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9e9e9e;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.clipButton:hover:not(:disabled) {
+  color: #f08100;
+}
+
+.clipButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Send button */
+.sendButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f08100;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  transition: background-color 0.15s, opacity 0.15s;
+}
+
+.sendButton:hover:not(:disabled) {
+  background-color: #d97700;
+}
+
+.sendButton:disabled {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+}
