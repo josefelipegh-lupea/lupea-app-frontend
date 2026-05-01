@@ -10,7 +10,6 @@ import {
   getProviderOrderById,
   ProviderOrderData,
 } from "@/app/lib/api/provider/home/order";
-import { getClientProfileById, ClientProfileResponse } from "@/app/lib/api/client/clientProfile";
 import { getOrderChatAsProvider } from "@/app/lib/api/provider/chat";
 import { SkeletonOrders } from "@/components/skeleton/SkeletonOrders";
 import OrderDetailCard from "@/components/order-card/OrderDetailCard";
@@ -21,7 +20,6 @@ const VendorOrderDetailPage: React.FC = () => {
   const router = useRouter();
   const { jwt } = useAuth();
   const [order, setOrder] = useState<ProviderOrderData | null>(null);
-  const [clientData, setClientData] = useState<ClientProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const { isExpanded } = useSidebar();
 
@@ -33,17 +31,7 @@ const VendorOrderDetailPage: React.FC = () => {
         setLoading(true);
         const res = await getProviderOrderById(jwt, params.id as string);
         if (res.ok) {
-          const orderData = res.data.order;
-          setOrder(orderData);
-
-          if (orderData.customer?.id) {
-            try {
-              const clientRes = await getClientProfileById(jwt, orderData.customer.id);
-              setClientData(clientRes);
-            } catch (error) {
-              console.error("Error loading client data:", error);
-            }
-          }
+          setOrder(res.data.order);
         }
       } catch (error) {
         console.error("Error loading order:", error);
@@ -110,7 +98,6 @@ const VendorOrderDetailPage: React.FC = () => {
         <div className={styles.container}>
           <OrderDetailCard
             order={order}
-            clientData={clientData}
             isExpanded={true}
             showExpandButton={false}
             onChatClick={handleChatClick}
