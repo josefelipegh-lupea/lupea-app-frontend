@@ -32,9 +32,8 @@ export interface ChatMessage {
   documentId: string;
   chatId?: number;
   content: string;
+  sender: { id: number | null; username: string | null; role: string };
   senderType: "client" | "provider";
-  senderId: number;
-  senderName: string;
   senderRole: "client" | "provider" | "system";
   messageType: "text" | "image" | "file" | "payment_proof" | "system";
   createdAt: string;
@@ -452,8 +451,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       chatMessageCallbacksRef.current.forEach((callback) => {
         callback(messageWithChatId);
       });
-      new Audio("/sounds/notification.mp3").play().catch(() => {});
-      setChatUnreadCount((prev) => prev + 1);
+      // Solo sonar e incrementar badge si el mensaje NO es del usuario actual
+      if (data.message.sender?.id !== user?.id) {
+        new Audio("/sounds/notification.mp3").play().catch(() => {});
+        setChatUnreadCount((prev) => prev + 1);
+      }
     });
 
     newSocket.on("chat.message.read", (data: { chatId: number; readMessageIds: number[]; readAt: string; readBy: string }) => {
