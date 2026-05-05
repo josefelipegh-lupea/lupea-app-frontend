@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useParams, useRouter } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
@@ -85,6 +86,7 @@ export default function ConversationPage(_props: PageProps) {
   const [providerLeftAt, setProviderLeftAt] = useState<Date | null>(null);
   const [numericChatId, setNumericChatId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const keyboardHeight = useKeyboardHeight();
 
   // Fetch messages on mount
   useEffect(() => {
@@ -227,6 +229,7 @@ export default function ConversationPage(_props: PageProps) {
           className={`${styles.pageWrapper} ${
             !isExpanded ? styles.sidebarCollapsed : ""
           }`}
+          style={keyboardHeight > 0 ? { paddingBottom: keyboardHeight } : undefined}
         >
           <main className={styles.mainContainer}>
             <div className={styles.loadingState}>Cargando...</div>
@@ -245,6 +248,7 @@ export default function ConversationPage(_props: PageProps) {
         className={`${styles.pageWrapper} ${
           !isExpanded ? styles.sidebarCollapsed : ""
         }`}
+        style={keyboardHeight > 0 ? { paddingBottom: keyboardHeight } : undefined}
       >
         <main className={styles.mainContainer}>
           {/* Header */}

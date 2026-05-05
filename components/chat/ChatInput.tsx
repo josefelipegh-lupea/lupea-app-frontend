@@ -80,6 +80,16 @@ export default function ChatInput({
           value={text}
           onChange={handleTextChange}
           onKeyDown={handleKeyDown}
+          onFocus={() => {
+            // Espera a que el teclado termine de animarse (~300ms) y luego
+            // hace scroll para que el textarea quede visible sobre el teclado
+            setTimeout(() => {
+              textareaRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+              });
+            }, 300);
+          }}
           placeholder={placeholder}
           disabled={disabled}
           rows={1}
