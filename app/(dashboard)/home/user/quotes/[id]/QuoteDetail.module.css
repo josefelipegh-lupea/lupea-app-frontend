@@ -233,7 +233,7 @@
 
 .partItem {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   padding: 12px 10px;
   border-radius: 15px;
   margin-bottom: 5px;
@@ -288,19 +288,28 @@
   margin: 2px 0 0;
 }
 
+.partNotes {
+  font-size: 11px;
+  color: #888;
+  margin: 3px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .partPrice {
   display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
   font-weight: 700;
   font-size: 16px;
   color: #1a1a3d;
-  margin-left: 30px;
-  padding-right: 40px;
-  width: 40px;
-  text-align: right;
-  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+  min-width: 60px;
+  gap: 3px;
 }
 
 .unitPrice {

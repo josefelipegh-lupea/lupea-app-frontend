@@ -236,12 +236,8 @@ export default function HomePage() {
               items={data.featuredQuote.items.map((item) => ({
                 name: item.productName,
                 model: `${data.request.vehicle.brand} ${data.request.vehicle.model} ${data.request.vehicle.year}`,
-                type: [
-                  item.offeredBrand || item.requestItem?.conditionPreferred || "Original",
-                  item.notes || null,
-                ]
-                  .filter(Boolean)
-                  .join(" · "),
+                type: item.offeredBrand || item.requestItem?.conditionPreferred || "Original",
+                notes: item.notes || null,
               }))}
               totalSolicitados={data.request.items.length}
               documentId={data.request.documentId}
