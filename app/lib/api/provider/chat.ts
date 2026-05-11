@@ -11,6 +11,7 @@ export interface ChatMessage {
   };
   senderRole: "client" | "provider" | "system";
   messageType: "text" | "image" | "file" | "payment_proof" | "system";
+  targetRole?: "client" | "provider" | "all";
   content: string;
   status: "sent" | "delivered" | "read";
   deliveredAt: string | null;
