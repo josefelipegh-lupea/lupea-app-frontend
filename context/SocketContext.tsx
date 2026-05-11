@@ -36,6 +36,7 @@ export interface ChatMessage {
   senderType: "client" | "provider";
   senderRole: "client" | "provider" | "system";
   messageType: "text" | "image" | "file" | "payment_proof" | "system";
+  targetRole?: "client" | "provider" | "all";
   createdAt: string;
   isRead: boolean;
   attachment?: {
@@ -126,6 +127,9 @@ interface SocketContextType {
   onQuoteRejected: (
     callback: (data: { quoteId: number; quoteDocumentId: string; requestId: number; requestDocumentId: string }) => void,
   ) => () => void;
+  onOrderStatusChanged: (
+    callback: (data: { chatId: number; orderId: number | null; orderCode: string | null; orderStatus: string | null; chatStatus: string | null }) => void,
+  ) => () => void;
   joinChat: (chatId: number) => void;
   leaveChat: (chatId: number) => void;
   updateChatUnreadCount: (count: number) => void;
@@ -194,6 +198,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const quoteRejectedCallbacksRef = useRef<
     Set<(data: { quoteId: number; quoteDocumentId: string; requestId: number; requestDocumentId: string }) => void>
   >(new Set());
+  const orderStatusChangedCallbacksRef = useRef<
+    Set<(data: { chatId: number; orderId: number | null; orderCode: string | null; orderStatus: string | null; chatStatus: string | null }) => void>
+  >(new Set());
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -242,6 +249,16 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       quoteRejectedCallbacksRef.current.add(callback);
       return () => {
         quoteRejectedCallbacksRef.current.delete(callback);
+      };
+    },
+    [],
+  );
+
+  const onOrderStatusChanged = useCallback(
+    (callback: (data: { chatId: number; orderId: number | null; orderCode: string | null; orderStatus: string | null; chatStatus: string | null }) => void) => {
+      orderStatusChangedCallbacksRef.current.add(callback);
+      return () => {
+        orderStatusChangedCallbacksRef.current.delete(callback);
       };
     },
     [],
@@ -517,6 +534,13 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       });
     });
 
+    newSocket.on("chat.order.status_changed", (data: { chatId: number; orderId: number | null; orderCode: string | null; orderStatus: string | null; chatStatus: string | null; occurredAt: string }) => {
+      console.log("Chat order status changed:", data);
+      orderStatusChangedCallbacksRef.current.forEach((callback) => {
+        callback(data);
+      });
+    });
+
     return () => {
       socketRef.current?.disconnect();
       socketRef.current = null;
@@ -562,6 +586,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         onPaymentNotified,
         onProviderStatusChanged,
         onQuoteRejected,
+        onOrderStatusChanged,
         joinChat,
         leaveChat,
         updateChatUnreadCount,
