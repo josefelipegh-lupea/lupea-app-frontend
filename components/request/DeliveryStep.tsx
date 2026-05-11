@@ -26,7 +26,6 @@ export default function DeliveryStep({
     const updatedData = {
       ...formData,
       deliveryMethod: method,
-      deliveryCity: "",
     };
 
     setFormData(updatedData);
@@ -64,11 +63,11 @@ export default function DeliveryStep({
 
       <div className={styles.cardBody}>
         <div className={`${styles.field} ${styles.fieldMarginTop}`}>
-          <label>Ubicación <span className={styles.required}>*</span></label>
+          <label>
+            Ubicación <span className={styles.required}>*</span>
+          </label>
           <div className={styles.selectWrapper}>
-            <div
-              className={`${styles.iconOverlay} ${styles.iconOverlayLeft}`}
-            >
+            <div className={`${styles.iconOverlay} ${styles.iconOverlayLeft}`}>
               <IconsApp.Pin />
             </div>
             <select
@@ -78,14 +77,6 @@ export default function DeliveryStep({
               onChange={handleCityChange}
             >
               <option value="">Selecciona una ubicación</option>
-
-              {/* {isRetiro
-                ? states.map((state) => (
-                    <option key={`state-${state.id}`} value={state.id}>
-                      {state.name}
-                    </option>
-                  ))
-                :  */}
 
               {locations.map((loc) => (
                 <option key={`loc-${loc.id}`} value={loc.id}>

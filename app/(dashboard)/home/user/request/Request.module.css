@@ -176,7 +176,7 @@
 
 .selectWrapper select {
   width: 100%;
-  padding: 16px;
+  padding: 15px 15px 15px 30px;
   border-radius: 18px;
   border: 1px solid #e5e5ea;
   background-color: #f9fafb;
@@ -246,7 +246,9 @@
   transition: all 0.2s ease;
   width: 100%;
   scroll-snap-align: start;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
   opacity: 1;
 }
 
@@ -978,7 +980,7 @@
 }
 
 .iconOverlayLeft {
-  left: 16px;
+  left: 15px;
   right: auto;
 }
 
