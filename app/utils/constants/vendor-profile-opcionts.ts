@@ -55,8 +55,8 @@ const MENU_CONFIG_VENDOR: Array<{
     id: "historial",
     title: "HISTORIAL",
     items: [
-      { label: "Historial de solicitudes", icon: IconsApp.History },
-      { label: "Historial de Ordenes", icon: IconsApp.History },
+      { label: "Historial de solicitudes", icon: IconsApp.History, href: "/profile/vendor/history/requests" },
+      { label: "Historial de Ordenes", icon: IconsApp.History, href: "/profile/vendor/history/orders" },
     ],
   },
   {

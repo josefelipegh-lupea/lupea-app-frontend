@@ -69,8 +69,8 @@ export default function HomePage() {
         await refreshLoginProfile();
 
         const [requestsRes, quotesRes, ordersRes] = await Promise.all([
-          getProviderRequests(jwt),
-          getProviderQuotes(jwt),
+          getProviderRequests(jwt, "pending,viewed"),
+          getProviderQuotes(jwt, "sent,viewed"),
           getProviderOrders(jwt),
         ]);
         if (requestsRes.ok) {
@@ -110,7 +110,7 @@ export default function HomePage() {
           if (!jwt) return;
           try {
             const [requestsRes, ordersRes] = await Promise.all([
-              getProviderRequests(jwt),
+              getProviderRequests(jwt, "pending,viewed"),
               getProviderOrders(jwt),
             ]);
             if (requestsRes.ok) {
