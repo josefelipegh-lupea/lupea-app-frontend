@@ -111,6 +111,16 @@
   margin: 2px 0 0 0;
 }
 
+.itemNotes {
+  font-size: 11px;
+  color: #888;
+  margin: 3px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .verTodosBtn {
   display: flex;
   flex-direction: row;

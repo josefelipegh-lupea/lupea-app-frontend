@@ -168,30 +168,6 @@ const QuoteDetailPage: React.FC = () => {
         <main className={styles.mainContainer}>
           <Header title="Detalle de Cotización" />
 
-          {/* <div className={styles.requestSelectorRow}>
-          <div className={styles.selectorItem}>
-            <IconsApp.Document color="#A1A1A1" />
-            <span>Consulta {quote.request.documentId.slice(0, 5)}</span>
-            <IconsApp.DownArrow />
-          </div>
-          <span className={styles.quoteCount}>
-            1 Cotización
-          </span>
-        </div> */}
-
-          {/* <div className={styles.searchFilterRow}>
-          <div className={styles.searchLeft}>
-            <IconsApp.Search color="#1a1a3d" />
-            <div className={styles.searchBadge}>
-              <span>Menor precio</span>
-              <IconsApp.Close className={styles.closeSearch} />
-            </div>
-          </div>
-          <div className={styles.filterIcon}>
-            <IconsApp.History />
-          </div>
-        </div> */}
-
           {isOrdered && (
             <div className={styles.infoBox}>
               <div className={styles.infoIcon}>
@@ -255,13 +231,13 @@ const QuoteDetailPage: React.FC = () => {
                         <div className={styles.partContent}>
                           <p className={styles.partName}>{item.productName}</p>
                           <p className={styles.partSub}>
-                            {[
-                              item.offeredBrand || item.requestItem?.conditionPreferred || "Original",
-                              item.notes || null,
-                            ]
-                              .filter(Boolean)
-                              .join(" · ")}
+                            {item.offeredBrand ||
+                              item.requestItem?.conditionPreferred ||
+                              "Original"}
                           </p>
+                          {item.notes && (
+                            <p className={styles.partNotes}>{item.notes}</p>
+                          )}
                         </div>
                         <span className={styles.partPrice}>
                           <span className={styles.quantity}>
@@ -330,7 +306,13 @@ const QuoteDetailPage: React.FC = () => {
             </p>
             <div className={styles.footerActionRow}>
               <div className={styles.totalFinal}>
-                Total <strong>${(isOrdered ? quote.priceTotal : getSelectedTotal()).toFixed(0)}</strong>
+                Total{" "}
+                <strong>
+                  $
+                  {(isOrdered ? quote.priceTotal : getSelectedTotal()).toFixed(
+                    0,
+                  )}
+                </strong>
               </div>
               {isOrdered ? (
                 <Button

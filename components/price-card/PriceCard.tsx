@@ -8,6 +8,7 @@ interface Item {
   name: string;
   model: string;
   type: string;
+  notes?: string | null;
 }
 
 interface PriceProps {
@@ -147,6 +148,9 @@ export const PriceCard: React.FC<PriceProps> = ({
                   <p className={styles.itemDetail}>
                     {item.model} • {item.type}
                   </p>
+                  {item.notes && (
+                    <p className={styles.itemNotes}>{item.notes}</p>
+                  )}
                 </div>
               </div>
             ))}
