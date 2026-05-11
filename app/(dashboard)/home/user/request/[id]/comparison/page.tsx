@@ -616,78 +616,80 @@ export default function ComparisonPage({ params }: PageProps) {
             className={styles.filterSheet}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={styles.sheetHeader}>
-              <span className={styles.sheetTitle}>Filtros</span>
-              {activeChips.length > 0 && (
-                <button className={styles.clearAllBtn} onClick={clearAllFilters}>
-                  Limpiar todo
-                </button>
-              )}
-            </div>
-
-            {/* Sort section */}
-            <div className={styles.sheetSection}>
-              <p className={styles.sheetSectionTitle}>Ordenar por</p>
-              <div className={styles.sheetOptions}>
-                {(Object.entries(SORT_LABELS) as [NonNullable<SortFilter>, string][]).map(
-                  ([key, label]) => (
-                    <button
-                      key={key}
-                      className={`${styles.sheetOption} ${
-                        activeFilters.sort === key ? styles.sheetOptionActive : ""
-                      }`}
-                      onClick={() => applySort(key)}
-                    >
-                      {label}
-                      {activeFilters.sort === key && (
-                        <IconsApp.Check color="#f08100" />
-                      )}
-                    </button>
-                  ),
+            <div className={styles.sheetBody}>
+              <div className={styles.sheetHeader}>
+                <span className={styles.sheetTitle}>Filtros</span>
+                {activeChips.length > 0 && (
+                  <button className={styles.clearAllBtn} onClick={clearAllFilters}>
+                    Limpiar todo
+                  </button>
                 )}
               </div>
-            </div>
 
-            {/* Warranty filter */}
-            <div className={styles.sheetSection}>
-              <p className={styles.sheetSectionTitle}>Características</p>
-              <button
-                className={`${styles.sheetOption} ${
-                  activeFilters.withWarranty ? styles.sheetOptionActive : ""
-                }`}
-                onClick={toggleWarranty}
-              >
-                Con garantía
-                {activeFilters.withWarranty && (
-                  <IconsApp.Check color="#f08100" />
-                )}
-              </button>
-            </div>
-
-            {/* Filter by requested product (only if more than 1) */}
-            {requestItems.length > 1 && (
+              {/* Sort section */}
               <div className={styles.sheetSection}>
-                <p className={styles.sheetSectionTitle}>Producto solicitado</p>
+                <p className={styles.sheetSectionTitle}>Ordenar por</p>
                 <div className={styles.sheetOptions}>
-                  {requestItems.map((item) => (
-                    <button
-                      key={item.id}
-                      className={`${styles.sheetOption} ${
-                        activeFilters.requestItemId === item.id
-                          ? styles.sheetOptionActive
-                          : ""
-                      }`}
-                      onClick={() => applyRequestItem(item.id)}
-                    >
-                      {item.productName}
-                      {activeFilters.requestItemId === item.id && (
-                        <IconsApp.Check color="#f08100" />
-                      )}
-                    </button>
-                  ))}
+                  {(Object.entries(SORT_LABELS) as [NonNullable<SortFilter>, string][]).map(
+                    ([key, label]) => (
+                      <button
+                        key={key}
+                        className={`${styles.sheetOption} ${
+                          activeFilters.sort === key ? styles.sheetOptionActive : ""
+                        }`}
+                        onClick={() => applySort(key)}
+                      >
+                        {label}
+                        {activeFilters.sort === key && (
+                          <IconsApp.Check color="#f08100" />
+                        )}
+                      </button>
+                    ),
+                  )}
                 </div>
               </div>
-            )}
+
+              {/* Warranty filter */}
+              <div className={styles.sheetSection}>
+                <p className={styles.sheetSectionTitle}>Características</p>
+                <button
+                  className={`${styles.sheetOption} ${
+                    activeFilters.withWarranty ? styles.sheetOptionActive : ""
+                  }`}
+                  onClick={toggleWarranty}
+                >
+                  Con garantía
+                  {activeFilters.withWarranty && (
+                    <IconsApp.Check color="#f08100" />
+                  )}
+                </button>
+              </div>
+
+              {/* Filter by requested product (only if more than 1) */}
+              {requestItems.length > 1 && (
+                <div className={styles.sheetSection}>
+                  <p className={styles.sheetSectionTitle}>Producto solicitado</p>
+                  <div className={styles.sheetOptions}>
+                    {requestItems.map((item) => (
+                      <button
+                        key={item.id}
+                        className={`${styles.sheetOption} ${
+                          activeFilters.requestItemId === item.id
+                            ? styles.sheetOptionActive
+                            : ""
+                        }`}
+                        onClick={() => applyRequestItem(item.id)}
+                      >
+                        {item.productName}
+                        {activeFilters.requestItemId === item.id && (
+                          <IconsApp.Check color="#f08100" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <button
               className={styles.sheetApplyBtn}
