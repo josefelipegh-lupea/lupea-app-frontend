@@ -46,8 +46,8 @@ const MENU_CONFIG_USER: Array<{
     id: "historial",
     title: "HISTORIAL",
     items: [
-      { label: "Historial de solicitudes", icon: IconsApp.History },
-      { label: "Historial de Ordenes", icon: IconsApp.History },
+      { label: "Historial de solicitudes", icon: IconsApp.History, href: "/profile/user/history/requests" },
+      { label: "Historial de Ordenes", icon: IconsApp.History, href: "/profile/user/history/orders" },
     ],
   },
   {

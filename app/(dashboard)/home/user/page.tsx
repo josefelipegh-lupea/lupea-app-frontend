@@ -160,7 +160,7 @@ export default function HomePage() {
           if (!jwt) return;
           try {
             const [requestsRes, ordersRes] = await Promise.all([
-              getMyRequests(jwt),
+              getMyRequests(jwt, "sent"),
               getMyClientOrders(jwt),
             ]);
             if (requestsRes.ok) {
@@ -215,7 +215,9 @@ export default function HomePage() {
             <p className={styles.emptyText}>No tienes cotizaciones todavía.</p>
           );
 
-        return featuredQuotes.slice(0, 3).map((data) => {
+        return featuredQuotes
+          .filter((data) => data.featuredQuote.request.status !== "ordered")
+          .slice(0, 3).map((data) => {
           const quoteCodeShort = data.featuredQuote.quoteCode
             .split("-")
             .slice(2)
@@ -305,11 +307,15 @@ export default function HomePage() {
       case "ÓRDENES":
         if (loading)
           return <p className={styles.loadingText}>Cargando órdenes...</p>;
-        if (orders.length === 0)
-          return <p className={styles.emptyText}>No tienes órdenes todavía.</p>;
-        return orders
-          .slice(0, 3)
-          .map((o) => (
+        {
+          const activeOrders = orders.filter(
+            (o) => o.status !== "completed" && o.status !== "cancelled"
+          );
+          if (activeOrders.length === 0)
+            return <p className={styles.emptyText}>No tienes órdenes activas.</p>;
+          return activeOrders
+            .slice(0, 3)
+            .map((o) => (
             <OrderCard
               key={o.documentId}
               id={o.documentId}
@@ -341,6 +347,7 @@ export default function HomePage() {
               onViewOrder={(docId) => router.push(`/home/user/orders/${docId}`)}
             />
           ));
+        }
       default:
         return null;
     }

@@ -129,9 +129,11 @@ export interface ProviderQuoteRequest {
 
 export async function getProviderRequests(
   jwt: string,
+  matchStatus: string = "pending,viewed",
 ): Promise<ProviderQuoteRequestResponse> {
   try {
-    const res = await fetch(`${API_URL}/quote-requests/provider/me`, {
+    const params = matchStatus ? `?matchStatus=${matchStatus}` : "";
+    const res = await fetch(`${API_URL}/quote-requests/provider/me${params}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

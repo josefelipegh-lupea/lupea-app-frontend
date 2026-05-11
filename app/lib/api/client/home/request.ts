@@ -69,10 +69,12 @@ export interface QuoteItem {
 }
 
 export async function getMyRequests(
-  jwt: string
+  jwt: string,
+  status: string = "sent",
 ): Promise<QuoteRequestResponse> {
   try {
-    const res = await fetch(`${API_URL}/quote-requests/me`, {
+    const params = status ? `?status=${status}` : "";
+    const res = await fetch(`${API_URL}/quote-requests/me${params}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
