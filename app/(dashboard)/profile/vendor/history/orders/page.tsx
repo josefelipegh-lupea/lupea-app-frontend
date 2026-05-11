@@ -10,7 +10,7 @@ import {
 import { SkeletonOrders } from "@/components/skeleton/SkeletonOrders";
 import OrderDetailCard from "@/components/order-card/OrderDetailCard";
 import Header from "@/components/header/Header";
-import styles from "../../History.module.css";
+import styles from "../History.module.css";
 
 export default function VendorHistoryOrdersPage() {
   const { jwt } = useAuth();
