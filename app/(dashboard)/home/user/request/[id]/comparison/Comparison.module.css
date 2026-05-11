@@ -76,32 +76,95 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
+  padding: 12px 16px;
   background-color: #fff;
   margin: 10px 20px;
   border-radius: 19px;
+  gap: 10px;
 }
 
 .searchLeft {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.filterPlaceholder {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 400;
+}
+
+.chipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
 }
 
 .searchBadge {
   background-color: #f1f0f7;
-  padding: 8px 15px;
+  padding: 6px 12px;
   border-radius: 25px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   font-size: 13px;
   color: #1a1a3d;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .closeSearch {
   opacity: 0.5;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.filterIconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.filterIconBtn:hover {
+  background: #f1f0f7;
+}
+
+.filterIconActive {
+  background: #fff5ed;
+}
+
+.filterBadgeCount {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #f08100;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Info Box */
@@ -671,4 +734,124 @@
 .modalBtnConfirm:disabled {
   background: #ccc;
   cursor: not-allowed;
+}
+
+/* ── Empty filtered state ──────────────────────────────────────────── */
+.emptyFiltered {
+  text-align: center;
+  color: #aaa;
+  font-size: 14px;
+  padding: 40px 20px;
+}
+
+/* ── Filter bottom sheet ───────────────────────────────────────────── */
+.sheetOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.filterSheet {
+  background: #fff;
+  border-radius: 28px 28px 0 0;
+  padding: 24px 20px 36px;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 80dvh;
+  overflow-y: auto;
+}
+
+.sheetHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sheetTitle {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a3d;
+}
+
+.clearAllBtn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: #f08100;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sheetSection {
+  margin-bottom: 20px;
+}
+
+.sheetSectionTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px;
+}
+
+.sheetOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sheetOption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 16px;
+  border-radius: 14px;
+  border: 1px solid #eee;
+  background: #fafafa;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a3d;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.sheetOption:hover {
+  background: #f5f0ff;
+  border-color: #e0d5f5;
+}
+
+.sheetOptionActive {
+  background: #fff5ed;
+  border-color: #f08100;
+  color: #f08100;
+  font-weight: 600;
+}
+
+.sheetApplyBtn {
+  margin-top: 8px;
+  width: 100%;
+  height: 52px;
+  background: #f08100;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.sheetApplyBtn:hover {
+  background: #d97200;
 }

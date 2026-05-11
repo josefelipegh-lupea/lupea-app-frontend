@@ -1078,4 +1078,20 @@ export const IconsApp = {
       </svg>
     );
   },
+
+  Filter: ({ color = "#1a1a3d", width = "20", height = "20" }: { color?: string; width?: string; height?: string }) => {
+    return (
+      <svg
+        width={width}
+        height={height}
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <line x1="2" y1="5" x2="18" y2="5" stroke={color} strokeWidth="2" strokeLinecap="round" />
+        <line x1="5" y1="10" x2="15" y2="10" stroke={color} strokeWidth="2" strokeLinecap="round" />
+        <line x1="8" y1="15" x2="12" y2="15" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    );
+  },
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
@@ -25,6 +25,21 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+type SortFilter = "price_asc" | "price_desc" | "delivery_asc" | "reputation_desc" | null;
+
+interface ActiveFilters {
+  sort: SortFilter;
+  withWarranty: boolean;
+  requestItemId: number | null;
+}
+
+const SORT_LABELS: Record<NonNullable<SortFilter>, string> = {
+  price_asc: "Menor precio",
+  price_desc: "Mayor precio",
+  delivery_asc: "Entrega rápida",
+  reputation_desc: "Mejor reputación",
+};
+
 export default function ComparisonPage({ params }: PageProps) {
   const { id } = use(params);
   const { jwt } = useAuth();
@@ -33,6 +48,7 @@ export default function ComparisonPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [comparisonData, setComparisonData] = useState<ComparisonQuote[]>([]);
   const [requestItemsCount, setRequestItemsCount] = useState(0);
+  const [requestItems, setRequestItems] = useState<{ id: number; productName: string }[]>([]);
   const [selectedItems, setSelectedItems] = useState<Map<number, Set<number>>>(
     new Map(),
   );
@@ -45,7 +61,14 @@ export default function ComparisonPage({ params }: PageProps) {
   const [confirmRejectId, setConfirmRejectId] = useState<string | null>(null);
   const [rejectingQuoteId, setRejectingQuoteId] = useState<string | null>(null);
 
-  // ... (Fetch y lógica de toggleItem/Totales se mantienen igual)
+  // Filter state
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<ActiveFilters>({
+    sort: null,
+    withWarranty: false,
+    requestItemId: null,
+  });
+
   useEffect(() => {
     const fetchComparison = async () => {
       if (!jwt) return;
@@ -53,14 +76,14 @@ export default function ComparisonPage({ params }: PageProps) {
         setLoading(true);
         const res = await getClientRequestComparison(jwt, id);
         if (res.ok) {
-          const requestStatus = res.data.request.status;
-          // if (requestStatus === "ordered") {
-          //   toast.error("Esta cotización ya tiene una orden generada");
-          //   router.push("/home/user");
-          //   return;
-          // }
           setComparisonData(res.data.quotes);
           setRequestItemsCount(res.data.summary?.requestItemsCount ?? 0);
+          setRequestItems(
+            (res.data.request?.items ?? []).map((item: { id: number; productName: string }) => ({
+              id: item.id,
+              productName: item.productName,
+            })),
+          );
         }
       } catch (error) {
         console.error("Error loading comparison:", error);
@@ -71,6 +94,88 @@ export default function ComparisonPage({ params }: PageProps) {
     fetchComparison();
   }, [jwt, id, router]);
 
+  // ── Filtered + sorted data ──────────────────────────────────────────
+  const filteredData = useMemo(() => {
+    let data = [...comparisonData];
+
+    // Filter: only quotes that have at least one product for the selected requestItem
+    if (activeFilters.requestItemId !== null) {
+      data = data.filter((q) =>
+        q.products.some((p) => p.requestItemId === activeFilters.requestItemId),
+      );
+    }
+
+    // Filter: only quotes where at least one product has warranty
+    if (activeFilters.withWarranty) {
+      data = data.filter((q) => q.products.some((p) => p.warranty));
+    }
+
+    // Sort
+    if (activeFilters.sort === "price_asc") {
+      data.sort((a, b) => a.quoteTotal - b.quoteTotal);
+    } else if (activeFilters.sort === "price_desc") {
+      data.sort((a, b) => b.quoteTotal - a.quoteTotal);
+    } else if (activeFilters.sort === "delivery_asc") {
+      data.sort(
+        (a, b) => Number(a.deliveryTime ?? 9999) - Number(b.deliveryTime ?? 9999),
+      );
+    } else if (activeFilters.sort === "reputation_desc") {
+      data.sort(
+        (a, b) => (b.provider.reputationScore ?? 0) - (a.provider.reputationScore ?? 0),
+      );
+    }
+
+    return data;
+  }, [comparisonData, activeFilters]);
+
+  // ── Active filter chips for display ────────────────────────────────
+  const activeChips = useMemo(() => {
+    const chips: { key: string; label: string }[] = [];
+    if (activeFilters.sort) {
+      chips.push({ key: "sort", label: SORT_LABELS[activeFilters.sort] });
+    }
+    if (activeFilters.withWarranty) {
+      chips.push({ key: "withWarranty", label: "Con garantía" });
+    }
+    if (activeFilters.requestItemId !== null) {
+      const item = requestItems.find((i) => i.id === activeFilters.requestItemId);
+      chips.push({ key: "requestItemId", label: item?.productName ?? "Producto" });
+    }
+    return chips;
+  }, [activeFilters, requestItems]);
+
+  const removeChip = (key: string) => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      ...(key === "sort" ? { sort: null } : {}),
+      ...(key === "withWarranty" ? { withWarranty: false } : {}),
+      ...(key === "requestItemId" ? { requestItemId: null } : {}),
+    }));
+  };
+
+  const applySort = (sort: SortFilter) => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      sort: prev.sort === sort ? null : sort,
+    }));
+  };
+
+  const toggleWarranty = () => {
+    setActiveFilters((prev) => ({ ...prev, withWarranty: !prev.withWarranty }));
+  };
+
+  const applyRequestItem = (itemId: number) => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      requestItemId: prev.requestItemId === itemId ? null : itemId,
+    }));
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters({ sort: null, withWarranty: false, requestItemId: null });
+  };
+
+  // ── Selection helpers ───────────────────────────────────────────────
   const toggleItem = (quoteId: number, productId: number) => {
     setSelectedItems((prev) => {
       const newMap = new Map(prev);
@@ -165,7 +270,8 @@ export default function ComparisonPage({ params }: PageProps) {
     }
   };
 
-  const handleGenerateOrders = async () => {    if (selectedItems.size === 0 || !jwt) return;
+  const handleGenerateOrders = async () => {
+    if (selectedItems.size === 0 || !jwt) return;
 
     setIsGenerating(true);
     try {
@@ -240,17 +346,39 @@ export default function ComparisonPage({ params }: PageProps) {
             </span>
           </div>
 
+          {/* ── Filter bar ── */}
           <div className={styles.searchFilterRow}>
             <div className={styles.searchLeft}>
               <IconsApp.Search color="#1a1a3d" />
-              <div className={styles.searchBadge}>
-                <span>Menor precio</span>
-                <IconsApp.Close className={styles.closeSearch} />
-              </div>
+              {activeChips.length === 0 ? (
+                <span className={styles.filterPlaceholder}>Filtrar cotizaciones</span>
+              ) : (
+                <div className={styles.chipsRow}>
+                  {activeChips.map((chip) => (
+                    <div key={chip.key} className={styles.searchBadge}>
+                      <span>{chip.label}</span>
+                      <button
+                        className={styles.closeSearch}
+                        onClick={() => removeChip(chip.key)}
+                        aria-label={`Quitar filtro ${chip.label}`}
+                      >
+                        <IconsApp.Close />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className={styles.filterIcon}>
-              <IconsApp.History />
-            </div>
+            <button
+              className={`${styles.filterIconBtn} ${activeChips.length > 0 ? styles.filterIconActive : ""}`}
+              onClick={() => setShowFilterSheet(true)}
+              aria-label="Abrir filtros"
+            >
+              <IconsApp.Filter color={activeChips.length > 0 ? "#f08100" : "#1a1a3d"} />
+              {activeChips.length > 0 && (
+                <span className={styles.filterBadgeCount}>{activeChips.length}</span>
+              )}
+            </button>
           </div>
 
           {showInfoBox && (
@@ -274,163 +402,176 @@ export default function ComparisonPage({ params }: PageProps) {
           )}
 
           <div className={styles.quotesList}>
-            {comparisonData.map((quote) => {
-              return (
-                <div key={quote.id} className={styles.quoteCard}>
-                  <div className={styles.cardHeader}>
-                    <span>Consulta {id.slice(0, 5)}</span>
-                    <span>
-                      {new Date(quote.createdAt).toLocaleDateString("es-ES", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
+            {filteredData.length === 0 ? (
+              <p className={styles.emptyFiltered}>
+                No hay cotizaciones que coincidan con los filtros seleccionados.
+              </p>
+            ) : (
+              filteredData.map((quote) => {
+                // When filtering by requestItem, only show matching products
+                const visibleProducts =
+                  activeFilters.requestItemId !== null
+                    ? quote.products.filter(
+                        (p) => p.requestItemId === activeFilters.requestItemId,
+                      )
+                    : quote.products;
 
-                  <div className={styles.cardBody}>
-                    <div className={styles.providerRow}>
-                      <div className={styles.providerInfo}>
-                        <div className={styles.toolIcon}>
-                          <IconsApp.Clock />
-                        </div>
-                        <span className={styles.providerName}>
-                          {quote.provider.name}
-                        </span>
-                      </div>
-                      <div className={styles.ratingBadge}>
-                        <IconsApp.StarFilled color="#F08100" />
-                        <span>
-                          {quote.provider.rating
-                            ? quote.provider.rating.toFixed(1)
-                            : "N/A"}
-                        </span>
-                      </div>
+                return (
+                  <div key={quote.id} className={styles.quoteCard}>
+                    <div className={styles.cardHeader}>
+                      <span>Consulta {id.slice(0, 5)}</span>
+                      <span>
+                        {new Date(quote.createdAt).toLocaleDateString("es-ES", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
                     </div>
 
-                    <p className={styles.partsCount}>
-                      {String(quote.products.length).padStart(2, "0")} de{" "}
-                      {String(requestItemsCount || quote.products.length).padStart(2, "0")} Repuestos
-                      solicitados
-                    </p>
+                    <div className={styles.cardBody}>
+                      <div className={styles.providerRow}>
+                        <div className={styles.providerInfo}>
+                          <div className={styles.toolIcon}>
+                            <IconsApp.Clock />
+                          </div>
+                          <span className={styles.providerName}>
+                            {quote.provider.name}
+                          </span>
+                        </div>
+                        <div className={styles.ratingBadge}>
+                          <IconsApp.StarFilled color="#F08100" />
+                          <span>
+                            {quote.provider.rating
+                              ? quote.provider.rating.toFixed(1)
+                              : "N/A"}
+                          </span>
+                        </div>
+                      </div>
 
-                    <div className={styles.partsList}>
-                      {quote.products.map((product) => {
-                        const isSelected = selectedItems
-                          .get(quote.id)
-                          ?.has(product.id);
-                        return (
-                          <div
-                            key={product.id}
-                            className={`${styles.partItem} ${
-                              isSelected ? styles.itemActive : ""
-                            }`}
-                            onClick={() => toggleItem(quote.id, product.id)}
-                          >
+                      <p className={styles.partsCount}>
+                        {String(visibleProducts.length).padStart(2, "0")} de{" "}
+                        {String(requestItemsCount || quote.products.length).padStart(2, "0")} Repuestos
+                        solicitados
+                      </p>
+
+                      <div className={styles.partsList}>
+                        {visibleProducts.map((product) => {
+                          const isSelected = selectedItems
+                            .get(quote.id)
+                            ?.has(product.id);
+                          return (
                             <div
-                              className={`${styles.checkbox} ${
-                                isSelected ? styles.checked : ""
+                              key={product.id}
+                              className={`${styles.partItem} ${
+                                isSelected ? styles.itemActive : ""
                               }`}
+                              onClick={() => toggleItem(quote.id, product.id)}
                             >
-                              {isSelected && <IconsApp.Check color="white" />}
-                            </div>
-                            <div className={styles.partContent}>
-                              <p className={styles.partName}>
-                                {product.productName}
-                              </p>
-                              <p className={styles.partSub}>
-                                {product.brand} •{" "}
-                                {product.availability || "Original"}
-                              </p>
-                              {product.notes && (
-                                <p className={styles.partNotes}>
-                                  {product.notes}
+                              <div
+                                className={`${styles.checkbox} ${
+                                  isSelected ? styles.checked : ""
+                                }`}
+                              >
+                                {isSelected && <IconsApp.Check color="white" />}
+                              </div>
+                              <div className={styles.partContent}>
+                                <p className={styles.partName}>
+                                  {product.productName}
                                 </p>
-                              )}
-                            </div>
-                            <span className={styles.partPrice}>
-                              <span className={styles.quantity}>
-                                {isSelected ? (
-                                  <input
-                                    type="number"
-                                    min="1"
-                                    className={styles.quantityInput}
-                                    value={getEffectiveQty(
+                                <p className={styles.partSub}>
+                                  · {product.brand || product.availability || "Original"}
+                                </p>
+                                {product.notes && (
+                                  <p className={styles.partNotes}>
+                                    {product.notes}
+                                  </p>
+                                )}
+                              </div>
+                              <span className={styles.partPrice}>
+                                <span className={styles.quantity}>
+                                  {isSelected ? (
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      className={styles.quantityInput}
+                                      value={getEffectiveQty(
+                                        quote.id,
+                                        product.id,
+                                        product.quantity,
+                                      )}
+                                      onClick={(e) => e.stopPropagation()}
+                                      onChange={(e) =>
+                                        handleQuantityChange(
+                                          quote.id,
+                                          product.id,
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  ) : (
+                                    `x${product.quantity}`
+                                  )}
+                                </span>
+                                <span className={styles.unitPrice}>
+                                  ${product.price.toFixed(0)} c/u
+                                </span>
+                                <span className={styles.totalPrice}>
+                                  $
+                                  {(
+                                    product.price *
+                                    getEffectiveQty(
                                       quote.id,
                                       product.id,
                                       product.quantity,
-                                    )}
-                                    onClick={(e) => e.stopPropagation()}
-                                    onChange={(e) =>
-                                      handleQuantityChange(
-                                        quote.id,
-                                        product.id,
-                                        e.target.value,
-                                      )
-                                    }
-                                  />
-                                ) : (
-                                  `x${product.quantity}`
-                                )}
+                                    )
+                                  ).toFixed(0)}
+                                </span>
                               </span>
-                              <span className={styles.unitPrice}>
-                                ${product.price.toFixed(0)} c/u
-                              </span>
-                              <span className={styles.totalPrice}>
-                                $
-                                {(
-                                  product.price *
-                                  getEffectiveQty(
-                                    quote.id,
-                                    product.id,
-                                    product.quantity,
-                                  )
-                                ).toFixed(0)}
-                              </span>
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                            </div>
+                          );
+                        })}
+                      </div>
 
-                    <div className={styles.cardFooter}>
-                      <span className={styles.deliveryTime}>
-                        <IconsApp.GreenClock />
-                        <span className={styles.deliveryTimeText}>
-                          {quote.deliveryTime
-                            ? `Entrega: ${quote.deliveryTime}`
-                            : "Entrega: a convenir"}
+                      <div className={styles.cardFooter}>
+                        <span className={styles.deliveryTime}>
+                          <IconsApp.GreenClock />
+                          <span className={styles.deliveryTimeText}>
+                            {quote.deliveryTime
+                              ? `Entrega: ${quote.deliveryTime}`
+                              : "Entrega: a convenir"}
+                          </span>
                         </span>
-                      </span>
-                      <div className={styles.cardTotal}>
-                        Total ${getQuoteSelectedTotal(quote.id).toFixed(0)}
+                        <div className={styles.cardTotal}>
+                          Total ${getQuoteSelectedTotal(quote.id).toFixed(0)}
+                        </div>
+                      </div>
+
+                      <div className={styles.buttonContainer}>
+                        <button
+                          className={styles.btnAcceptCompleteOffer}
+                          onClick={() => selectAllFromQuote(quote.id)}
+                        >
+                          Aceptar oferta completa
+                        </button>
+                        <button
+                          className={styles.btnReject}
+                          onClick={() => setConfirmRejectId(quote.documentId)}
+                        >
+                          Rechazar
+                        </button>
+                      </div>
+                      <div className={styles.selectionSummary}>
+                        <span>
+                          {selectedItems.get(quote.id)?.size ?? 0} Seleccionado/s
+                        </span>
+                        <span>${getQuoteSelectedTotal(quote.id).toFixed(0)}</span>
                       </div>
                     </div>
-
-                    <div className={styles.buttonContainer}>
-                      <button
-                        className={styles.btnAcceptCompleteOffer}
-                        onClick={() => selectAllFromQuote(quote.id)}
-                      >
-                        Aceptar oferta completa
-                      </button>
-                      <button
-                        className={styles.btnReject}
-                        onClick={() => setConfirmRejectId(quote.documentId)}
-                      >
-                        Rechazar
-                      </button>
-                    </div>
-                    <div className={styles.selectionSummary}>
-                      <span>
-                        {selectedItems.get(quote.id)?.size ?? 0} Seleccionado/s
-                      </span>
-                      <span>${getQuoteSelectedTotal(quote.id).toFixed(0)}</span>
-                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           <div className={styles.stickyFooter}>
@@ -464,6 +605,99 @@ export default function ComparisonPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+
+      {/* ── Filter bottom sheet ── */}
+      {showFilterSheet && (
+        <div
+          className={styles.sheetOverlay}
+          onClick={() => setShowFilterSheet(false)}
+        >
+          <div
+            className={styles.filterSheet}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.sheetHeader}>
+              <span className={styles.sheetTitle}>Filtros</span>
+              {activeChips.length > 0 && (
+                <button className={styles.clearAllBtn} onClick={clearAllFilters}>
+                  Limpiar todo
+                </button>
+              )}
+            </div>
+
+            {/* Sort section */}
+            <div className={styles.sheetSection}>
+              <p className={styles.sheetSectionTitle}>Ordenar por</p>
+              <div className={styles.sheetOptions}>
+                {(Object.entries(SORT_LABELS) as [NonNullable<SortFilter>, string][]).map(
+                  ([key, label]) => (
+                    <button
+                      key={key}
+                      className={`${styles.sheetOption} ${
+                        activeFilters.sort === key ? styles.sheetOptionActive : ""
+                      }`}
+                      onClick={() => applySort(key)}
+                    >
+                      {label}
+                      {activeFilters.sort === key && (
+                        <IconsApp.Check color="#f08100" />
+                      )}
+                    </button>
+                  ),
+                )}
+              </div>
+            </div>
+
+            {/* Warranty filter */}
+            <div className={styles.sheetSection}>
+              <p className={styles.sheetSectionTitle}>Características</p>
+              <button
+                className={`${styles.sheetOption} ${
+                  activeFilters.withWarranty ? styles.sheetOptionActive : ""
+                }`}
+                onClick={toggleWarranty}
+              >
+                Con garantía
+                {activeFilters.withWarranty && (
+                  <IconsApp.Check color="#f08100" />
+                )}
+              </button>
+            </div>
+
+            {/* Filter by requested product (only if more than 1) */}
+            {requestItems.length > 1 && (
+              <div className={styles.sheetSection}>
+                <p className={styles.sheetSectionTitle}>Producto solicitado</p>
+                <div className={styles.sheetOptions}>
+                  {requestItems.map((item) => (
+                    <button
+                      key={item.id}
+                      className={`${styles.sheetOption} ${
+                        activeFilters.requestItemId === item.id
+                          ? styles.sheetOptionActive
+                          : ""
+                      }`}
+                      onClick={() => applyRequestItem(item.id)}
+                    >
+                      {item.productName}
+                      {activeFilters.requestItemId === item.id && (
+                        <IconsApp.Check color="#f08100" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button
+              className={styles.sheetApplyBtn}
+              onClick={() => setShowFilterSheet(false)}
+            >
+              Aplicar
+            </button>
+          </div>
+        </div>
+      )}
 
       {confirmRejectId && (
         <div className={styles.modalOverlay}>
