@@ -255,7 +255,12 @@ const QuoteDetailPage: React.FC = () => {
                         <div className={styles.partContent}>
                           <p className={styles.partName}>{item.productName}</p>
                           <p className={styles.partSub}>
-                            {item.offeredBrand || "Original"}
+                            {[
+                              item.offeredBrand || item.requestItem?.conditionPreferred || "Original",
+                              item.notes || null,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
                           </p>
                         </div>
                         <span className={styles.partPrice}>
@@ -325,7 +330,7 @@ const QuoteDetailPage: React.FC = () => {
             </p>
             <div className={styles.footerActionRow}>
               <div className={styles.totalFinal}>
-                Total <strong>${quote.priceTotal.toFixed(0)}</strong>
+                Total <strong>${(isOrdered ? quote.priceTotal : getSelectedTotal()).toFixed(0)}</strong>
               </div>
               {isOrdered ? (
                 <Button
