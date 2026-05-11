@@ -67,6 +67,7 @@ export default function ConversationPage(_props: PageProps) {
     onParticipantJoined,
     onParticipantLeft,
     onPaymentNotified,
+    onOrderStatusChanged,
     joinChat,
     leaveChat,
     onlineParticipants,
@@ -153,6 +154,17 @@ export default function ConversationPage(_props: PageProps) {
     });
     return unsubscribe;
   }, [numericChatId, onPaymentNotified]);
+
+  // Real-time: order/chat status changed (actualiza banner de pago en tiempo real)
+  useEffect(() => {
+    const unsubscribe = onOrderStatusChanged((data) => {
+      if (numericChatId && data.chatId === numericChatId) {
+        if (data.orderStatus) setOrderStatus(data.orderStatus);
+        if (data.chatStatus) setChatStatus(data.chatStatus);
+      }
+    });
+    return unsubscribe;
+  }, [numericChatId, onOrderStatusChanged]);
 
   // Real-time: online presence
   useEffect(() => {
@@ -254,7 +266,12 @@ export default function ConversationPage(_props: PageProps) {
   }
 
   const clientName = chat?.participants?.customer?.username || "Cliente";
-  const messageGroups = groupMessagesByDate(messages);
+  const visibleMessages = messages.filter((msg) => {
+    if (msg.messageType !== "system") return true;
+    const target = msg.targetRole ?? "all";
+    return target === "all" || target === role;
+  });
+  const messageGroups = groupMessagesByDate(visibleMessages);
 
   return (
     <PageAnimation>
