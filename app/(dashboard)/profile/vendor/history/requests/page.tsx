@@ -11,7 +11,7 @@ import {
 } from "@/app/lib/api/provider/home/request";
 import Header from "@/components/header/Header";
 import { useSidebar } from "@/context/SidebarContext";
-import styles from "../../History.module.css";
+import styles from "../History.module.css";
 
 export default function VendorHistoryRequestsPage() {
   const { jwt } = useAuth();
@@ -66,7 +66,9 @@ export default function VendorHistoryRequestsPage() {
         <Header title="Historial de Consultas" />
         <div className={styles.content}>
           {requests.length === 0 ? (
-            <p className={styles.emptyText}>No hay consultas en el historial.</p>
+            <p className={styles.emptyText}>
+              No hay consultas en el historial.
+            </p>
           ) : (
             requests.map((req) => (
               <RequestCard
