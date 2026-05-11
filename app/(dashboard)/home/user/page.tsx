@@ -233,13 +233,15 @@ export default function HomePage() {
               workshop={data.featuredQuote.provider.businessName}
               amount={data.featuredQuote.priceTotal.toFixed(2)}
               time={data.featuredQuote.deliveryTime}
-              items={data.request.items.map((item) => ({
+              items={data.featuredQuote.items.map((item) => ({
                 name: item.productName,
                 model: `${data.request.vehicle.brand} ${data.request.vehicle.model} ${data.request.vehicle.year}`,
-                type:
-                  item.conditionPreferred === "no_importa"
-                    ? "Cualquiera"
-                    : item.conditionPreferred,
+                type: [
+                  item.offeredBrand || item.requestItem?.conditionPreferred || "Original",
+                  item.notes || null,
+                ]
+                  .filter(Boolean)
+                  .join(" · "),
               }))}
               totalSolicitados={data.request.items.length}
               documentId={data.request.documentId}
