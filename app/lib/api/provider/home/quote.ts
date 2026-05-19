@@ -344,3 +344,45 @@ export async function submitQuote(
     throw error;
   }
 }
+
+export interface ProviderQuoteHistoryResponse {
+  ok: boolean;
+  data: {
+    quotes: ProviderQuote[];
+    pagination: {
+      total: number;
+      page: number;
+      pageSize: number;
+      pageCount: number;
+    };
+  };
+}
+
+export async function getProviderQuoteHistory(
+  jwt: string,
+  page: number = 1,
+  limit: number = 20,
+): Promise<ProviderQuoteHistoryResponse> {
+  try {
+    const res = await fetch(
+      `${API_URL}/quotes/provider/history?page=${page}&limit=${limit}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error?.message || "Error al obtener el historial de cotizaciones");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Fetch error in getProviderQuoteHistory:", error);
+    throw error;
+  }
+}
