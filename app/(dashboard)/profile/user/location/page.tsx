@@ -105,7 +105,6 @@ export default function LocationPage() {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
-    libraries: ["places"],
   });
 
   const isWithinVenezuela = (lat: number, lng: number) => {
