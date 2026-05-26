@@ -304,7 +304,9 @@ export default function SparePartsStep({
 
               <button
                 type="button"
-                className={styles.addVehicleBtn}
+                className={`${styles.addVehicleBtn} ${
+                  formData.spareParts.length === 0 ? styles.addVehicleBtnPulse : ""
+                }`}
                 onClick={goToForm}
               >
                 <div className={styles.addIconCircle}>

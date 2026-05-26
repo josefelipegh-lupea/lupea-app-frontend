@@ -734,7 +734,7 @@
 }
 
 .addIconCircle {
-  background-color: #fdf2e7; /* El color naranja muy claro que usas en iconBox */
+  background-color: #fdf2e7;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -743,6 +743,7 @@
   justify-content: center;
   color: #f58220;
   font-weight: bold;
+  flex-shrink: 0;
 }
 
 .addVehicleBtn span {
@@ -751,6 +752,31 @@
   color: #000;
   flex: 1;
   text-align: left;
+}
+
+/* Animaciones: solo cuando lista vacía */
+@keyframes pulseIcon {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(245, 130, 32, 0.4);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 7px rgba(245, 130, 32, 0);
+  }
+}
+
+@keyframes nudgeArrow {
+  0%, 100% { transform: translateX(0); }
+  50%       { transform: translateX(5px); }
+}
+
+.addVehicleBtnPulse .addIconCircle {
+  animation: pulseIcon 1.4s ease-in-out infinite;
+}
+
+.addVehicleBtnPulse .arrowRight {
+  animation: nudgeArrow 1s ease-in-out infinite;
 }
 
 /* ... tus estilos actuales ... */
