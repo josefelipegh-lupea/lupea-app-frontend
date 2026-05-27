@@ -249,7 +249,11 @@ export default function SparePartsStep({
                 <div className={styles.listWrapper}>
                   <div className={styles.vehicleList} ref={listRef}>
                     {formData.spareParts.length === 0 ? (
-                      <div className={styles.noVehicles}>
+                      <div
+                        className={styles.noVehicles}
+                        onClick={goToForm}
+                        role="button"
+                      >
                         No hay repuestos aún
                       </div>
                     ) : (

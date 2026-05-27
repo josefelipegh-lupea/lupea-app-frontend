@@ -413,6 +413,11 @@
   transform: scale(0.96);
 }
 
+@keyframes borderPulse {
+  0%, 100% { border-color: #e0731a; }
+  50%       { border-color: rgba(224, 115, 26, 0.2); }
+}
+
 .noVehicles {
   font-size: 13px;
   color: #000;
@@ -421,7 +426,8 @@
   padding: 25px 20px;
   border: 1.5px dashed #e0731a;
   border-radius: 16px;
-  animation: fadeIn 0.4s ease forwards;
+  cursor: pointer;
+  animation: fadeIn 0.4s ease forwards, borderPulse 1.6s ease-in-out infinite;
 }
 
 @keyframes fadeIn {
