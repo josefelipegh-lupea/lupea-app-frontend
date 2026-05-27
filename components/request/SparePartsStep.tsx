@@ -21,6 +21,8 @@ interface SparePartsStepProps {
   isCompleted: boolean;
   saveDraft: (data: QuoteRequestFormData) => void;
   jwt: string;
+  showError?: boolean;
+  sectionRef?: React.RefObject<HTMLElement | null>;
 }
 
 export default function SparePartsStep({
@@ -30,6 +32,8 @@ export default function SparePartsStep({
   isCompleted,
   saveDraft,
   jwt,
+  showError,
+  sectionRef,
 }: SparePartsStepProps) {
   const [showForm, setShowForm] = useState(false);
   const [direction, setDirection] = useState(1);
@@ -215,7 +219,10 @@ export default function SparePartsStep({
 
   return (
     <section
-      ref={cardRef}
+      ref={(el) => {
+        (cardRef as React.MutableRefObject<HTMLElement | null>).current = el;
+        if (sectionRef) (sectionRef as React.MutableRefObject<HTMLElement | null>).current = el;
+      }}
       className={styles.cardVehicleStep}
       style={{ scrollMarginTop: "20px" }}
     >
@@ -516,6 +523,11 @@ export default function SparePartsStep({
           )}
         </StepTransition>
       </div>
+      {showError && (
+        <p className={styles.submitError}>
+          Agrega al menos un repuesto para continuar.
+        </p>
+      )}
     </section>
   );
 }

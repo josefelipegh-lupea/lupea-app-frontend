@@ -1046,3 +1046,10 @@
 .addButtonMarginTop {
   margin-top: 20px;
 }
+
+.submitError {
+  font-size: 13px;
+  color: #dc2626;
+  margin: 8px 24px 16px;
+  animation: fadeIn 0.2s ease;
+}

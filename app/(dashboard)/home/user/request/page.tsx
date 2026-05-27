@@ -48,6 +48,11 @@ export default function RequestPage() {
   const { isFooterVisible } = useFooterVisibility();
   const contentRef = useRef<HTMLDivElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+
+  const vehicleRef = useRef<HTMLElement>(null);
+  const sparePartsRef = useRef<HTMLElement>(null);
+  const deliveryRef = useRef<HTMLElement>(null);
 
   const { formData, setFormData, isValid, saveDraft, clearDraft } =
     useRequestForm({
@@ -74,10 +79,22 @@ export default function RequestPage() {
   };
 
   const handleSubmit = async () => {
-    if (!isValid || !jwt) {
-      toast.error("Por favor, completa todos los campos obligatorios.");
+    setSubmitAttempted(true);
+
+    if (!isVehicleReady) {
+      vehicleRef.current?.scrollIntoView({ behavior: "smooth" });
       return;
     }
+    if (!isSparePartsReady) {
+      sparePartsRef.current?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    if (!isDeliveryReady) {
+      deliveryRef.current?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
+    if (!jwt) return;
 
     setIsSubmitting(true);
 
@@ -195,6 +212,8 @@ export default function RequestPage() {
             refreshVehicles={refreshVehicles}
             isCompleted={isVehicleReady}
             saveDraft={saveDraft}
+            showError={submitAttempted && !isVehicleReady}
+            sectionRef={vehicleRef}
           />
 
           <SparePartsStep
@@ -205,6 +224,8 @@ export default function RequestPage() {
             categories={categories}
             isCompleted={isSparePartsReady}
             saveDraft={saveDraft}
+            showError={submitAttempted && !isSparePartsReady}
+            sectionRef={sparePartsRef}
           />
 
           <DeliveryStep
@@ -214,6 +235,8 @@ export default function RequestPage() {
             isCompleted={isDeliveryReady}
             locations={savedLocations}
             saveDraft={saveDraft}
+            showError={submitAttempted && !isDeliveryReady}
+            sectionRef={deliveryRef}
           />
         </div>
 
@@ -221,15 +244,9 @@ export default function RequestPage() {
           <Button
             className={styles.saveButton}
             onClick={handleSubmit}
-            disabled={!isFormValid || isSubmitting}
+            disabled={isSubmitting}
           >
-            {isSubmitting ? (
-              "Enviando..."
-            ) : (
-              <>
-                <IconsApp.Search /> Nueva solicitud
-              </>
-            )}
+            {isSubmitting ? "Enviando..." : "Enviar"}
           </Button>
           <div className={styles.statusIndicator}>
             {isValid ? (

@@ -12,6 +12,8 @@ interface DeliveryStepProps {
   isCompleted: boolean;
   locations: Location[];
   saveDraft: (data: QuoteRequestFormData) => void;
+  showError?: boolean;
+  sectionRef?: React.RefObject<HTMLElement | null>;
 }
 
 export default function DeliveryStep({
@@ -21,6 +23,8 @@ export default function DeliveryStep({
   isCompleted,
   locations,
   saveDraft,
+  showError,
+  sectionRef,
 }: DeliveryStepProps) {
   const handleMethodChange = (method: "retiro" | "delivery") => {
     const updatedData = {
@@ -45,7 +49,7 @@ export default function DeliveryStep({
   };
 
   return (
-    <section className={styles.card}>
+    <section className={styles.card} ref={sectionRef}>
       <div className={styles.cardHeader}>
         <div className={styles.iconBox}>
           <div className={styles.iconWrapper}>
@@ -126,6 +130,11 @@ export default function DeliveryStep({
           </p>
         )}
       </div>
+      {showError && (
+        <p className={styles.submitError}>
+          Selecciona una ubicación para continuar.
+        </p>
+      )}
     </section>
   );
 }
