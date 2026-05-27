@@ -40,7 +40,6 @@
 }
 
 .cardVehicleStep {
-  overflow-x: hidden;
   min-height: fit-content;
   background: #ffffff;
   border-radius: 19px;
