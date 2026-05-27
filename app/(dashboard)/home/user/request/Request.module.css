@@ -779,7 +779,7 @@
 .addVehicleBtnPulse .addIconCircle::after {
   content: '';
   position: absolute;
-  inset: -6px;
+  inset: -5px;
   border-radius: 50%;
   background: rgba(245, 130, 32, 0.4);
   animation: pulseRing 1.4s ease-in infinite;
