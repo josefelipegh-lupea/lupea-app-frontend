@@ -291,7 +291,7 @@ export default function SparePartsStep({
               <div className={styles.field}>
                 <label>Repuestos solicitados</label>
                 <div className={styles.listWrapper}>
-                  <div className={styles.vehicleList} ref={listRef} onScroll={checkScroll}>
+                  <div className={styles.sparePartList} ref={listRef} onScroll={checkScroll}>
                     {formData.spareParts.length === 0 ? (
                       <div
                         className={styles.noVehicles}

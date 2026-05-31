@@ -255,6 +255,27 @@
   background: #f2f2f7;
 }
 
+.sparePartList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 130px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+}
+
+.sparePartList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sparePartList::-webkit-scrollbar-thumb {
+  background-color: #f58220;
+  border-radius: 10px;
+}
+
 .sparePartItem {
   display: flex;
   align-items: center;
@@ -267,6 +288,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   width: 100%;
+  scroll-snap-align: start;
 }
 
 .sparePartItem:hover,
