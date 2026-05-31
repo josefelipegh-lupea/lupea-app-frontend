@@ -43,6 +43,22 @@ export interface VehiclePayload {
   engineTypeId?: number;
 }
 
+type StrapiPaginationMeta = {
+  pagination?: {
+    page: number;
+    pageCount: number;
+    pageSize: number;
+    total: number;
+  };
+};
+
+type StrapiVehicleItemResponse = VehicleItemResponse<VehicleItem> & {
+  meta?: StrapiPaginationMeta;
+  error?: {
+    message?: string;
+  };
+};
+
 const VENEZUELA_GENERIC_ENGINE_TYPES = new Set([
   "Gasolina",
   "Diésel",
@@ -58,6 +74,74 @@ function sortVehicleItems(items: VehicleItem[]) {
       numeric: true,
     })
   );
+}
+
+function normalizeVehicleName(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+export function findVehicleItemByName(
+  items: VehicleItem[],
+  targetName?: string | null
+) {
+  const normalizedTarget = normalizeVehicleName(String(targetName || ""));
+
+  if (!normalizedTarget) {
+    return undefined;
+  }
+
+  return items.find(
+    (item) => normalizeVehicleName(item.name) === normalizedTarget
+  );
+}
+
+async function fetchAllVehicleItems(
+  jwt: string,
+  endpoint: string,
+  fallbackErrorMessage: string,
+  filter?: (item: VehicleItem) => boolean
+): Promise<VehicleItemResponse<VehicleItem>> {
+  const allItems: VehicleItem[] = [];
+  const seenDocumentIds = new Set<string>();
+  const separator = endpoint.includes("?") ? "&" : "?";
+  let page = 1;
+  let pageCount = 1;
+
+  do {
+    const res = await fetch(
+      `${API_URL}/${endpoint}${separator}pagination[page]=${page}&pagination[pageSize]=100`,
+      {
+        headers: { Authorization: `Bearer ${jwt}` },
+      }
+    );
+
+    const data: StrapiVehicleItemResponse = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error?.message || fallbackErrorMessage);
+    }
+
+    for (const item of data.data || []) {
+      if (seenDocumentIds.has(item.documentId)) {
+        continue;
+      }
+
+      seenDocumentIds.add(item.documentId);
+      allItems.push(item);
+    }
+
+    pageCount = data.meta?.pagination?.pageCount ?? 1;
+    page += 1;
+  } while (page <= pageCount);
+
+  return {
+    data: sortVehicleItems(filter ? allItems.filter(filter) : allItems),
+  };
 }
 
 export interface ClientVehiclesResponse {
@@ -135,70 +219,33 @@ export async function getClientVehicles(
 export async function getBrands(
   jwt: string
 ): Promise<VehicleItemResponse<VehicleItem>> {
-  const res = await fetch(`${API_URL}/vehicle-brands?sort[0]=name:asc`, {
-    headers: { Authorization: `Bearer ${jwt}` },
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(
-      data.error?.message || "No se pudieron obtener los vehículos del cliente"
-    );
-  }
-
-  return {
-    ...data,
-    data: sortVehicleItems(data.data || []),
-  };
+  return fetchAllVehicleItems(
+    jwt,
+    "vehicle-brands?sort[0]=name:asc",
+    "No se pudieron obtener los vehículos del cliente"
+  );
 }
 
 export async function getEngineTypes(
   jwt: string
 ): Promise<VehicleItemResponse<VehicleItem>> {
-  const res = await fetch(`${API_URL}/engine-types?sort[0]=name:asc`, {
-    headers: { Authorization: `Bearer ${jwt}` },
-  });
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(
-      data.error?.message || "No se pudieron obtener los tipos de motor"
-    );
-  }
-
-  return {
-    ...data,
-    data: sortVehicleItems(
-      (data.data || []).filter((item: VehicleItem) =>
-        VENEZUELA_GENERIC_ENGINE_TYPES.has(item.name)
-      )
-    ),
-  };
+  return fetchAllVehicleItems(
+    jwt,
+    "engine-types?sort[0]=name:asc",
+    "No se pudieron obtener los tipos de motor",
+    (item) => VENEZUELA_GENERIC_ENGINE_TYPES.has(item.name)
+  );
 }
 
 export async function getModelsByBrand(
   jwt: string,
   brandDocumentId: string
 ): Promise<VehicleItemResponse<VehicleItem>> {
-  const res = await fetch(
-    `${API_URL}/vehicle-models?filters[brand][documentId][$eq]=${brandDocumentId}&sort[0]=name:asc`,
-    {
-      headers: { Authorization: `Bearer ${jwt}` },
-    }
+  return fetchAllVehicleItems(
+    jwt,
+    `vehicle-models?filters[brand][documentId][$eq]=${brandDocumentId}&sort[0]=name:asc`,
+    "No se pudieron obtener los modelos"
   );
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(
-      data.error?.message || "No se pudieron obtener los modelos"
-    );
-  }
-
-  return {
-    ...data,
-    data: sortVehicleItems(data.data || []),
-  };
 }
 
 export async function getModelEnginesByModel(

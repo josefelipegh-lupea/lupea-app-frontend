@@ -9,6 +9,8 @@
   background-color: #ffffff;
   min-height: 90dvh;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
@@ -55,7 +57,10 @@
   flex-direction: column;
   flex: 1;
   padding: 24px 20px;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: visible;
+  padding-bottom: calc(120px + env(safe-area-inset-bottom));
+  min-height: 0;
 }
 
 .loader,
@@ -83,6 +88,7 @@
 .formBody {
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .listContainer {

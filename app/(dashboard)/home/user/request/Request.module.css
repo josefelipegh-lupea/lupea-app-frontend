@@ -201,7 +201,7 @@
 .cardBody {
   display: grid;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Contenedor que envuelve cada vista (lista o form) */

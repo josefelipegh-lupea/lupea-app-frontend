@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import {
   createVehicle,
   deleteVehicle,
+  findVehicleItemByName,
   getBrands,
   getClientVehicles,
   getEngineTypes,
@@ -22,6 +23,7 @@ import {
 } from "@/app/lib/api/client/vehicle";
 import StepTransition from "@/components/provider-onboarding/step-transition/StepTransition";
 import { ConfirmModal } from "@/components/confirm-modal/ConfirmModal";
+import SearchableSelect from "@/components/searchable-select/SearchableSelect";
 
 const VehiclesPage = () => {
   const { isExpanded } = useSidebar();
@@ -179,6 +181,16 @@ const VehiclesPage = () => {
     });
   };
 
+  const handleSearchableSelectChange = (name: "brand" | "model" | "engine") => {
+    return (value: string) => {
+      const event = {
+        target: { name, value },
+      } as React.ChangeEvent<HTMLSelectElement>;
+
+      handleChange(event);
+    };
+  };
+
   const isFormValid =
     formData.brand &&
     formData.model &&
@@ -254,7 +266,7 @@ const VehiclesPage = () => {
 
     const brandObj = vehicle.brandMaster
       ? brands.find((b) => b.documentId === vehicle.brandMaster?.documentId)
-      : brands.find((b) => b.name === vehicle.brand);
+      : findVehicleItemByName(brands, vehicle.brand);
 
     if (brandObj) {
       setLoadingModels(true);
@@ -266,7 +278,7 @@ const VehiclesPage = () => {
           ? fetchedModels.find(
               (m) => m.documentId === vehicle.modelMaster?.documentId
             )?.documentId || ""
-          : fetchedModels.find((m) => m.name === vehicle.model)?.documentId || "";
+          : findVehicleItemByName(fetchedModels, vehicle.model)?.documentId || "";
 
         let engineId = "";
         if (modelId) {
@@ -282,8 +294,7 @@ const VehiclesPage = () => {
                   (engineItem) =>
                     engineItem.documentId === vehicle.modelEngineMaster?.documentId
                 )?.documentId || ""
-              : fetchedEngines.find((engineItem) => engineItem.name === vehicle.engine)
-                  ?.documentId || "";
+              : findVehicleItemByName(fetchedEngines, vehicle.engine)?.documentId || "";
           } else {
             const fallbackRes = await getEngineTypes(currentJwt);
             const fallbackEngines: VehicleItem[] = fallbackRes.data || [];
@@ -294,8 +305,7 @@ const VehiclesPage = () => {
                   (engineItem) =>
                     engineItem.documentId === vehicle.engineTypeMaster?.documentId
                 )?.documentId || ""
-              : fallbackEngines.find((engineItem) => engineItem.name === vehicle.engine)
-                  ?.documentId || "";
+              : findVehicleItemByName(fallbackEngines, vehicle.engine)?.documentId || "";
           }
         }
 
@@ -401,50 +411,34 @@ const VehiclesPage = () => {
                   {/* MARCA */}
                   <div className={styles.inputContainer}>
                     <label className={styles.label}>Marca <span className={styles.required}>*</span></label>
-                    <div className={styles.selectWrapper}>
-                      <select
-                        name="brand"
-                        value={formData.brand}
-                        onChange={handleChange}
-                        className={styles.input}
-                      >
-                        <option value="">Seleccionar Marca</option>
-                        {brands.map((b) => (
-                          <option key={b.documentId} value={b.documentId}>
-                            {b.name}
-                          </option>
-                        ))}
-                      </select>
-                      <div className={styles.iconOverlay}>
-                        <IconsApp.DownArrow />
-                      </div>
-                    </div>
+                    <SearchableSelect
+                      placeholder="Seleccionar Marca"
+                      value={formData.brand}
+                      options={brands.map((brand) => ({
+                        id: brand.documentId,
+                        label: brand.name,
+                      }))}
+                      onChange={handleSearchableSelectChange("brand")}
+                      searchPlaceholder="Buscar marca..."
+                      noResultsText="No hay marcas"
+                    />
                   </div>
 
                   {/* MODELO */}
                   <div className={styles.inputContainer}>
                     <label className={styles.label}>Modelo <span className={styles.required}>*</span></label>
-                    <div className={styles.selectWrapper}>
-                      <select
-                        name="model"
-                        value={formData.model}
-                        onChange={handleChange}
-                        className={styles.input}
-                        disabled={!formData.brand || loadingModels}
-                      >
-                        <option value="">
-                          {loadingModels ? "Cargando..." : "Seleccionar Modelo"}
-                        </option>
-                        {models.map((m) => (
-                          <option key={m.documentId} value={m.documentId}>
-                            {m.name}
-                          </option>
-                        ))}
-                      </select>
-                      <div className={styles.iconOverlay}>
-                        <IconsApp.DownArrow />
-                      </div>
-                    </div>
+                    <SearchableSelect
+                      placeholder={loadingModels ? "Cargando..." : "Seleccionar Modelo"}
+                      value={formData.model}
+                      options={models.map((model) => ({
+                        id: model.documentId,
+                        label: model.name,
+                      }))}
+                      onChange={handleSearchableSelectChange("model")}
+                      disabled={!formData.brand || loadingModels}
+                      searchPlaceholder="Buscar modelo..."
+                      noResultsText="No hay modelos"
+                    />
                   </div>
 
                   <div className={styles.row}>
@@ -475,31 +469,24 @@ const VehiclesPage = () => {
                     {/* MOTOR */}
                     <div className={styles.inputContainer}>
                       <label className={styles.label}>Motor <span className={styles.required}>*</span></label>
-                      <div className={styles.selectWrapper}>
-                        <select
-                          name="engine"
-                          value={formData.engine}
-                          onChange={handleChange}
-                          className={styles.input}
-                          disabled={!formData.model || loadingEngines || engines.length === 0}
-                        >
-                          <option value="">
-                            {loadingEngines
-                              ? "Cargando..."
-                              : engines.length > 0
-                                ? "Seleccionar Motor"
-                                : "Sin motores registrados"}
-                          </option>
-                          {engines.map((e) => (
-                            <option key={e.documentId} value={e.documentId}>
-                              {e.name}
-                            </option>
-                          ))}
-                        </select>
-                        <div className={styles.iconOverlay}>
-                          <IconsApp.DownArrow />
-                        </div>
-                      </div>
+                      <SearchableSelect
+                        placeholder={
+                          loadingEngines
+                            ? "Cargando..."
+                            : engines.length > 0
+                              ? "Seleccionar Motor"
+                              : "Sin motores registrados"
+                        }
+                        value={formData.engine}
+                        options={engines.map((engine) => ({
+                          id: engine.documentId,
+                          label: engine.name,
+                        }))}
+                        onChange={handleSearchableSelectChange("engine")}
+                        disabled={!formData.model || loadingEngines || engines.length === 0}
+                        searchPlaceholder="Buscar motor..."
+                        noResultsText="No hay motores"
+                      />
                     </div>
                   </div>
                 </div>

@@ -7,6 +7,7 @@ import {
   Vehicle,
   VehicleItem,
   createVehicle,
+  findVehicleItemByName,
   getEngineTypes,
   getModelEnginesByModel,
   getModelsByBrand,
@@ -14,6 +15,7 @@ import {
 import StepTransition from "../provider-onboarding/step-transition/StepTransition";
 import toast from "react-hot-toast";
 import { QuoteRequestFormData } from "@/hooks/useRequesFormAutoSave";
+import SearchableSelect from "@/components/searchable-select/SearchableSelect";
 
 interface VehicleStepProps {
   jwt: string;
@@ -96,7 +98,7 @@ export default function VehicleStep({
   const selectVehicleFromList = async (vehicle: Vehicle) => {
     const brandObj = vehicle.brandMaster
       ? brands.find((b) => b.documentId === vehicle.brandMaster?.documentId)
-      : brands.find((b) => b.name === vehicle.brand);
+      : findVehicleItemByName(brands, vehicle.brand);
     if (brandObj) {
       const res = await getModelsByBrand(jwt, brandObj.documentId);
       const fetchedModels = res.data || [];
@@ -104,7 +106,7 @@ export default function VehicleStep({
 
       const modelObj = vehicle.modelMaster
         ? fetchedModels.find((m) => m.documentId === vehicle.modelMaster?.documentId)
-        : fetchedModels.find((m) => m.name === vehicle.model);
+        : findVehicleItemByName(fetchedModels, vehicle.model);
 
       let engineObj: VehicleItem | undefined;
       if (modelObj) {
@@ -119,7 +121,7 @@ export default function VehicleStep({
                 (engineItem) =>
                   engineItem.documentId === vehicle.modelEngineMaster?.documentId
               )
-            : fetchedEngines.find((engineItem) => engineItem.name === vehicle.engine);
+            : findVehicleItemByName(fetchedEngines, vehicle.engine);
         } else {
           const fallbackRes = await getEngineTypes(jwt);
           const fallbackEngines = fallbackRes.data || [];
@@ -130,7 +132,7 @@ export default function VehicleStep({
                 (engineItem) =>
                   engineItem.documentId === vehicle.engineTypeMaster?.documentId
               )
-            : fallbackEngines.find((engineItem) => engineItem.name === vehicle.engine);
+            : findVehicleItemByName(fallbackEngines, vehicle.engine);
         }
       }
 
@@ -150,8 +152,11 @@ export default function VehicleStep({
     }
   };
 
-  const handleBrandChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const brandId = e.target.value;
+  const handleBrandChange = async (
+    eOrValue: React.ChangeEvent<HTMLSelectElement> | string
+  ) => {
+    const brandId =
+      typeof eOrValue === "string" ? eOrValue : eOrValue.target.value;
     setFormData({
       ...formData,
       userVehicle: "",
@@ -190,6 +195,16 @@ export default function VehicleStep({
     }
 
     setFormData(nextData);
+  };
+
+  const handleSearchableSelectChange = (name: "model" | "engine") => {
+    return (value: string) => {
+      const event = {
+        target: { name, value },
+      } as React.ChangeEvent<HTMLSelectElement>;
+
+      handleChange(event);
+    };
   };
 
   useEffect(() => {
@@ -428,49 +443,37 @@ export default function VehicleStep({
             <div className={styles.subStepContainer}>
               <div className={styles.field}>
                 <label>Marca <span className={styles.required}>*</span></label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    name="brand"
-                    value={formData.brand}
-                    onChange={handleBrandChange}
-                  >
-                    <option value="">Seleccionar Marca</option>
-                    {brands.map((b) => (
-                      <option key={b.documentId} value={b.documentId}>
-                        {b.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className={styles.iconOverlay}>
-                    <IconsApp.DownArrow />
-                  </div>
-                </div>
+                <SearchableSelect
+                  placeholder="Seleccionar Marca"
+                  value={formData.brand}
+                  options={brands.map((brand) => ({
+                    id: brand.documentId,
+                    label: brand.name,
+                  }))}
+                  onChange={(value) =>
+                    handleBrandChange(value)
+                  }
+                  searchPlaceholder="Buscar marca..."
+                  noResultsText="No hay marcas"
+                />
               </div>
 
               <div className={styles.field}>
                 <label>Modelo <span className={styles.required}>*</span></label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    name="model"
-                    value={formData.model}
-                    onChange={handleChange}
-                    disabled={!formData.brand}
-                  >
-                    <option value="">
-                      {formData.brand
-                        ? "Seleccionar Modelo"
-                        : "Primero elija marca"}
-                    </option>
-                    {models.map((m) => (
-                      <option key={m.documentId} value={m.documentId}>
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className={styles.iconOverlay}>
-                    <IconsApp.DownArrow />
-                  </div>
-                </div>
+                <SearchableSelect
+                  placeholder={
+                    formData.brand ? "Seleccionar Modelo" : "Primero elija marca"
+                  }
+                  value={formData.model}
+                  options={models.map((model) => ({
+                    id: model.documentId,
+                    label: model.name,
+                  }))}
+                  onChange={handleSearchableSelectChange("model")}
+                  disabled={!formData.brand}
+                  searchPlaceholder="Buscar modelo..."
+                  noResultsText="No hay modelos"
+                />
               </div>
 
               <div className={styles.row}>
@@ -497,28 +500,22 @@ export default function VehicleStep({
                 </div>
                 <div className={styles.field}>
                   <label>Motor <span className={styles.required}>*</span></label>
-                  <div className={styles.selectWrapper}>
-                    <select
-                      name="engine"
-                      value={formData.engine}
-                      onChange={handleChange}
-                      disabled={!formData.model || engineOptions.length === 0}
-                    >
-                      <option value="">
-                        {engineOptions.length > 0
-                          ? "Seleccionar Motor"
-                          : "Sin motores registrados"}
-                      </option>
-                      {engineOptions.map((e) => (
-                        <option key={e.documentId} value={e.documentId}>
-                          {e.name}
-                        </option>
-                      ))}
-                    </select>
-                    <div className={styles.iconOverlay}>
-                      <IconsApp.DownArrow />
-                    </div>
-                  </div>
+                  <SearchableSelect
+                    placeholder={
+                      engineOptions.length > 0
+                        ? "Seleccionar Motor"
+                        : "Sin motores registrados"
+                    }
+                    value={formData.engine}
+                    options={engineOptions.map((engine) => ({
+                      id: engine.documentId,
+                      label: engine.name,
+                    }))}
+                    onChange={handleSearchableSelectChange("engine")}
+                    disabled={!formData.model || engineOptions.length === 0}
+                    searchPlaceholder="Buscar motor..."
+                    noResultsText="No hay motores"
+                  />
                 </div>
               </div>
 
