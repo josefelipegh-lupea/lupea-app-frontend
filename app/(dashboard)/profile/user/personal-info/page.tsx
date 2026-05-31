@@ -16,7 +16,6 @@ import { useProfileValidation } from "@/hooks/useProfileValidation";
 import { IconsApp } from "@/components/icons/Icons";
 
 export default function PersonalInfoPage() {
-  const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { profile, role, refreshProfile, jwt } = useAuth();
   const { isExpanded } = useSidebar();
@@ -32,6 +31,17 @@ export default function PersonalInfoPage() {
 
   const { isValid, errors } = useProfileValidation(formData);
   const [submitted, setSubmitted] = useState(false);
+
+  const hydrateFormData = (profileData: ClientProfileResponse) => {
+    setFormData({
+      displayName: profileData.displayName || "",
+      firstName: profileData.firstName || "",
+      lastName: profileData.lastName || "",
+      email: profileData.email || "",
+      username: profileData.username || "",
+      phone: profileData.phone || "",
+    });
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -65,8 +75,6 @@ export default function PersonalInfoPage() {
     try {
       await updateClientProfile(jwt, formData);
       await refreshProfile();
-
-      setIsEditing(false);
       toast.success("Perfil actualizado");
     } catch (error) {
       console.error(error);
@@ -78,16 +86,16 @@ export default function PersonalInfoPage() {
   useEffect(() => {
     if (role === "client" && profile) {
       const p = profile as ClientProfileResponse;
-      setFormData({
-        displayName: p.displayName || "",
-        firstName: p.firstName || "",
-        lastName: p.lastName || "",
-        email: p.email || "",
-        username: p.username || "",
-        phone: p.phone || "",
-      });
+      hydrateFormData(p);
     }
   }, [profile, role]);
+
+  const handleCancel = () => {
+    if (role === "client" && profile) {
+      hydrateFormData(profile as ClientProfileResponse);
+    }
+    setSubmitted(false);
+  };
 
   return (
     <div
@@ -96,19 +104,7 @@ export default function PersonalInfoPage() {
       }`}
     >
       <div className={styles.mainContainer}>
-        <Header
-          title="Información personal"
-          rightAction={
-            !isEditing && (
-              <button
-                className={styles.btnEditDesktop}
-                onClick={() => setIsEditing(true)}
-              >
-                Editar
-              </button>
-            )
-          }
-        />
+        <Header title="Información personal" />
 
         <div className={styles.content}>
           {/* Aviso de perfil incompleto según HU19 flujo principal */}
@@ -157,7 +153,7 @@ export default function PersonalInfoPage() {
                       value={formData[field.name as keyof typeof formData]}
                       onChange={handleChange}
                       icon={field.icon}
-                      disabled={field.name === "username" ? true : !isEditing}
+                      disabled={field.name === "username"}
                     />
                     {submitted && errors[field.name as keyof typeof errors] && (
                       <p className={styles.fieldError}>
@@ -193,7 +189,6 @@ export default function PersonalInfoPage() {
                     value={formData.phone}
                     onChange={handleChange}
                     icon={<IconsApp.Whatsapp />}
-                    disabled={!isEditing}
                   />
                   {submitted && errors.phone && (
                     <p className={styles.fieldError}>{errors.phone[0]}</p>
@@ -206,18 +201,13 @@ export default function PersonalInfoPage() {
           <div className={styles.buttonGroup}>
             <Button
               className={styles.btnSave}
-              disabled={!isEditing || isSaving}
+              disabled={!isValid || isSaving}
               onClick={handleSave}
             >
               {isSaving ? "Guardando..." : "Guardar cambios"}
             </Button>
 
-            <button
-              className={`${styles.btnCancel} ${
-                isEditing ? styles.btnCancelVisible : ""
-              }`}
-              onClick={() => setIsEditing(false)}
-            >
+            <button className={styles.btnCancel} onClick={handleCancel}>
               Cancelar
             </button>
           </div>
