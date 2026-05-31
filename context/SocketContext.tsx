@@ -99,7 +99,7 @@ interface SocketContextType {
   chatUnreadCount: number;
   onlineParticipants: Record<number, Set<number>>;
   addNotification: (notification: Notification) => void;
-  markAsRead: (id: string) => void;
+  markAsRead: (id: string, options?: { remove?: boolean }) => void;
   markAllAsRead: () => void;
   clearNotifications: () => void;
   realtimeConfig: RealtimeConfig | null;
@@ -313,9 +313,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  const markAsRead = useCallback(async (id: string) => {
+  const markAsRead = useCallback(async (id: string, options?: { remove?: boolean }) => {
     setNotifications((prev) => {
-      const updated = prev.map((n) => (n.id === id ? { ...n, read: true } : n));
+      const updated = options?.remove
+        ? prev.filter((n) => n.id !== id)
+        : prev.map((n) => (n.id === id ? { ...n, read: true } : n));
       localStorage.setItem("notifications", JSON.stringify(updated));
       return updated;
     });

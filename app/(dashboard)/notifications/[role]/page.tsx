@@ -68,8 +68,11 @@ export default function NotificationsPage() {
     return item?.documentId || null;
   };
 
+  const shouldRemoveOnClick = (notification: Notification) =>
+    notification.type === "client.order_completed";
+
   const handleNotificationClick = (notification: Notification) => {
-    markAsRead(notification.id);
+    markAsRead(notification.id, { remove: shouldRemoveOnClick(notification) });
 
     const redirectTo = getRedirectUrl(notification);
     if (redirectTo) {
