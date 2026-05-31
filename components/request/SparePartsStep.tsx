@@ -559,7 +559,7 @@ export default function SparePartsStep({
                 <div className={styles.addIconCircle}>
                   <IconsApp.PlusAddNew />
                 </div>
-                <span>Guardar Repuesto</span>
+                <span>Anadir a la consulta</span>
                 <IconsApp.RightArrow className={styles.arrowRight} />
               </button>
             </div>
