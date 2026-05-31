@@ -596,7 +596,7 @@ export default function ComparisonPage({ params }: PageProps) {
                 onClick={handleGenerateOrders}
                 disabled={isGenerating || selectedItems.size === 0}
               >
-                {isGenerating ? "Generando..." : "Generar órdenes"}
+                {isGenerating ? "Generando..." : "Comprar"}
               </Button>
             </div>
             <p className={styles.footerSub}>

@@ -329,7 +329,7 @@ const QuoteDetailPage: React.FC = () => {
                   onClick={handleGenerateOrder}
                   disabled={isGenerating || selectedItems.size === 0}
                 >
-                  {isGenerating ? "Generando..." : "Generar orden"}
+                  {isGenerating ? "Generando..." : "Comprar"}
                 </Button>
               )}
             </div>
