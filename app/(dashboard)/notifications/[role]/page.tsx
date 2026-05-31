@@ -69,7 +69,10 @@ export default function NotificationsPage() {
   };
 
   const shouldRemoveOnClick = (notification: Notification) =>
-    notification.type === "client.order_completed";
+    notification.type === "client.order_completed" ||
+    notification.type === "provider.order_generated" ||
+    notification.type === "provider.payment_notified" ||
+    notification.type === "chat.payment_proof_uploaded";
 
   const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id, { remove: shouldRemoveOnClick(notification) });
@@ -114,6 +117,12 @@ export default function NotificationsPage() {
         if (docId) return `/home/vendor/orders/${docId}`;
         return "/home/vendor";
       }
+      case "chat.payment_proof_uploaded": {
+        const orderId = data?.orderId as number | undefined;
+        const docId = orderId ? findDocumentId(orderId, cachedData.orders) : null;
+        if (docId) return `/home/vendor/orders/${docId}`;
+        return "/home/vendor";
+      }
       case "client.order_completed": {
         const orderId = data?.orderId as number | undefined;
         const docId = orderId ? findDocumentId(orderId, cachedData.orders) : null;
@@ -134,6 +143,8 @@ export default function NotificationsPage() {
       case "provider.order_generated":
         return <IconsApp.Document color="#F08400" />;
       case "provider.payment_notified":
+        return <IconsApp.CreditCard />;
+      case "chat.payment_proof_uploaded":
         return <IconsApp.CreditCard />;
       case "client.order_completed":
         return <IconsApp.Check color="#22c55e" />;

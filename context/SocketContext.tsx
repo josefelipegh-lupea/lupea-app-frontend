@@ -102,6 +102,7 @@ interface SocketContextType {
   markAsRead: (id: string, options?: { remove?: boolean }) => void;
   markAllAsRead: () => void;
   clearNotifications: () => void;
+  refreshNotifications: () => Promise<void>;
   realtimeConfig: RealtimeConfig | null;
   onNotification: (
     callback: (notification: Notification) => void,
@@ -313,48 +314,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  const markAsRead = useCallback(async (id: string, options?: { remove?: boolean }) => {
-    setNotifications((prev) => {
-      const updated = options?.remove
-        ? prev.filter((n) => n.id !== id)
-        : prev.map((n) => (n.id === id ? { ...n, read: true } : n));
-      localStorage.setItem("notifications", JSON.stringify(updated));
-      return updated;
-    });
-
-    if (jwt) {
-      try {
-        await markNotificationsAsRead(jwt, { all: false, documentIds: [id] });
-      } catch (error) {
-        console.error("Error marking notification as read:", error);
-      }
-    }
-  }, [jwt]);
-
-  const markAllAsRead = useCallback(async () => {
-    setNotifications((prev) => {
-      const updated = prev.map((n) => ({ ...n, read: true }));
-      localStorage.setItem("notifications", JSON.stringify(updated));
-      return updated;
-    });
-
-    if (jwt) {
-      try {
-        await markNotificationsAsRead(jwt, { all: true });
-      } catch (error) {
-        console.error("Error marking all notifications as read:", error);
-      }
-    }
-  }, [jwt]);
-
-  const clearNotifications = useCallback(() => {
-    setNotifications([]);
-    localStorage.removeItem("notifications");
-  }, []);
-
   const loadNotificationsFromServer = useCallback(async () => {
     if (!jwt) return;
-    
+
     try {
       const res = await getNotifications(jwt, 50, null);
       if (res.ok && res.data.notifications) {
@@ -377,6 +339,47 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error loading notifications from server:", error);
     }
   }, [jwt]);
+
+  const markAsRead = useCallback(async (id: string, options?: { remove?: boolean }) => {
+    setNotifications((prev) => {
+      const updated = options?.remove
+        ? prev.filter((n) => n.id !== id)
+        : prev.map((n) => (n.id === id ? { ...n, read: true } : n));
+      localStorage.setItem("notifications", JSON.stringify(updated));
+      return updated;
+    });
+
+    if (jwt) {
+      try {
+        await markNotificationsAsRead(jwt, { all: false, documentIds: [id] });
+        await loadNotificationsFromServer();
+      } catch (error) {
+        console.error("Error marking notification as read:", error);
+      }
+    }
+  }, [jwt, loadNotificationsFromServer]);
+
+  const markAllAsRead = useCallback(async () => {
+    setNotifications((prev) => {
+      const updated = prev.map((n) => ({ ...n, read: true }));
+      localStorage.setItem("notifications", JSON.stringify(updated));
+      return updated;
+    });
+
+    if (jwt) {
+      try {
+        await markNotificationsAsRead(jwt, { all: true });
+        await loadNotificationsFromServer();
+      } catch (error) {
+        console.error("Error marking all notifications as read:", error);
+      }
+    }
+  }, [jwt, loadNotificationsFromServer]);
+
+  const clearNotifications = useCallback(() => {
+    setNotifications([]);
+    localStorage.removeItem("notifications");
+  }, []);
 
   useEffect(() => {
     if (!jwt || !user) {
@@ -579,6 +582,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         markAsRead,
         markAllAsRead,
         clearNotifications,
+        refreshNotifications: loadNotificationsFromServer,
         realtimeConfig,
         onNotification,
         onNewChatMessage,
