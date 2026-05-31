@@ -58,7 +58,6 @@ export default function SparePartsStep({
     { id: "no_importa", label: "Cualquiera" },
     { id: "original", label: "Original" },
     { id: "alternativa", label: "Alternativa" },
-    { id: "usado", label: "Usado" },
   ];
 
   const selectedCategoryObj = categories.find(
