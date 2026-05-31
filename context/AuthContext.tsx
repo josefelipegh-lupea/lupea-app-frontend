@@ -28,7 +28,7 @@ interface AuthContextType {
   login: (data: LoginResponse) => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
-  refreshLoginProfile: () => Promise<void>;
+  refreshLoginProfile: (prefetchedData?: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -127,7 +127,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const refreshLoginProfile = useCallback(async () => {
+  const refreshLoginProfile = useCallback(async (prefetchedData?: any) => {
     const jwt = localStorage.getItem("jwt");
     const currentUser = localStorage.getItem("userData");
     if (!jwt || !currentUser) return;
@@ -135,49 +135,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userData = JSON.parse(currentUser);
     const isProvider = userData.role === "provider";
 
-    const endpoint = isProvider
-      ? `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/provider-profiles/me`
-      : `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/client-profiles/me`;
-
     try {
-      const response = await fetch(endpoint, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      });
+      const data = prefetchedData
+        ? prefetchedData
+        : await (async () => {
+            const endpoint = isProvider
+              ? `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/provider-profiles/me`
+              : `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/client-profiles/me`;
 
-      if (response.ok) {
-        const data = await response.json();
+            const response = await fetch(endpoint, {
+              headers: {
+                Authorization: `Bearer ${jwt}`,
+              },
+            });
+
+            if (!response.ok) {
+              return null;
+            }
+
+            return response.json();
+          })();
+
+      if (data) {
+        const resolvedData = await data;
+        if (!resolvedData) {
+          return;
+        }
 
         setLoginProfile(() => {
           let loginProfileData;
 
           if (isProvider) {
             loginProfileData = {
-              id: data.id,
-              displayName: data.businessName || data.username,
-              tokensAvailable: data.tokensAvailable || 0,
+              id: resolvedData.id,
+              displayName: resolvedData.businessName || resolvedData.username,
+              tokensAvailable: resolvedData.tokensAvailable || 0,
               privacyLevel: "public",
-              status: data.status,
+              status: resolvedData.status,
             };
           } else {
             loginProfileData = {
-              id: data.id,
-              displayName: data.displayName,
-              tokensAvailable: data.tokensAvailable || 0,
-              tokensFreeAvailable: data.tokensFreeAvailable || 0,
-              tokensPurchasedAvailable: data.tokensPurchasedAvailable || 0,
-              tokensTotal: data.tokensTotal || data.tokensAvailable || 0,
-              tokensPurchasedThisMonth: data.tokensPurchasedThisMonth || 0,
-              tokensLastRenewal: data.tokensLastRenewal || "",
-              tokensNextRenewal: data.tokensNextRenewal || "",
-              monthlyConsumption: data.monthlyConsumption || {
+              id: resolvedData.id,
+              displayName: resolvedData.displayName,
+              tokensAvailable: resolvedData.tokensAvailable || 0,
+              tokensFreeAvailable: resolvedData.tokensFreeAvailable || 0,
+              tokensPurchasedAvailable: resolvedData.tokensPurchasedAvailable || 0,
+              tokensTotal: resolvedData.tokensTotal || resolvedData.tokensAvailable || 0,
+              tokensPurchasedThisMonth: resolvedData.tokensPurchasedThisMonth || 0,
+              tokensLastRenewal: resolvedData.tokensLastRenewal || "",
+              tokensNextRenewal: resolvedData.tokensNextRenewal || "",
+              monthlyConsumption: resolvedData.monthlyConsumption || {
                 usedTokens: 0,
                 percentage: 0,
               },
-              tokenMetricsMonth: data.tokenMetricsMonth || "",
-              freeTokensGrantedThisMonth: data.freeTokensGrantedThisMonth || 0,
-              privacyLevel: data.privacyLevel,
+              tokenMetricsMonth: resolvedData.tokenMetricsMonth || "",
+              freeTokensGrantedThisMonth: resolvedData.freeTokensGrantedThisMonth || 0,
+              privacyLevel: resolvedData.privacyLevel,
             };
           }
 

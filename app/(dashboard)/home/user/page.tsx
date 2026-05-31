@@ -93,6 +93,16 @@ export default function HomePage() {
         })
       : "N/A";
 
+  const applyClientMetrics = (profileRes: Awaited<ReturnType<typeof getClientProfile>>) => {
+    setMetrics({
+      requestsCount: profileRes.metrics?.requestsCount ?? 0,
+      quotesReceivedCount: profileRes.metrics?.quotesReceivedCount ?? 0,
+      ordersCount: profileRes.metrics?.ordersCount ?? 0,
+      averageRating: profileRes.reputation?.averageRating ?? 0,
+      reviewCount: profileRes.reputation?.reviewCount ?? 0,
+    });
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (!jwt) return;
@@ -100,16 +110,10 @@ export default function HomePage() {
       try {
         setLoading(true);
 
-        await refreshLoginProfile();
-
         const profileRes = await getClientProfile(jwt);
-        setMetrics({
-          requestsCount: profileRes.metrics?.requestsCount ?? 0,
-          quotesReceivedCount: profileRes.metrics?.quotesReceivedCount ?? 0,
-          ordersCount: profileRes.metrics?.ordersCount ?? 0,
-          averageRating: profileRes.reputation?.averageRating ?? 0,
-          reviewCount: profileRes.reputation?.reviewCount ?? 0,
-        });
+        applyClientMetrics(profileRes);
+
+        await refreshLoginProfile(profileRes);
 
         const res = await getMyRequests(jwt);
         if (res.ok) {
@@ -219,14 +223,8 @@ export default function HomePage() {
             if (ordersRes.ok) {
               setOrders(ordersRes.data.orders);
             }
-            setMetrics({
-              requestsCount: profileRes.metrics?.requestsCount ?? 0,
-              quotesReceivedCount: profileRes.metrics?.quotesReceivedCount ?? 0,
-              ordersCount: profileRes.metrics?.ordersCount ?? 0,
-              averageRating: profileRes.reputation?.averageRating ?? 0,
-              reviewCount: profileRes.reputation?.reviewCount ?? 0,
-            });
-            await refreshLoginProfile();
+            applyClientMetrics(profileRes);
+            await refreshLoginProfile(profileRes);
           } catch (error) {
             console.error("Error refreshing data:", error);
           }
