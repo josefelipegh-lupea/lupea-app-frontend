@@ -27,7 +27,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (data: LoginResponse) => Promise<void>;
   logout: () => void;
-  refreshProfile: () => Promise<void>;
+  refreshProfile: () => Promise<ClientProfileResponse | ProviderProfile | null>;
   refreshLoginProfile: (prefetchedData?: any) => Promise<void>;
 }
 
@@ -112,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshProfile = async () => {
     const jwt = localStorage.getItem("jwt");
-    if (!jwt || !user) return;
+    if (!jwt || !user) return null;
 
     try {
       const data =
@@ -122,8 +122,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       setProfile(data);
       localStorage.setItem("fullProfile", JSON.stringify(data));
+      return data;
     } catch (error) {
       console.error("Error al refrescar perfil:", error);
+      return null;
     }
   };
 

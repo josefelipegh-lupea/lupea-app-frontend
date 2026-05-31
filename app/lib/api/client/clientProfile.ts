@@ -29,6 +29,10 @@ export type ClientProfileResponse = {
     requestsCount: number;
     quotesReceivedCount: number;
     ordersCount: number;
+    requestHistory?: Array<{
+      month: string;
+      count: number;
+    }>;
   };
   reputation?: {
     averageRating: number;

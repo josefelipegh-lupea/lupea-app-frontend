@@ -19,8 +19,6 @@ export const Footer = () => {
   const { unreadCount, chatUnreadCount, updateChatUnreadCount } = useSocket();
   const { jwt } = useAuth();
 
-  console.log("Footer render - chatUnreadCount:", chatUnreadCount);
-
   useEffect(() => {
     const loadChatUnreadCount = async () => {
       if (!jwt) return;

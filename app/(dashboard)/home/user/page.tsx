@@ -43,7 +43,36 @@ interface ClientHomeMetrics {
   ordersCount: number;
   averageRating: number;
   reviewCount: number;
+  requestHistory: Array<{
+    month: string;
+    count: number;
+  }>;
 }
+
+interface RequestHistoryEntry {
+  month: string;
+  count: number;
+}
+
+const formatMetricMonthLabel = (month: string) => {
+  const [year, monthNumber] = month.split("-");
+  const parsedYear = Number(year);
+  const parsedMonth = Number(monthNumber) - 1;
+
+  if (
+    !Number.isInteger(parsedYear) ||
+    !Number.isInteger(parsedMonth) ||
+    parsedMonth < 0 ||
+    parsedMonth > 11
+  ) {
+    return month;
+  }
+
+  return new Date(Date.UTC(parsedYear, parsedMonth, 1)).toLocaleDateString(
+    "es-ES",
+    { month: "short", timeZone: "UTC" },
+  );
+};
 
 export default function HomePage() {
   const { jwt, loginProfile, refreshLoginProfile } = useAuth();
@@ -64,7 +93,10 @@ export default function HomePage() {
     ordersCount: 0,
     averageRating: 0,
     reviewCount: 0,
+    requestHistory: [],
   });
+  const [hasLoadedMetrics, setHasLoadedMetrics] = useState(false);
+  const [metricsError, setMetricsError] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const newQuotesCount = useMemo(
@@ -100,7 +132,21 @@ export default function HomePage() {
       ordersCount: profileRes.metrics?.ordersCount ?? 0,
       averageRating: profileRes.reputation?.averageRating ?? 0,
       reviewCount: profileRes.reputation?.reviewCount ?? 0,
+      requestHistory: profileRes.metrics?.requestHistory ?? [],
     });
+    setHasLoadedMetrics(true);
+    setMetricsError(false);
+  };
+
+  const loadClientMetrics = async (jwt: string) => {
+    try {
+      const profileRes = await getClientProfile(jwt);
+      applyClientMetrics(profileRes);
+      await refreshLoginProfile(profileRes);
+    } catch (error) {
+      setMetricsError(true);
+      console.error("Error loading client metrics:", error);
+    }
   };
 
   useEffect(() => {
@@ -109,11 +155,7 @@ export default function HomePage() {
 
       try {
         setLoading(true);
-
-        const profileRes = await getClientProfile(jwt);
-        applyClientMetrics(profileRes);
-
-        await refreshLoginProfile(profileRes);
+        await loadClientMetrics(jwt);
 
         const res = await getMyRequests(jwt);
         if (res.ok) {
@@ -188,10 +230,9 @@ export default function HomePage() {
         const fetchData = async () => {
           if (!jwt) return;
           try {
-            const [requestsRes, ordersRes, profileRes] = await Promise.all([
+            const [requestsRes, ordersRes] = await Promise.all([
               getMyRequests(jwt, "sent"),
               getMyClientOrders(jwt),
-              getClientProfile(jwt),
             ]);
             if (requestsRes.ok) {
               setRequests(requestsRes.data.requests);
@@ -223,8 +264,7 @@ export default function HomePage() {
             if (ordersRes.ok) {
               setOrders(ordersRes.data.orders);
             }
-            applyClientMetrics(profileRes);
-            await refreshLoginProfile(profileRes);
+            await loadClientMetrics(jwt);
           } catch (error) {
             console.error("Error refreshing data:", error);
           }
@@ -382,6 +422,22 @@ export default function HomePage() {
     }
   };
 
+  const showMetricsFallback = metricsError && !hasLoadedMetrics;
+  const requestHistoryMaxCount = Math.max(
+    ...metrics.requestHistory.map((entry) => entry.count),
+    1,
+  );
+  const requestHistoryEntries: RequestHistoryEntry[] =
+    metrics.requestHistory.length > 0
+      ? metrics.requestHistory
+      : [
+          { month: "", count: 0 },
+          { month: "", count: 0 },
+          { month: "", count: 0 },
+          { month: "", count: 0 },
+          { month: "", count: 0 },
+        ];
+
   return (
     <div
       className={`${styles.pageWrapper} ${
@@ -439,10 +495,37 @@ export default function HomePage() {
             <h3 className={styles.title}>Mis Métricas</h3>
             <div className={styles.metricsGrid}>
               <div className={styles.metricCardPurple}>
-                <div className={styles.metricIconWrap}>
-                  <IconsApp.Document color="#5e56b2" />
+                <div className={styles.metricChartHeader}>
+                  <div className={styles.metricIconWrap}>
+                    <IconsApp.Document color="#5e56b2" />
+                  </div>
                 </div>
-                <h4 className={styles.metricBigNum}>{metrics.requestsCount}</h4>
+                <div className={styles.metricChartArea}>
+                  {showMetricsFallback ? (
+                    <div className={styles.metricChartEmpty}>--</div>
+                  ) : (
+                    requestHistoryEntries.map((entry, index) => {
+                      const heightPercent = (entry.count / requestHistoryMaxCount) * 100;
+
+                      return (
+                        <div key={`${entry.month}-${index}`} className={styles.metricBarGroup}>
+                          <div className={styles.metricBarTrack}>
+                            <div
+                              className={styles.metricBarFill}
+                              style={{ height: `${Math.max(heightPercent, entry.count > 0 ? 18 : 0)}%` }}
+                            />
+                          </div>
+                          <span className={styles.metricBarLabel}>
+                            {entry.month ? formatMetricMonthLabel(entry.month) : "-"}
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+                <h4 className={styles.metricBigNum}>
+                  {showMetricsFallback ? "--" : metrics.requestsCount}
+                </h4>
                 <p className={styles.metricSmallText}>Consultas realizadas</p>
               </div>
 
@@ -450,7 +533,9 @@ export default function HomePage() {
                 <div className={styles.metricIconWrap}>
                   <IconsApp.Document color="#1a1a3d" />
                 </div>
-                <h4 className={styles.metricBigNum}>{metrics.quotesReceivedCount}</h4>
+                <h4 className={styles.metricBigNum}>
+                  {showMetricsFallback ? "--" : metrics.quotesReceivedCount}
+                </h4>
                 <p className={styles.metricSmallText}>Cotizaciones recibidas</p>
               </div>
 
@@ -458,18 +543,24 @@ export default function HomePage() {
                 <div className={styles.metricIconWrap}>
                   <IconsApp.Chart />
                 </div>
-                <h4 className={styles.metricBigNum}>{metrics.ordersCount}</h4>
+                <h4 className={styles.metricBigNum}>
+                  {showMetricsFallback ? "--" : metrics.ordersCount}
+                </h4>
                 <p className={styles.metricSmallText}>Compras realizadas</p>
               </div>
 
               <div className={styles.metricCardOrange}>
                 <div className={styles.stars}>
-                  <StarRating rating={metrics.averageRating} />
+                  <StarRating rating={showMetricsFallback ? 0 : metrics.averageRating} />
                 </div>
-                <h4 className={styles.smallNum}>{metrics.averageRating.toFixed(1)}</h4>
+                <h4 className={styles.smallNum}>
+                  {showMetricsFallback ? "--" : metrics.averageRating.toFixed(1)}
+                </h4>
                 <p className={styles.metricSmallText}>Tu reputación</p>
                 <p className={styles.metricMetaText}>
-                  {metrics.reviewCount} calificacion{metrics.reviewCount === 1 ? "" : "es"}
+                  {showMetricsFallback
+                    ? "No se pudieron cargar"
+                    : `${metrics.reviewCount} calificacion${metrics.reviewCount === 1 ? "" : "es"}`}
                 </p>
               </div>
             </div>

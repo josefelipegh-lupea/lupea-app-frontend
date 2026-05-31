@@ -133,8 +133,10 @@ export default function RequestPage() {
 
       if (res.ok) {
         clearDraft();
-        await refreshProfile();
-        await refreshLoginProfile();
+        const refreshedProfile = await refreshProfile();
+        if (refreshedProfile) {
+          await refreshLoginProfile(refreshedProfile);
+        }
         toast.success("¡Consulta enviada con éxito!");
         setTimeout(() => router.push("/home/user"), 1500);
       }
