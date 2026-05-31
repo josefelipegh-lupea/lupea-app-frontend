@@ -251,6 +251,7 @@
 
 .metricCardBlue {
   background-color: #eef3ff;
+  min-height: 240px;
 }
 
 .metricCardOrange {
@@ -266,22 +267,6 @@
 
 .metricCardGreen {
   background-color: #eaf8f1;
-}
-
-.metricIconWrap {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.7);
-}
-
-.metricChartHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .metricChartArea {
@@ -310,7 +295,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
+}
+
+.metricBarValue {
+  min-height: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5c50bf;
 }
 
 .metricBarTrack {
@@ -327,6 +319,11 @@
   border-radius: 999px;
   background: linear-gradient(180deg, #7567d7 0%, #5c50bf 100%);
   box-shadow: 0 8px 16px rgba(92, 80, 191, 0.18);
+}
+
+.metricBarFillBlue {
+  background: linear-gradient(180deg, #698df0 0%, #3f64cb 100%);
+  box-shadow: 0 8px 16px rgba(63, 100, 203, 0.18);
 }
 
 .metricBarLabel {

@@ -33,6 +33,10 @@ export type ClientProfileResponse = {
       month: string;
       count: number;
     }>;
+    quoteHistory?: Array<{
+      month: string;
+      count: number;
+    }>;
   };
   reputation?: {
     averageRating: number;

@@ -43,10 +43,8 @@ interface ClientHomeMetrics {
   ordersCount: number;
   averageRating: number;
   reviewCount: number;
-  requestHistory: Array<{
-    month: string;
-    count: number;
-  }>;
+  requestHistory: RequestHistoryEntry[];
+  quoteHistory: RequestHistoryEntry[];
 }
 
 interface RequestHistoryEntry {
@@ -94,6 +92,7 @@ export default function HomePage() {
     averageRating: 0,
     reviewCount: 0,
     requestHistory: [],
+    quoteHistory: [],
   });
   const [hasLoadedMetrics, setHasLoadedMetrics] = useState(false);
   const [metricsError, setMetricsError] = useState(false);
@@ -133,6 +132,7 @@ export default function HomePage() {
       averageRating: profileRes.reputation?.averageRating ?? 0,
       reviewCount: profileRes.reputation?.reviewCount ?? 0,
       requestHistory: profileRes.metrics?.requestHistory ?? [],
+      quoteHistory: profileRes.metrics?.quoteHistory ?? [],
     });
     setHasLoadedMetrics(true);
     setMetricsError(false);
@@ -427,16 +427,52 @@ export default function HomePage() {
     ...metrics.requestHistory.map((entry) => entry.count),
     1,
   );
+  const emptyHistoryEntries: RequestHistoryEntry[] = [
+    { month: "", count: 0 },
+    { month: "", count: 0 },
+    { month: "", count: 0 },
+    { month: "", count: 0 },
+    { month: "", count: 0 },
+  ];
   const requestHistoryEntries: RequestHistoryEntry[] =
-    metrics.requestHistory.length > 0
-      ? metrics.requestHistory
-      : [
-          { month: "", count: 0 },
-          { month: "", count: 0 },
-          { month: "", count: 0 },
-          { month: "", count: 0 },
-          { month: "", count: 0 },
-        ];
+    metrics.requestHistory.length > 0 ? metrics.requestHistory : emptyHistoryEntries;
+  const quoteHistoryEntries: RequestHistoryEntry[] =
+    metrics.quoteHistory.length > 0 ? metrics.quoteHistory : emptyHistoryEntries;
+  const quoteHistoryMaxCount = Math.max(
+    ...metrics.quoteHistory.map((entry) => entry.count),
+    1,
+  );
+
+  const renderMetricChart = (
+    entries: RequestHistoryEntry[],
+    maxCount: number,
+    variant: "purple" | "blue",
+  ) => {
+    if (showMetricsFallback) {
+      return <div className={styles.metricChartEmpty}>--</div>;
+    }
+
+    return entries.map((entry, index) => {
+      const heightPercent = (entry.count / maxCount) * 100;
+
+      return (
+        <div key={`${variant}-${entry.month}-${index}`} className={styles.metricBarGroup}>
+          <span className={styles.metricBarValue}>{entry.count}</span>
+          <div className={styles.metricBarTrack}>
+            <div
+              className={`${styles.metricBarFill} ${
+                variant === "blue" ? styles.metricBarFillBlue : ""
+              }`}
+              style={{ height: `${Math.max(heightPercent, entry.count > 0 ? 18 : 0)}%` }}
+            />
+          </div>
+          <span className={styles.metricBarLabel}>
+            {entry.month ? formatMetricMonthLabel(entry.month) : "-"}
+          </span>
+        </div>
+      );
+    });
+  };
 
   return (
     <div
@@ -495,32 +531,11 @@ export default function HomePage() {
             <h3 className={styles.title}>Mis Métricas</h3>
             <div className={styles.metricsGrid}>
               <div className={styles.metricCardPurple}>
-                <div className={styles.metricChartHeader}>
-                  <div className={styles.metricIconWrap}>
-                    <IconsApp.Document color="#5e56b2" />
-                  </div>
-                </div>
                 <div className={styles.metricChartArea}>
-                  {showMetricsFallback ? (
-                    <div className={styles.metricChartEmpty}>--</div>
-                  ) : (
-                    requestHistoryEntries.map((entry, index) => {
-                      const heightPercent = (entry.count / requestHistoryMaxCount) * 100;
-
-                      return (
-                        <div key={`${entry.month}-${index}`} className={styles.metricBarGroup}>
-                          <div className={styles.metricBarTrack}>
-                            <div
-                              className={styles.metricBarFill}
-                              style={{ height: `${Math.max(heightPercent, entry.count > 0 ? 18 : 0)}%` }}
-                            />
-                          </div>
-                          <span className={styles.metricBarLabel}>
-                            {entry.month ? formatMetricMonthLabel(entry.month) : "-"}
-                          </span>
-                        </div>
-                      );
-                    })
+                  {renderMetricChart(
+                    requestHistoryEntries,
+                    requestHistoryMaxCount,
+                    "purple",
                   )}
                 </div>
                 <h4 className={styles.metricBigNum}>
@@ -530,8 +545,12 @@ export default function HomePage() {
               </div>
 
               <div className={styles.metricCardBlue}>
-                <div className={styles.metricIconWrap}>
-                  <IconsApp.Document color="#1a1a3d" />
+                <div className={styles.metricChartArea}>
+                  {renderMetricChart(
+                    quoteHistoryEntries,
+                    quoteHistoryMaxCount,
+                    "blue",
+                  )}
                 </div>
                 <h4 className={styles.metricBigNum}>
                   {showMetricsFallback ? "--" : metrics.quotesReceivedCount}
