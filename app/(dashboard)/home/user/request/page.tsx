@@ -7,7 +7,6 @@ import { useAuth } from "@/context/AuthContext";
 import {
   getBrands,
   getClientVehicles,
-  getEngineTypes,
   Vehicle,
   VehicleItem,
 } from "@/app/lib/api/client/vehicle";
@@ -41,7 +40,6 @@ export default function RequestPage() {
   const [savedLocations, setSavedLocations] = useState<Location[]>([]);
   const [userVehicles, setUserVehicles] = useState<Vehicle[]>([]);
   const [brands, setBrands] = useState<VehicleItem[]>([]);
-  const [engines, setEngines] = useState<VehicleItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const { isExpanded } = useSidebar();
@@ -170,17 +168,15 @@ export default function RequestPage() {
       if (!jwt) return;
       try {
         setLoading(true);
-        const [vRes, bRes, eRes, cRes, lRes, sRes] = await Promise.all([
+        const [vRes, bRes, cRes, lRes, sRes] = await Promise.all([
           getClientVehicles(jwt),
           getBrands(jwt),
-          getEngineTypes(jwt),
           getCategories(),
           getClientLocations(jwt),
           getStates(jwt),
         ]);
         setUserVehicles(vRes.data || []);
         setBrands(bRes.data || []);
-        setEngines(eRes.data || []);
         setCategories(cRes.data || []);
         setSavedLocations(lRes.data || []);
         setAllStates(sRes.data || []);
@@ -209,7 +205,6 @@ export default function RequestPage() {
             jwt={jwt!}
             userVehicles={userVehicles}
             brands={brands}
-            engines={engines}
             formData={formData}
             setFormData={setFormData}
             loadingInitial={loading}

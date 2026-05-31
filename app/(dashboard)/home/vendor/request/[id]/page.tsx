@@ -142,7 +142,6 @@ export default function RequestDetailPage() {
                 <div className={styles.vehicleDetails}>
                   <h4 className={styles.vehicleName}>{vehicleInfo}</h4>
                   <p className={styles.vehicleExtra}>
-                    {request.request.vehicle.version} •{" "}
                     {request.request.vehicle.engine}
                   </p>
                 </div>

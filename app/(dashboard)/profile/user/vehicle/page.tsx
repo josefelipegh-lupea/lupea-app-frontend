@@ -14,6 +14,7 @@ import {
   getBrands,
   getClientVehicles,
   getEngineTypes,
+  getModelEnginesByModel,
   getModelsByBrand,
   updateVehicle,
   Vehicle,
@@ -21,18 +22,6 @@ import {
 } from "@/app/lib/api/client/vehicle";
 import StepTransition from "@/components/provider-onboarding/step-transition/StepTransition";
 import { ConfirmModal } from "@/components/confirm-modal/ConfirmModal";
-
-// Datos estáticos para versiones (puedes mover esto a un archivo de constantes)
-export const VERSIONS = [
-  "LE",
-  "SE",
-  "XSE",
-  "SR",
-  "SRV",
-  "Limited",
-  "Touring",
-  "Standard",
-];
 
 const VehiclesPage = () => {
   const { isExpanded } = useSidebar();
@@ -46,6 +35,8 @@ const VehiclesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [loadingEngines, setLoadingEngines] = useState(false);
+  const [usingEngineTypeFallback, setUsingEngineTypeFallback] = useState(false);
 
   const [brands, setBrands] = useState<VehicleItem[]>([]);
   const [models, setModels] = useState<VehicleItem[]>([]);
@@ -78,17 +69,13 @@ const VehiclesPage = () => {
     }
   };
 
-  // 2. Carga inicial de Marcas y Motores
+  // 2. Carga inicial de Marcas
   useEffect(() => {
     if (!jwt) return;
     const loadInitialData = async () => {
       try {
-        const [brandsRes, enginesRes] = await Promise.all([
-          getBrands(jwt),
-          getEngineTypes(jwt),
-        ]);
+        const brandsRes = await getBrands(jwt);
         setBrands(brandsRes.data);
-        setEngines(enginesRes.data);
       } catch (error) {
         console.error("Error inicial:", error);
       }
@@ -101,6 +88,7 @@ const VehiclesPage = () => {
   useEffect(() => {
     if (!jwt || !formData.brand) {
       setModels([]);
+      setEngines([]);
       return;
     }
 
@@ -111,7 +99,7 @@ const VehiclesPage = () => {
           (b) => b.documentId === formData.brand
         );
         if (selectedBrand) {
-          const res = await getModelsByBrand(jwt, selectedBrand.name);
+          const res = await getModelsByBrand(jwt, selectedBrand.documentId);
           setModels(res.data || []);
         }
       } catch (error) {
@@ -123,6 +111,47 @@ const VehiclesPage = () => {
     loadModels();
   }, [formData.brand, jwt, brands]);
 
+  useEffect(() => {
+    if (!jwt || !formData.model) {
+      setEngines([]);
+      setUsingEngineTypeFallback(false);
+      return;
+    }
+
+    const loadEngines = async () => {
+      setLoadingEngines(true);
+      try {
+        const res = await getModelEnginesByModel(jwt, formData.model);
+        const fetchedEngines = res.data || [];
+
+        if (fetchedEngines.length > 0) {
+          setEngines(fetchedEngines);
+          setUsingEngineTypeFallback(false);
+          return;
+        }
+
+        const fallbackRes = await getEngineTypes(jwt);
+        setEngines(fallbackRes.data || []);
+        setUsingEngineTypeFallback(true);
+      } catch (error) {
+        console.error("Error motores:", error);
+        try {
+          const fallbackRes = await getEngineTypes(jwt);
+          setEngines(fallbackRes.data || []);
+          setUsingEngineTypeFallback(true);
+        } catch (fallbackError) {
+          console.error("Error fallback motores:", fallbackError);
+          setEngines([]);
+          setUsingEngineTypeFallback(false);
+        }
+      } finally {
+        setLoadingEngines(false);
+      }
+    };
+
+    loadEngines();
+  }, [formData.model, jwt]);
+
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
 
@@ -131,21 +160,19 @@ const VehiclesPage = () => {
 
       if (name === "brand") {
         newData.model = "";
+        newData.year = "";
+        newData.engine = "";
         newData.version = "";
-        newData.year = "";
-        newData.engine = "";
-      }
-      if (name === "version") {
-        newData.year = "";
-        newData.engine = "";
+        setUsingEngineTypeFallback(false);
       }
       if (name === "model") {
-        newData.version = "";
         newData.year = "";
         newData.engine = "";
+        newData.version = "";
+        setUsingEngineTypeFallback(false);
       }
-      if (name === "year") {
-        newData.engine = "";
+      if (name === "engine") {
+        newData.version = engines.find((engineItem) => engineItem.documentId === value)?.name || "";
       }
 
       return newData;
@@ -155,7 +182,6 @@ const VehiclesPage = () => {
   const isFormValid =
     formData.brand &&
     formData.model &&
-    formData.version &&
     formData.year &&
     formData.engine;
 
@@ -168,11 +194,14 @@ const VehiclesPage = () => {
       const engineObj = engines.find((e) => e.documentId === formData.engine);
 
       const payload = {
-        brand: brandObj?.name || formData.brand,
-        model: modelObj?.name || formData.model,
+        brandId: brandObj?.id,
+        modelId: modelObj?.id,
         engine: engineObj?.name || formData.engine,
-        version: formData.version,
+        version: engineObj?.name || formData.version || "-",
         year: Number(formData.year),
+        ...(usingEngineTypeFallback
+          ? { engineTypeId: engineObj?.id }
+          : { modelEngineId: engineObj?.id }),
       };
 
       if (editingId) {
@@ -210,6 +239,9 @@ const VehiclesPage = () => {
     setCurrentStep(0);
     setEditingId(null);
     setFormData({ brand: "", model: "", version: "", year: "", engine: "" });
+    setModels([]);
+    setEngines([]);
+    setUsingEngineTypeFallback(false);
   };
 
   const handleEditClick = async (vehicle: Vehicle) => {
@@ -220,26 +252,53 @@ const VehiclesPage = () => {
     const currentJwt = jwt || localStorage.getItem("jwt");
     if (!currentJwt) return;
 
-    // 2. Traducir nombres de Marca y Motor a IDs (ya están en memoria)
-    const brandObj = brands.find((b) => b.name === vehicle.brand);
-    const engineId =
-      engines.find((e) => e.name === vehicle.engine)?.documentId || "";
+    const brandObj = vehicle.brandMaster
+      ? brands.find((b) => b.documentId === vehicle.brandMaster?.documentId)
+      : brands.find((b) => b.name === vehicle.brand);
 
     if (brandObj) {
       setLoadingModels(true);
       try {
-        // 3. Cargar modelos de forma imperativa para poder buscar el ID del modelo actual
-        const res = await getModelsByBrand(currentJwt, brandObj.name);
+        const res = await getModelsByBrand(currentJwt, brandObj.documentId);
         const fetchedModels: VehicleItem[] = res.data || [];
-
-        // Actualizamos el estado global de modelos para que el select tenga opciones
         setModels(fetchedModels);
+        const modelId = vehicle.modelMaster
+          ? fetchedModels.find(
+              (m) => m.documentId === vehicle.modelMaster?.documentId
+            )?.documentId || ""
+          : fetchedModels.find((m) => m.name === vehicle.model)?.documentId || "";
 
-        // 4. Buscar el ID del modelo dentro de la lista recién traída
-        const modelId =
-          fetchedModels.find((m) => m.name === vehicle.model)?.documentId || "";
+        let engineId = "";
+        if (modelId) {
+          setLoadingEngines(true);
+          const engineRes = await getModelEnginesByModel(currentJwt, modelId);
+          const fetchedEngines: VehicleItem[] = engineRes.data || [];
 
-        // 5. Seteamos el formulario con todos los IDs encontrados
+          if (fetchedEngines.length > 0) {
+            setEngines(fetchedEngines);
+            setUsingEngineTypeFallback(false);
+            engineId = vehicle.modelEngineMaster
+              ? fetchedEngines.find(
+                  (engineItem) =>
+                    engineItem.documentId === vehicle.modelEngineMaster?.documentId
+                )?.documentId || ""
+              : fetchedEngines.find((engineItem) => engineItem.name === vehicle.engine)
+                  ?.documentId || "";
+          } else {
+            const fallbackRes = await getEngineTypes(currentJwt);
+            const fallbackEngines: VehicleItem[] = fallbackRes.data || [];
+            setEngines(fallbackEngines);
+            setUsingEngineTypeFallback(true);
+            engineId = vehicle.engineTypeMaster
+              ? fallbackEngines.find(
+                  (engineItem) =>
+                    engineItem.documentId === vehicle.engineTypeMaster?.documentId
+                )?.documentId || ""
+              : fallbackEngines.find((engineItem) => engineItem.name === vehicle.engine)
+                  ?.documentId || "";
+          }
+        }
+
         setFormData({
           brand: brandObj.documentId,
           model: modelId,
@@ -252,6 +311,7 @@ const VehiclesPage = () => {
         console.error(error);
       } finally {
         setLoadingModels(false);
+        setLoadingEngines(false);
       }
     }
 
@@ -314,8 +374,7 @@ const VehiclesPage = () => {
                                 {vehicle.brand} {vehicle.model}
                               </h3>
                               <p>
-                                {vehicle.year} • {vehicle.version || "N/A"} •{" "}
-                                {vehicle.engine}
+                                {vehicle.year} • {vehicle.engine}
                               </p>
                             </div>
                             <IconsApp.RightArrow />
@@ -388,30 +447,6 @@ const VehiclesPage = () => {
                     </div>
                   </div>
 
-                  {/* VERSIÓN (Depende de Marca y Modelo) */}
-                  <div className={styles.inputContainer}>
-                    <label className={styles.label}>Versión</label>
-                    <div className={styles.selectWrapper}>
-                      <select
-                        name="version"
-                        value={formData.version}
-                        onChange={handleChange}
-                        className={styles.input}
-                        disabled={!formData.model}
-                      >
-                        <option value="">Seleccionar Versión</option>
-                        {VERSIONS.map((v) => (
-                          <option key={v} value={v}>
-                            {v}
-                          </option>
-                        ))}
-                      </select>
-                      <div className={styles.iconOverlay}>
-                        <IconsApp.DownArrow />
-                      </div>
-                    </div>
-                  </div>
-
                   <div className={styles.row}>
                     {/* AÑO */}
                     <div className={styles.inputContainer}>
@@ -446,9 +481,15 @@ const VehiclesPage = () => {
                           value={formData.engine}
                           onChange={handleChange}
                           className={styles.input}
-                          disabled={!formData.year}
+                          disabled={!formData.model || loadingEngines || engines.length === 0}
                         >
-                          <option value="">Motor</option>
+                          <option value="">
+                            {loadingEngines
+                              ? "Cargando..."
+                              : engines.length > 0
+                                ? "Seleccionar Motor"
+                                : "Sin motores registrados"}
+                          </option>
                           {engines.map((e) => (
                             <option key={e.documentId} value={e.documentId}>
                               {e.name}

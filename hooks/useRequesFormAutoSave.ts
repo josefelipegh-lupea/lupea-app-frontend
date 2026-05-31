@@ -20,7 +20,7 @@ export interface QuoteRequestFormData {
   model: string;
   year: number;
   engine: string;
-  version: string;
+  version?: string;
   deliveryCity: string;
   deliveryMethod: string;
   extraInfo: string;

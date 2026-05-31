@@ -7,18 +7,18 @@ import {
   Vehicle,
   VehicleItem,
   createVehicle,
+  getEngineTypes,
+  getModelEnginesByModel,
   getModelsByBrand,
 } from "@/app/lib/api/client/vehicle";
 import StepTransition from "../provider-onboarding/step-transition/StepTransition";
 import toast from "react-hot-toast";
-import { VERSIONS } from "@/app/(dashboard)/profile/user/vehicle/page";
 import { QuoteRequestFormData } from "@/hooks/useRequesFormAutoSave";
 
 interface VehicleStepProps {
   jwt: string;
   userVehicles: Vehicle[];
   brands: VehicleItem[];
-  engines: VehicleItem[];
   formData: QuoteRequestFormData;
   setFormData: React.Dispatch<React.SetStateAction<QuoteRequestFormData>>;
   loadingInitial: boolean;
@@ -34,7 +34,6 @@ export default function VehicleStep({
   jwt,
   userVehicles,
   brands,
-  engines,
   formData,
   setFormData,
   loadingInitial,
@@ -47,6 +46,8 @@ export default function VehicleStep({
 }: VehicleStepProps) {
   const years = Array.from({ length: 30 }, (_, i) => (2025 - i).toString());
   const [models, setModels] = useState<VehicleItem[]>([]);
+  const [engineOptions, setEngineOptions] = useState<VehicleItem[]>([]);
+  const [usingEngineTypeFallback, setUsingEngineTypeFallback] = useState(false);
 
   const listRef = useRef<HTMLDivElement>(null);
   const [showScrollArrow, setShowScrollArrow] = useState(false);
@@ -67,7 +68,10 @@ export default function VehicleStep({
       model: "",
       year: 0,
       engine: "",
+      version: "",
     }));
+    setEngineOptions([]);
+    setUsingEngineTypeFallback(false);
 
     if (contentRef.current) {
       contentRef.current.scrollTo({
@@ -90,14 +94,45 @@ export default function VehicleStep({
   };
 
   const selectVehicleFromList = async (vehicle: Vehicle) => {
-    const brandObj = brands.find((b) => b.name === vehicle.brand);
+    const brandObj = vehicle.brandMaster
+      ? brands.find((b) => b.documentId === vehicle.brandMaster?.documentId)
+      : brands.find((b) => b.name === vehicle.brand);
     if (brandObj) {
-      const res = await getModelsByBrand(jwt, brandObj.name);
+      const res = await getModelsByBrand(jwt, brandObj.documentId);
       const fetchedModels = res.data || [];
       setModels(fetchedModels);
 
-      const modelObj = fetchedModels.find((m) => m.name === vehicle.model);
-      const engineObj = engines.find((e) => e.name === vehicle.engine);
+      const modelObj = vehicle.modelMaster
+        ? fetchedModels.find((m) => m.documentId === vehicle.modelMaster?.documentId)
+        : fetchedModels.find((m) => m.name === vehicle.model);
+
+      let engineObj: VehicleItem | undefined;
+      if (modelObj) {
+        const engineRes = await getModelEnginesByModel(jwt, modelObj.documentId);
+        const fetchedEngines = engineRes.data || [];
+
+        if (fetchedEngines.length > 0) {
+          setEngineOptions(fetchedEngines);
+          setUsingEngineTypeFallback(false);
+          engineObj = vehicle.modelEngineMaster
+            ? fetchedEngines.find(
+                (engineItem) =>
+                  engineItem.documentId === vehicle.modelEngineMaster?.documentId
+              )
+            : fetchedEngines.find((engineItem) => engineItem.name === vehicle.engine);
+        } else {
+          const fallbackRes = await getEngineTypes(jwt);
+          const fallbackEngines = fallbackRes.data || [];
+          setEngineOptions(fallbackEngines);
+          setUsingEngineTypeFallback(true);
+          engineObj = vehicle.engineTypeMaster
+            ? fallbackEngines.find(
+                (engineItem) =>
+                  engineItem.documentId === vehicle.engineTypeMaster?.documentId
+              )
+            : fallbackEngines.find((engineItem) => engineItem.name === vehicle.engine);
+        }
+      }
 
       const updatedData: QuoteRequestFormData = {
         ...formData,
@@ -106,7 +141,7 @@ export default function VehicleStep({
         model: modelObj?.documentId || "",
         year: vehicle.year,
         engine: engineObj?.documentId || "",
-        version: vehicle.version || "-",
+        version: vehicle.version || vehicle.engine || "-",
       };
 
       setFormData(updatedData);
@@ -124,20 +159,76 @@ export default function VehicleStep({
       model: "",
       year: 0,
       engine: "",
+      version: "",
     });
     setModels([]);
+    setEngineOptions([]);
+    setUsingEngineTypeFallback(false);
     if (!brandId) return;
     const selectedBrand = brands.find((b) => b.documentId === brandId);
     if (selectedBrand) {
-      const res = await getModelsByBrand(jwt, selectedBrand.name);
+      const res = await getModelsByBrand(jwt, selectedBrand.documentId);
       setModels(res.data || []);
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const nextData = { ...formData, [name]: value };
+
+    if (name === "model") {
+      nextData.year = 0;
+      nextData.engine = "";
+      nextData.version = "";
+      setEngineOptions([]);
+      setUsingEngineTypeFallback(false);
+    }
+
+    if (name === "engine") {
+      const engineObj = engineOptions.find((engineItem) => engineItem.documentId === value);
+      nextData.version = engineObj?.name || "";
+    }
+
+    setFormData(nextData);
   };
+
+  useEffect(() => {
+    if (!jwt || !formData.model) {
+      setEngineOptions([]);
+      setUsingEngineTypeFallback(false);
+      return;
+    }
+
+    const loadEngineOptions = async () => {
+      try {
+        const res = await getModelEnginesByModel(jwt, formData.model);
+        const fetchedEngines = res.data || [];
+
+        if (fetchedEngines.length > 0) {
+          setEngineOptions(fetchedEngines);
+          setUsingEngineTypeFallback(false);
+          return;
+        }
+
+        const fallbackRes = await getEngineTypes(jwt);
+        setEngineOptions(fallbackRes.data || []);
+        setUsingEngineTypeFallback(true);
+      } catch (error) {
+        console.error(error);
+        try {
+          const fallbackRes = await getEngineTypes(jwt);
+          setEngineOptions(fallbackRes.data || []);
+          setUsingEngineTypeFallback(true);
+        } catch (fallbackError) {
+          console.error(fallbackError);
+          setEngineOptions([]);
+          setUsingEngineTypeFallback(false);
+        }
+      }
+    };
+
+    loadEngineOptions();
+  }, [formData.model, jwt]);
 
   const checkScroll = () => {
     const el = listRef.current;
@@ -181,14 +272,17 @@ export default function VehicleStep({
     try {
       const brandObj = brands.find((b) => b.documentId === formData.brand);
       const modelObj = models.find((m) => m.documentId === formData.model);
-      const engineObj = engines.find((e) => e.documentId === formData.engine);
+      const engineObj = engineOptions.find((e) => e.documentId === formData.engine);
 
       const payload = {
-        brand: brandObj?.name || formData.brand,
-        model: modelObj?.name || formData.model,
+        brandId: brandObj?.id,
+        modelId: modelObj?.id,
         engine: engineObj?.name || formData.engine,
-        version: formData.version || "-",
+        version: engineObj?.name || formData.version || "-",
         year: Number(formData.year),
+        ...(usingEngineTypeFallback
+          ? { engineTypeId: engineObj?.id }
+          : { modelEngineId: engineObj?.id }),
       };
 
       const res = await createVehicle(jwt, payload);
@@ -294,7 +388,7 @@ export default function VehicleStep({
                               {v.brand} {v.model} {v.year}
                             </span>
                             <span className={styles.vDetails}>
-                              {v.version} {v.engine}
+                              {v.engine}
                             </span>
                           </div>
                           <div className={styles.checkCircle}>
@@ -379,32 +473,6 @@ export default function VehicleStep({
                 </div>
               </div>
 
-              <div className={styles.field}>
-                <label>Versión</label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    name="version"
-                    value={formData.version}
-                    onChange={handleChange}
-                    disabled={!formData.model}
-                  >
-                    <option value="">
-                      {formData.brand
-                        ? "Seleccionar Versión"
-                        : "Primero elija el modelo"}
-                    </option>
-                    {VERSIONS.map((v) => (
-                      <option key={v} value={v}>
-                        {v}
-                      </option>
-                    ))}
-                  </select>
-                  <div className={styles.iconOverlay}>
-                    <IconsApp.DownArrow />
-                  </div>
-                </div>
-              </div>
-
               <div className={styles.row}>
                 <div className={styles.field}>
                   <label>Año <span className={styles.required}>*</span></label>
@@ -434,10 +502,14 @@ export default function VehicleStep({
                       name="engine"
                       value={formData.engine}
                       onChange={handleChange}
-                      disabled={!formData.year}
+                      disabled={!formData.model || engineOptions.length === 0}
                     >
-                      <option value="">Seleccionar</option>
-                      {engines.map((e) => (
+                      <option value="">
+                        {engineOptions.length > 0
+                          ? "Seleccionar Motor"
+                          : "Sin motores registrados"}
+                      </option>
+                      {engineOptions.map((e) => (
                         <option key={e.documentId} value={e.documentId}>
                           {e.name}
                         </option>

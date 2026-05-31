@@ -107,7 +107,7 @@ const QuoteDetailCard: React.FC<QuoteDetailCardProps> = ({
               {quote.request.vehicle.year}
             </span>
             <span className={styles.vehicleVersion}>
-              {quote.request.vehicle.version} • {quote.request.vehicle.engine}
+              {quote.request.vehicle.engine}
             </span>
           </div>
         </div>
