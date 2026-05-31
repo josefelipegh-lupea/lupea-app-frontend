@@ -5,8 +5,8 @@ export const DELIVERY_METHODS = ["retiro", "delivery"] as const;
 // Esquema para un repuesto individual
 const sparePartSchema = z.object({
   category: z.string().min(1, "La categoría es obligatoria"),
+  subcategory: z.string().min(1, "La subcategoría es obligatoria"),
   partName: z.string().min(1, "El nombre del repuesto es obligatorio"),
-  oemCode: z.string().optional(),
   quantity: z.number().min(1, "La cantidad debe ser al menos 1"),
   condition: z.string().min(1, "Selecciona una condición"),
 });

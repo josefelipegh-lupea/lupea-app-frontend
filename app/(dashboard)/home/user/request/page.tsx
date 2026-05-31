@@ -101,16 +101,19 @@ export default function RequestPage() {
     try {
       const itemsPayload = formData.spareParts.map((part) => {
         let foundCategoryId: number | undefined;
-        categories.forEach((cat) => {
-          const sub = cat.children?.find((s) => s.name === part.partName);
-          if (sub) foundCategoryId = sub.id;
-        });
+        const parentCategory = categories.find((cat) => cat.name === part.category);
+        const subcategory = parentCategory?.children?.find(
+          (sub) => sub.name === part.subcategory,
+        );
+
+        if (subcategory) {
+          foundCategoryId = subcategory.id;
+        }
 
         return {
           categoryId: foundCategoryId || 0,
           productName: part.partName,
           quantity: part.quantity,
-          oemCode: part.oemCode || "",
           conditionPreferred: part.condition,
           preferredBrand: part.condition === "original" ? "Original" : "",
           description: part.description || "",

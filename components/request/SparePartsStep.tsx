@@ -47,8 +47,8 @@ export default function SparePartsStep({
 
   const [localPart, setLocalPart] = useState<SparePart>({
     category: "",
+    subcategory: "",
     partName: "",
-    oemCode: "",
     quantity: 1,
     condition: "no_importa",
     description: "",
@@ -108,8 +108,8 @@ export default function SparePartsStep({
   const resetLocalForm = () => {
     setLocalPart({
       category: "",
+      subcategory: "",
       partName: "",
-      oemCode: "",
       quantity: 1,
       condition: "no_importa",
       description: "",
@@ -177,8 +177,8 @@ export default function SparePartsStep({
     const partToEdit = formData.spareParts[index];
     setLocalPart({
       category: partToEdit.category,
+      subcategory: partToEdit.subcategory,
       partName: partToEdit.partName,
-      oemCode: partToEdit.oemCode || "",
       quantity: partToEdit.quantity,
       condition: partToEdit.condition,
       description: partToEdit.description || "",
@@ -191,7 +191,9 @@ export default function SparePartsStep({
   };
 
   const handleAddSparePart = () => {
-    if (!localPart.partName || !localPart.category) return;
+    if (!localPart.partName || !localPart.category || !localPart.subcategory) {
+      return;
+    }
 
     let updatedParts: SparePart[];
 
@@ -227,7 +229,7 @@ export default function SparePartsStep({
     setLocalPart((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === "category" ? { partName: "" } : {}),
+      ...(name === "category" ? { subcategory: "" } : {}),
     }));
   };
 
@@ -320,7 +322,7 @@ export default function SparePartsStep({
                               {part.partName}
                             </span>
                             <span className={styles.vDetails}>
-                              {part.category} • x{part.quantity} •{" "}
+                              {part.category} / {part.subcategory} • x{part.quantity} •{" "}
                               {
                                 conditions.find((c) => c.id === part.condition)
                                   ?.label
@@ -394,18 +396,18 @@ export default function SparePartsStep({
               </div>
 
               <div className={styles.field}>
-                <label>Nombre del repuesto <span className={styles.required}>*</span></label>
+                <label>Subcategoría <span className={styles.required}>*</span></label>
                 <div className={styles.selectWrapper}>
                   <select
-                    name="partName"
-                    value={localPart.partName}
+                    name="subcategory"
+                    value={localPart.subcategory}
                     onChange={handleChange}
                     disabled={!localPart.category}
                   >
                     <option value="">
                       {!localPart.category
                         ? "Selecciona primero una categoría"
-                        : "Seleccionar Repuesto"}
+                        : "Seleccionar Subcategoría"}
                     </option>
                     {subCategories.map((sub) => (
                       <option key={sub.id} value={sub.name}>
@@ -421,13 +423,13 @@ export default function SparePartsStep({
 
               <div className={styles.rowSparParts}>
                 <div className={`${styles.field} ${styles.flex2}`}>
-                  <label>Referencia / OEM</label>
+                  <label>Nombre del repuesto <span className={styles.required}>*</span></label>
                   <input
                     type="text"
-                    name="oemCode"
-                    value={localPart.oemCode}
+                    name="partName"
+                    value={localPart.partName}
                     onChange={handleChange}
-                    placeholder="Opcional"
+                    placeholder="Ej: Bomba de agua"
                     className={styles.input}
                   />
                 </div>
@@ -548,7 +550,12 @@ export default function SparePartsStep({
                 type="button"
                 className={`${styles.addVehicleBtn} ${styles.addButtonMarginTop}`}
                 onClick={handleAddSparePart}
-                disabled={!localPart.partName || isUploading}
+                disabled={
+                  !localPart.category ||
+                  !localPart.subcategory ||
+                  !localPart.partName ||
+                  isUploading
+                }
               >
                 <div className={styles.addIconCircle}>
                   <IconsApp.PlusAddNew />
