@@ -258,17 +258,8 @@ export default function SparePartsStep({
         <div className={styles.iconBox}>
           <div className={styles.iconWrapper}>
             <IconsApp.Gear color="#f58220" />
-                  </div>
-                  {showScrollArrow && (
-                    <button
-                      type="button"
-                      className={styles.scrollIndicator}
-                      onClick={scrollToNextItem}
-                    >
-                      <IconsApp.DownArrow />
-                    </button>
-                  )}
-                </div>
+          </div>
+        </div>
         <h2 className={styles.cardTitle}>Datos del Repuesto</h2>
         {isCompleted && (
           <div className={styles.stepCompletedBadge}>
@@ -347,6 +338,15 @@ export default function SparePartsStep({
                       ))
                     )}
                   </div>
+                  {showScrollArrow && (
+                    <button
+                      type="button"
+                      className={styles.scrollIndicator}
+                      onClick={scrollToNextItem}
+                    >
+                      <IconsApp.DownArrow />
+                    </button>
+                  )}
                 </div>
               </div>
 
