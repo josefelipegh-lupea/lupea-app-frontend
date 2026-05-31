@@ -294,13 +294,13 @@ export default function ComparisonPage({ params }: PageProps) {
 
       if (res.ok && res.data.orders.length > 0) {
         setOrderSuccess(true);
-        toast.success("Orden generada con éxito");
+        toast.success("Compra realizada con exito");
         setTimeout(() => {
           router.push(`/home/user/orders/${res.data.orders[0].documentId}`);
         }, 1500);
       }
     } catch (error) {
-      toast.error("Error al generar las órdenes. Intenta de nuevo.");
+      toast.error("Error al procesar la compra. Intenta de nuevo.");
     } finally {
       setIsGenerating(false);
     }
@@ -577,7 +577,7 @@ export default function ComparisonPage({ params }: PageProps) {
           <div className={styles.stickyFooter}>
             {orderSuccess && (
               <div className={styles.successMessage}>
-                Órdenes generadas correctamente
+                Compra realizada correctamente
               </div>
             )}
             <p className={styles.footerCount}>
@@ -596,11 +596,11 @@ export default function ComparisonPage({ params }: PageProps) {
                 onClick={handleGenerateOrders}
                 disabled={isGenerating || selectedItems.size === 0}
               >
-                {isGenerating ? "Generando..." : "Comprar"}
+                {isGenerating ? "Procesando..." : "Comprar"}
               </Button>
             </div>
             <p className={styles.footerSub}>
-              Se generarán {selectedItems.size} órdenes de compra
+              Se procesara la compra de {selectedItems.size} ordenes
             </p>
           </div>
         </div>

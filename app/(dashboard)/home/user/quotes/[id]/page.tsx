@@ -106,13 +106,13 @@ const QuoteDetailPage: React.FC = () => {
 
       if (res.ok && res.data.orders.length > 0) {
         setOrderSuccess(true);
-        toast.success("Orden generada con éxito");
+        toast.success("Compra realizada con exito");
         setTimeout(() => {
           router.push(`/home/user/orders/${res.data.orders[0].documentId}`);
         }, 1500);
       }
     } catch (error) {
-      toast.error("Error al generar la orden. Intenta de nuevo.");
+      toast.error("Error al procesar la compra. Intenta de nuevo.");
     } finally {
       setIsGenerating(false);
     }
@@ -296,7 +296,7 @@ const QuoteDetailPage: React.FC = () => {
           <div className={styles.stickyFooter}>
             {orderSuccess && (
               <div className={styles.successMessage}>
-                Órden generada correctamente
+                Compra realizada correctamente
               </div>
             )}
             <p className={styles.footerCount}>
@@ -329,12 +329,12 @@ const QuoteDetailPage: React.FC = () => {
                   onClick={handleGenerateOrder}
                   disabled={isGenerating || selectedItems.size === 0}
                 >
-                  {isGenerating ? "Generando..." : "Comprar"}
+                  {isGenerating ? "Procesando..." : "Comprar"}
                 </Button>
               )}
             </div>
             {!isOrdered && (
-              <p className={styles.footerSub}>Se generará 1 orden de compra</p>
+              <p className={styles.footerSub}>Se procesara la compra de 1 orden</p>
             )}
           </div>
         </main>
