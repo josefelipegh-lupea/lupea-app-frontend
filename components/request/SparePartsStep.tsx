@@ -43,6 +43,7 @@ export default function SparePartsStep({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showScrollArrow, setShowScrollArrow] = useState(false);
 
   const [localPart, setLocalPart] = useState<SparePart>({
     category: "",
@@ -69,6 +70,26 @@ export default function SparePartsStep({
     if (cardRef.current) {
       cardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  };
+
+  const checkScroll = () => {
+    const el = listRef.current;
+    if (el) {
+      const isScrollable = el.scrollHeight > el.clientHeight;
+      const isAtBottom = el.scrollHeight - el.scrollTop <= el.clientHeight + 5;
+      setShowScrollArrow(isScrollable && !isAtBottom);
+    }
+  };
+
+  const scrollToNextItem = () => {
+    const el = listRef.current;
+    if (!el) return;
+    const items = el.querySelectorAll(`.${styles.sparePartItem}`);
+    if (!items.length) return;
+    const itemHeight = (items[0] as HTMLElement).offsetHeight;
+    const currentIndex = Math.round(el.scrollTop / itemHeight);
+    const nextIndex = Math.min(currentIndex + 1, items.length - 1);
+    el.scrollTo({ top: nextIndex * itemHeight, behavior: "smooth" });
   };
 
   const goToForm = () => {
@@ -217,6 +238,13 @@ export default function SparePartsStep({
     }));
   };
 
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => {
+      checkScroll();
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [formData.spareParts, showForm]);
+
   return (
     <section
       ref={(el) => {
@@ -230,8 +258,17 @@ export default function SparePartsStep({
         <div className={styles.iconBox}>
           <div className={styles.iconWrapper}>
             <IconsApp.Gear color="#f58220" />
-          </div>
-        </div>
+                  </div>
+                  {showScrollArrow && (
+                    <button
+                      type="button"
+                      className={styles.scrollIndicator}
+                      onClick={scrollToNextItem}
+                    >
+                      <IconsApp.DownArrow />
+                    </button>
+                  )}
+                </div>
         <h2 className={styles.cardTitle}>Datos del Repuesto</h2>
         {isCompleted && (
           <div className={styles.stepCompletedBadge}>
@@ -254,7 +291,7 @@ export default function SparePartsStep({
               <div className={styles.field}>
                 <label>Repuestos solicitados</label>
                 <div className={styles.listWrapper}>
-                  <div className={styles.vehicleList} ref={listRef}>
+                  <div className={styles.vehicleList} ref={listRef} onScroll={checkScroll}>
                     {formData.spareParts.length === 0 ? (
                       <div
                         className={styles.noVehicles}
