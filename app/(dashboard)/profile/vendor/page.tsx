@@ -72,7 +72,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
 export default function VendorProfilePage() {
   const [isNotifEnabled, setIsNotifEnabled] = useState(true);
   const { isExpanded } = useSidebar();
-  const { user, profile, loginProfile, logout, isLoading, refreshLoginProfile } = useAuth();
+  const { user, profile, loginProfile, logout, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -80,12 +80,6 @@ export default function VendorProfilePage() {
       router.replace("/login");
     }
   }, [user, isLoading, router]);
-
-  useEffect(() => {
-    if (user) {
-      refreshLoginProfile();
-    }
-  }, [user, refreshLoginProfile]);
 
   if (isLoading || !user || !profile) {
     return <div className={styles.pageWrapper}>Cargando perfil...</div>;

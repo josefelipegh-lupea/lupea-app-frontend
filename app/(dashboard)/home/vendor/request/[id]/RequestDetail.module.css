@@ -215,32 +215,6 @@
   margin: 0;
 }
 
-.criteriaGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.criteriaItem {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px;
-  background-color: #f8f8fc;
-  border-radius: 12px;
-}
-
-.criteriaLabel {
-  font-size: 12px;
-  color: #000;
-}
-
-.criteriaValue {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a3d;
-}
-
 .actionsContainer {
   display: flex;
   flex-direction: column;

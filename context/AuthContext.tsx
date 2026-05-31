@@ -18,6 +18,18 @@ import {
   ProviderProfile,
 } from "@/app/lib/api/vendor/vendorProfile";
 
+let providerProfileRequest: Promise<ProviderProfile> | null = null;
+
+const fetchProviderProfileOnce = (jwt: string) => {
+  if (!providerProfileRequest) {
+    providerProfileRequest = getProviderProfile(jwt).finally(() => {
+      providerProfileRequest = null;
+    });
+  }
+
+  return providerProfileRequest;
+};
+
 interface AuthContextType {
   user: LoginResponse["user"] | null;
   jwt: string | null;
@@ -50,9 +62,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const data =
         currentRole === "provider"
-          ? await getProviderProfile(jwt)
+          ? await fetchProviderProfileOnce(jwt)
           : await getClientProfile(jwt);
       setProfile(data);
+      localStorage.setItem("fullProfile", JSON.stringify(data));
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
@@ -117,7 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const data =
         user.role === "provider"
-          ? await getProviderProfile(jwt)
+          ? await fetchProviderProfileOnce(jwt)
           : await getClientProfile(jwt);
 
       setProfile(data);
@@ -141,10 +154,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = prefetchedData
         ? prefetchedData
         : await (async () => {
-            const endpoint = isProvider
-              ? `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/provider-profiles/me`
-              : `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/client-profiles/me`;
+            if (isProvider) {
+              return fetchProviderProfileOnce(jwt);
+            }
 
+            const endpoint = `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/client-profiles/me`;
             const response = await fetch(endpoint, {
               headers: {
                 Authorization: `Bearer ${jwt}`,

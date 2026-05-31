@@ -27,8 +27,43 @@ import {
   ProviderOrderData,
 } from "@/app/lib/api/provider/home/order";
 
+interface RequestHistoryEntry {
+  month: string;
+  count: number;
+}
+
+interface ProviderHomeMetrics {
+  requestsReceivedCount: number;
+  quotesSentCount: number;
+  quotesAcceptedCount: number;
+  averageRating: number;
+  reviewCount: number;
+  requestHistory: RequestHistoryEntry[];
+  quoteSentHistory: RequestHistoryEntry[];
+}
+
+const formatMetricMonthLabel = (month: string) => {
+  const [year, monthNumber] = month.split("-");
+  const parsedYear = Number(year);
+  const parsedMonth = Number(monthNumber) - 1;
+
+  if (
+    !Number.isInteger(parsedYear) ||
+    !Number.isInteger(parsedMonth) ||
+    parsedMonth < 0 ||
+    parsedMonth > 11
+  ) {
+    return month;
+  }
+
+  return new Date(Date.UTC(parsedYear, parsedMonth, 1)).toLocaleDateString(
+    "es-ES",
+    { month: "short", timeZone: "UTC" },
+  );
+};
+
 export default function HomePage() {
-  const { jwt, loginProfile, refreshLoginProfile } = useAuth();
+  const { jwt, loginProfile, refreshLoginProfile, refreshProfile } = useAuth();
   const { isExpanded } = useSidebar();
   const router = useRouter();
   const { onNotification, notifications, onProviderStatusChanged } = useSocket();
@@ -39,6 +74,17 @@ export default function HomePage() {
   const [orders, setOrders] = useState<ProviderOrderData[]>([]);
   const [loading, setLoading] = useState(true);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
+  const [metrics, setMetrics] = useState<ProviderHomeMetrics>({
+    requestsReceivedCount: 0,
+    quotesSentCount: 0,
+    quotesAcceptedCount: 0,
+    averageRating: 0,
+    reviewCount: 0,
+    requestHistory: [],
+    quoteSentHistory: [],
+  });
+  const [hasLoadedMetrics, setHasLoadedMetrics] = useState(false);
+  const [metricsError, setMetricsError] = useState(false);
 
   const newRequestsCount = useMemo(
     () =>
@@ -51,6 +97,34 @@ export default function HomePage() {
   );
 
   const tokensAvailable = loginProfile?.tokensAvailable ?? 0;
+
+  const applyProviderMetrics = (profileRes: any) => {
+    setMetrics({
+      requestsReceivedCount: profileRes.metrics?.requestsReceivedCount ?? 0,
+      quotesSentCount: profileRes.metrics?.quotesSentCount ?? 0,
+      quotesAcceptedCount: profileRes.metrics?.quotesAcceptedCount ?? 0,
+      averageRating: profileRes.reputation?.averageRating ?? profileRes.averageRating ?? 0,
+      reviewCount: profileRes.reputation?.reviewCount ?? profileRes.reviewCount ?? 0,
+      requestHistory: profileRes.metrics?.requestHistory ?? [],
+      quoteSentHistory: profileRes.metrics?.quoteSentHistory ?? [],
+    });
+    setHasLoadedMetrics(true);
+    setMetricsError(false);
+  };
+
+  const loadProviderMetrics = async () => {
+    try {
+      const profileRes = await refreshProfile();
+      if (!profileRes) {
+        throw new Error("No se pudo obtener el perfil del proveedor");
+      }
+      applyProviderMetrics(profileRes);
+      await refreshLoginProfile(profileRes);
+    } catch (error) {
+      setMetricsError(true);
+      console.error("Error loading provider metrics:", error);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onProviderStatusChanged(async (data) => {
@@ -66,11 +140,11 @@ export default function HomePage() {
 
       try {
         setLoading(true);
-        await refreshLoginProfile();
+        await loadProviderMetrics();
 
         const [requestsRes, quotesRes, ordersRes] = await Promise.all([
           getProviderRequests(jwt, "pending,viewed"),
-          getProviderQuotes(jwt, "sent,viewed"),
+          getProviderQuotes(jwt, "sent,viewed,accepted"),
           getProviderOrders(jwt),
         ]);
         if (requestsRes.ok) {
@@ -104,17 +178,23 @@ export default function HomePage() {
     const unsubscribe = onNotification((notification) => {
       if (
         notification.type === "provider.order_generated" ||
-        notification.type === "provider.request_assigned"
+        notification.type === "provider.request_assigned" ||
+        notification.type === "provider.payment_notified" ||
+        notification.type === "review.received"
       ) {
         const fetchData = async () => {
           if (!jwt) return;
           try {
-            const [requestsRes, ordersRes] = await Promise.all([
+            const [requestsRes, quotesRes, ordersRes] = await Promise.all([
               getProviderRequests(jwt, "pending,viewed"),
+              getProviderQuotes(jwt, "sent,viewed,accepted"),
               getProviderOrders(jwt),
             ]);
             if (requestsRes.ok) {
               setRequests(requestsRes.data.requests);
+            }
+            if (quotesRes.ok) {
+              setQuotes(quotesRes.data.quotes);
             }
             if (ordersRes.ok) {
               setOrders(ordersRes.data.orders);
@@ -124,6 +204,7 @@ export default function HomePage() {
                 ).length,
               );
             }
+            await loadProviderMetrics();
           } catch (error) {
             console.error("Error refreshing data:", error);
           }
@@ -133,7 +214,7 @@ export default function HomePage() {
     });
 
     return unsubscribe;
-  }, [jwt, onNotification]);
+  }, [jwt, onNotification, refreshProfile, refreshLoginProfile]);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -249,6 +330,57 @@ export default function HomePage() {
   };
 
   const providerStatus = loginProfile?.status;
+  const showMetricsFallback = metricsError && !hasLoadedMetrics;
+  const emptyHistoryEntries: RequestHistoryEntry[] = [
+    { month: "", count: 0 },
+    { month: "", count: 0 },
+    { month: "", count: 0 },
+    { month: "", count: 0 },
+    { month: "", count: 0 },
+  ];
+  const requestHistoryEntries =
+    metrics.requestHistory.length > 0 ? metrics.requestHistory : emptyHistoryEntries;
+  const quoteHistoryEntries =
+    metrics.quoteSentHistory.length > 0 ? metrics.quoteSentHistory : emptyHistoryEntries;
+  const requestHistoryMaxCount = Math.max(
+    ...metrics.requestHistory.map((entry) => entry.count),
+    1,
+  );
+  const quoteHistoryMaxCount = Math.max(
+    ...metrics.quoteSentHistory.map((entry) => entry.count),
+    1,
+  );
+
+  const renderMetricChart = (
+    entries: RequestHistoryEntry[],
+    maxCount: number,
+    variant: "purple" | "blue",
+  ) => {
+    if (showMetricsFallback) {
+      return <div className={styles.metricChartEmpty}>--</div>;
+    }
+
+    return entries.map((entry, index) => {
+      const heightPercent = (entry.count / maxCount) * 100;
+
+      return (
+        <div key={`${variant}-${entry.month}-${index}`} className={styles.metricBarGroup}>
+          <span className={styles.metricBarValue}>{entry.count}</span>
+          <div className={styles.metricBarTrack}>
+            <div
+              className={`${styles.metricBarFill} ${
+                variant === "blue" ? styles.metricBarFillBlue : ""
+              }`}
+              style={{ height: `${Math.max(heightPercent, entry.count > 0 ? 18 : 0)}%` }}
+            />
+          </div>
+          <span className={styles.metricBarLabel}>
+            {entry.month ? formatMetricMonthLabel(entry.month) : "-"}
+          </span>
+        </div>
+      );
+    });
+  };
 
   const statusBannerConfig: Record<
     string,
@@ -328,55 +460,56 @@ export default function HomePage() {
             <h3 className={styles.title}>Mis Métricas</h3>
             <div className={styles.metricsGrid}>
               <div className={styles.metricCardPurple}>
-                <div className={styles.chartBars}>
-                  <div className={styles.barContainer}>
-                    <div className={styles.bar} style={{ height: "40%" }}></div>
-                    <span className={styles.barNumber}>5</span>
-                  </div>
-
-                  <div className={styles.barContainer}>
-                    <div className={styles.bar} style={{ height: "65%" }}></div>
-                    <span className={styles.barNumber}>9</span>
-                  </div>
-
-                  <div className={styles.barContainer}>
-                    <div className={styles.bar} style={{ height: "90%" }}></div>
-                    <span className={styles.barNumber}>10</span>
-                  </div>
-
-                  <div className={styles.barContainer}>
-                    <div className={styles.bar} style={{ height: "40%" }}></div>
-                    <span className={styles.barNumber}>5</span>
-                  </div>
-
-                  <div className={styles.barContainer}>
-                    <div className={styles.bar} style={{ height: "60%" }}></div>
-                    <span className={styles.barNumber}>7</span>
-                  </div>
+                <div className={styles.metricChartArea}>
+                  {renderMetricChart(
+                    requestHistoryEntries,
+                    requestHistoryMaxCount,
+                    "purple",
+                  )}
                 </div>
-                <h4 className={styles.metricBigNum}>45</h4>
-                <p className={styles.metricSmallText}>Consultas realizadas</p>
+                <h4 className={styles.metricBigNum}>
+                  {showMetricsFallback ? "--" : metrics.requestsReceivedCount}
+                </h4>
+                <p className={styles.metricSmallText}>Consultas recibidas</p>
               </div>
 
-              <div className={styles.metricsStack}>
-                <div className={styles.metricCardGreen}>
-                  <div className={styles.metricHeader}>
-                    <span className={styles.metricBigNum}>12</span>
-
-                    <p className={styles.metricSmallText}>Compras realizadas</p>
-                  </div>
-                  <div className={styles.chartPie}>
-                    <IconsApp.Chart />
-                  </div>
+              <div className={styles.metricCardBlue}>
+                <div className={styles.metricChartArea}>
+                  {renderMetricChart(
+                    quoteHistoryEntries,
+                    quoteHistoryMaxCount,
+                    "blue",
+                  )}
                 </div>
+                <h4 className={styles.metricBigNum}>
+                  {showMetricsFallback ? "--" : metrics.quotesSentCount}
+                </h4>
+                <p className={styles.metricSmallText}>Cotizaciones enviadas</p>
+              </div>
 
-                <div className={styles.metricCardOrange}>
-                  <div className={styles.stars}>
-                    <StarRating rating={3} />
-                  </div>
-                  <h4 className={styles.smallNum}>3.2</h4>
-                  <p className={styles.metricSmallText}>Tu reputación</p>
+              <div className={styles.metricCardGreen}>
+                <div className={styles.chartPie}>
+                  <IconsApp.Chart />
                 </div>
+                <h4 className={styles.metricBigNum}>
+                  {showMetricsFallback ? "--" : metrics.quotesAcceptedCount}
+                </h4>
+                <p className={styles.metricSmallText}>Cotizaciones aceptadas</p>
+              </div>
+
+              <div className={styles.metricCardOrange}>
+                <div className={styles.stars}>
+                  <StarRating rating={showMetricsFallback ? 0 : metrics.averageRating} />
+                </div>
+                <h4 className={styles.smallNum}>
+                  {showMetricsFallback ? "--" : metrics.averageRating.toFixed(1)}
+                </h4>
+                <p className={styles.metricSmallText}>Tu reputación</p>
+                <p className={styles.metricMetaText}>
+                  {showMetricsFallback
+                    ? "No se pudieron cargar"
+                    : `${metrics.reviewCount} calificacion${metrics.reviewCount === 1 ? "" : "es"}`}
+                </p>
               </div>
             </div>
           </section>

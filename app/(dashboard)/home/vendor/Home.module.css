@@ -301,29 +301,26 @@
   color: #000;
 }
 
-.metricsStack {
+.metricCardPurple,
+.metricCardBlue,
+.metricCardGreen,
+.metricCardOrange {
+  min-height: 156px;
+  border-radius: 19px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  height: 100%;
   justify-content: space-between;
 }
 
 .metricCardPurple {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   background-color: #f8f5fb;
-  border-radius: 19px;
-  padding: 20px;
-  text-align: center;
-  height: 264px;
+  min-height: 240px;
 }
 
-.metricCardGreen,
-.metricCardOrange {
-  border-radius: 19px;
-  padding: 18px;
+.metricCardBlue {
+  background-color: #eef3ff;
+  min-height: 240px;
 }
 
 .metricCardOrange {
@@ -339,60 +336,88 @@
 
 .metricCardGreen {
   background-color: #eaf8f1;
-  border-radius: 19px;
-  padding: 20px;
-  padding-bottom: 15px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  min-height: 125px;
 }
 
-.metricHeader {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
-  width: 100%;
-  padding: 0;
-  margin: 0;
-}
-
-.chartPie {
-  flex-shrink: 0;
-  margin-top: -5px;
-}
-
-.chartBars {
+.metricChartArea {
   display: flex;
   align-items: flex-end;
-  justify-content: center;
-  gap: 12px;
-  height: 120px;
-  margin-bottom: 10px;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 110px;
+  margin: 8px 0 2px;
 }
 
-.barContainer {
+.metricChartEmpty {
+  width: 100%;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7c74c8;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.metricBarGroup {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  height: 100%;
-  width: 14px;
+  gap: 6px;
 }
 
-.bar {
-  background-color: #5e56b2;
+.metricBarValue {
+  min-height: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5c50bf;
+}
+
+.metricBarTrack {
   width: 100%;
-  border-radius: 20px;
-  margin-bottom: 8px;
+  max-width: 22px;
+  height: 88px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
-.barNumber {
-  font-size: 13px;
+.metricBarFill {
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #7567d7 0%, #5c50bf 100%);
+  box-shadow: 0 8px 16px rgba(92, 80, 191, 0.18);
+  transform-origin: bottom center;
+  animation: metricBarGrow 0.45s ease-out both;
+}
+
+.metricBarFillBlue {
+  background: linear-gradient(180deg, #698df0 0%, #3f64cb 100%);
+  box-shadow: 0 8px 16px rgba(63, 100, 203, 0.18);
+}
+
+.metricBarLabel {
+  font-size: 11px;
   font-weight: 500;
-  color: #8380a8;
-  line-height: 1;
+  color: #6f6a8d;
+  text-transform: lowercase;
+}
+
+@keyframes metricBarGrow {
+  from {
+    opacity: 0.35;
+    transform: scaleY(0);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.chartPie {
+  align-self: flex-end;
 }
 
 .smallNum,
@@ -405,6 +430,11 @@
 .metricSmallText {
   font-size: 15px;
   font-weight: 400;
+}
+
+.metricMetaText {
+  font-size: 13px;
+  color: #6b7280;
 }
 
 .metricCardGreen .metricSmallText,
@@ -488,31 +518,9 @@
   }
 
   .metricsGrid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 15px;
-  }
-
-  .metricsStack {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: stretch;
-    gap: 20px;
-    grid-column: span 2;
-  }
-
-  .metricCardGreen,
-  .metricCardOrange {
-    flex: 1;
-    margin-bottom: 0;
-  }
-
-  .metricCardOrange {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Separa estrellas de los números */
-    align-items: flex-start;
   }
 
   .tabs {

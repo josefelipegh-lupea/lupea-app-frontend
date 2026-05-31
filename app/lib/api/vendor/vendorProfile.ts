@@ -25,6 +25,33 @@ export interface ProviderProfile {
   city: string;
   status: string;
   tokensAvailable?: number;
+   averageRating?: number;
+   reviewCount?: number;
+   reputationScore?: number;
+   reputationLevel?: string;
+   metrics?: {
+    requestsReceivedCount: number;
+    quotesSentCount: number;
+    quotesAcceptedCount: number;
+    requestHistory?: Array<{
+      month: string;
+      count: number;
+    }>;
+    quoteSentHistory?: Array<{
+      month: string;
+      count: number;
+    }>;
+    quoteAcceptedHistory?: Array<{
+      month: string;
+      count: number;
+    }>;
+   };
+   reputation?: {
+    averageRating: number;
+    reviewCount: number;
+    reputationScore: number;
+    reputationLevel: string;
+   };
   termsAccepted: boolean;
   mainCategories: Category[];
 }

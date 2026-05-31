@@ -119,17 +119,29 @@ export default function RequestDetailPage() {
             </section>
 
             <section className={styles.card}>
-              <h3 className={styles.cardTitle}>Cliente</h3>
-              <div className={styles.vehicleInfo}>
-                <div className={styles.iconCircle}>
-                  <IconsApp.User />
-                </div>
-                <div className={styles.vehicleDetails}>
-                  <h4 className={styles.vehicleName}>
-                    @{request.request.client.username}
-                  </h4>
-                  <p className={styles.vehicleExtra}>Cliente verificado</p>
-                </div>
+              <h3 className={styles.cardTitle}>
+                Repuestos solicitados ({request.request.items.length})
+              </h3>
+              <div className={styles.itemsList}>
+                {request.request.items.map((item, index) => (
+                  <div key={index} className={styles.itemRow}>
+                    <div className={styles.itemIcon}>
+                      <IconsApp.Gear />
+                    </div>
+                    <div className={styles.itemInfo}>
+                      <h4 className={styles.itemName}>{item.productName}</h4>
+                      <p className={styles.itemDetail}>
+                        Cantidad: {item.quantity}
+                      </p>
+                      <p className={styles.itemCondition}>
+                        Condición preferida:{" "}
+                        {item.conditionPreferred === "no_importa"
+                          ? "Cualquiera"
+                          : item.conditionPreferred}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
 
@@ -168,66 +180,16 @@ export default function RequestDetailPage() {
             </section>
 
             <section className={styles.card}>
-              <h3 className={styles.cardTitle}>
-                Repuestos solicitados ({request.request.items.length})
-              </h3>
-              <div className={styles.itemsList}>
-                {request.request.items.map((item, index) => (
-                  <div key={index} className={styles.itemRow}>
-                    <div className={styles.itemIcon}>
-                      <IconsApp.Gear />
-                    </div>
-                    <div className={styles.itemInfo}>
-                      <h4 className={styles.itemName}>{item.productName}</h4>
-                      <p className={styles.itemDetail}>
-                        Cantidad: {item.quantity}
-                      </p>
-                      <p className={styles.itemCondition}>
-                        Condición preferida:{" "}
-                        {item.conditionPreferred === "no_importa"
-                          ? "Cualquiera"
-                          : item.conditionPreferred}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className={styles.card}>
-              <h3 className={styles.cardTitle}>Criterios de coincidencia</h3>
-              <div className={styles.criteriaGrid}>
-                <div className={styles.criteriaItem}>
-                  <span className={styles.criteriaLabel}>Score</span>
-                  <span className={styles.criteriaValue}>{request.score}%</span>
+              <h3 className={styles.cardTitle}>Cliente</h3>
+              <div className={styles.vehicleInfo}>
+                <div className={styles.iconCircle}>
+                  <IconsApp.User />
                 </div>
-                <div className={styles.criteriaItem}>
-                  <span className={styles.criteriaLabel}>Coincidencias</span>
-                  <span className={styles.criteriaValue}>
-                    {request.criteria.matchedItemCount} de{" "}
-                    {request.criteria.totalItems} repuestos solicitados
-                  </span>
-                </div>
-                <div className={styles.criteriaItem}>
-                  <span className={styles.criteriaLabel}>Categorías</span>
-                  <span className={styles.criteriaValue}>
-                    {request.criteria.matchedCategoryNames.join(", ")}
-                  </span>
-                </div>
-                <div className={styles.criteriaItem}>
-                  <span className={styles.criteriaLabel}>Entrega</span>
-                  <span className={styles.criteriaValue}>
-                    {request.criteria.logistics.deliveryPreference ===
-                    "delivery"
-                      ? "Delivery"
-                      : "Retiro en tienda"}
-                  </span>
-                </div>
-                <div className={styles.criteriaItem}>
-                  <span className={styles.criteriaLabel}>Marca vehículo</span>
-                  <span className={styles.criteriaValue}>
-                    {request.criteria.vehicleBrand.name}
-                  </span>
+                <div className={styles.vehicleDetails}>
+                  <h4 className={styles.vehicleName}>
+                    @{request.request.client.username}
+                  </h4>
+                  <p className={styles.vehicleExtra}>Cliente verificado</p>
                 </div>
               </div>
             </section>
