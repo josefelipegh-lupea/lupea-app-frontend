@@ -16,6 +16,7 @@ import {
   getClientRequestQuotes,
   ClientQuote,
 } from "@/app/lib/api/client/home/quote";
+import { getClientProfile } from "@/app/lib/api/client/clientProfile";
 import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
 import {
@@ -36,6 +37,14 @@ interface RequestWithQuote {
   quoteDocumentId: string;
 }
 
+interface ClientHomeMetrics {
+  requestsCount: number;
+  quotesReceivedCount: number;
+  ordersCount: number;
+  averageRating: number;
+  reviewCount: number;
+}
+
 export default function HomePage() {
   const { jwt, loginProfile, refreshLoginProfile } = useAuth();
   const { isExpanded } = useSidebar();
@@ -49,6 +58,13 @@ export default function HomePage() {
     RequestWithQuote[]
   >([]);
   const [orders, setOrders] = useState<OrderData[]>([]); 
+  const [metrics, setMetrics] = useState<ClientHomeMetrics>({
+    requestsCount: 0,
+    quotesReceivedCount: 0,
+    ordersCount: 0,
+    averageRating: 0,
+    reviewCount: 0,
+  });
   const [loading, setLoading] = useState(true);
 
   const newQuotesCount = useMemo(
@@ -85,6 +101,15 @@ export default function HomePage() {
         setLoading(true);
 
         await refreshLoginProfile();
+
+        const profileRes = await getClientProfile(jwt);
+        setMetrics({
+          requestsCount: profileRes.metrics?.requestsCount ?? 0,
+          quotesReceivedCount: profileRes.metrics?.quotesReceivedCount ?? 0,
+          ordersCount: profileRes.metrics?.ordersCount ?? 0,
+          averageRating: profileRes.reputation?.averageRating ?? 0,
+          reviewCount: profileRes.reputation?.reviewCount ?? 0,
+        });
 
         const res = await getMyRequests(jwt);
         if (res.ok) {
@@ -159,9 +184,10 @@ export default function HomePage() {
         const fetchData = async () => {
           if (!jwt) return;
           try {
-            const [requestsRes, ordersRes] = await Promise.all([
+            const [requestsRes, ordersRes, profileRes] = await Promise.all([
               getMyRequests(jwt, "sent"),
               getMyClientOrders(jwt),
+              getClientProfile(jwt),
             ]);
             if (requestsRes.ok) {
               setRequests(requestsRes.data.requests);
@@ -193,6 +219,13 @@ export default function HomePage() {
             if (ordersRes.ok) {
               setOrders(ordersRes.data.orders);
             }
+            setMetrics({
+              requestsCount: profileRes.metrics?.requestsCount ?? 0,
+              quotesReceivedCount: profileRes.metrics?.quotesReceivedCount ?? 0,
+              ordersCount: profileRes.metrics?.ordersCount ?? 0,
+              averageRating: profileRes.reputation?.averageRating ?? 0,
+              reviewCount: profileRes.reputation?.reviewCount ?? 0,
+            });
             await refreshLoginProfile();
           } catch (error) {
             console.error("Error refreshing data:", error);
@@ -407,58 +440,39 @@ export default function HomePage() {
           <section className={styles.metricsContainer}>
             <h3 className={styles.title}>Mis Métricas</h3>
             <div className={styles.metricsGrid}>
-              {/* Gráfico */}
               <div className={styles.metricCardPurple}>
-                <div className={styles.chartBars}>
-                  <div className={styles.barContainer}>
-                    <div className={styles.bar} style={{ height: "40%" }}></div>
-                    <span className={styles.barNumber}>5</span>
-                  </div>
-
-                  <div className={styles.barContainer}>
-                    <div className={styles.bar} style={{ height: "65%" }}></div>
-                    <span className={styles.barNumber}>9</span>
-                  </div>
-
-                  <div className={styles.barContainer}>
-                    <div className={styles.bar} style={{ height: "90%" }}></div>
-                    <span className={styles.barNumber}>10</span>
-                  </div>
-
-                  <div className={styles.barContainer}>
-                    <div className={styles.bar} style={{ height: "40%" }}></div>
-                    <span className={styles.barNumber}>5</span>
-                  </div>
-
-                  <div className={styles.barContainer}>
-                    <div className={styles.bar} style={{ height: "60%" }}></div>
-                    <span className={styles.barNumber}>7</span>
-                  </div>
+                <div className={styles.metricIconWrap}>
+                  <IconsApp.Document color="#5e56b2" />
                 </div>
-                <h4 className={styles.metricBigNum}>45</h4>
+                <h4 className={styles.metricBigNum}>{metrics.requestsCount}</h4>
                 <p className={styles.metricSmallText}>Consultas realizadas</p>
               </div>
 
-              {/* Columna derecha de métricas */}
-              <div className={styles.metricsStack}>
-                <div className={styles.metricCardGreen}>
-                  <div className={styles.metricHeader}>
-                    <span className={styles.metricBigNum}>12</span>
-
-                    <p className={styles.metricSmallText}>Compras realizadas</p>
-                  </div>
-                  <div className={styles.chartPie}>
-                    <IconsApp.Chart />
-                  </div>
+              <div className={styles.metricCardBlue}>
+                <div className={styles.metricIconWrap}>
+                  <IconsApp.Document color="#1a1a3d" />
                 </div>
+                <h4 className={styles.metricBigNum}>{metrics.quotesReceivedCount}</h4>
+                <p className={styles.metricSmallText}>Cotizaciones recibidas</p>
+              </div>
 
-                <div className={styles.metricCardOrange}>
-                  <div className={styles.stars}>
-                    <StarRating rating={3} />
-                  </div>
-                  <h4 className={styles.smallNum}>3.2</h4>
-                  <p className={styles.metricSmallText}>Tu reputación</p>
+              <div className={styles.metricCardGreen}>
+                <div className={styles.metricIconWrap}>
+                  <IconsApp.Chart />
                 </div>
+                <h4 className={styles.metricBigNum}>{metrics.ordersCount}</h4>
+                <p className={styles.metricSmallText}>Compras realizadas</p>
+              </div>
+
+              <div className={styles.metricCardOrange}>
+                <div className={styles.stars}>
+                  <StarRating rating={metrics.averageRating} />
+                </div>
+                <h4 className={styles.smallNum}>{metrics.averageRating.toFixed(1)}</h4>
+                <p className={styles.metricSmallText}>Tu reputación</p>
+                <p className={styles.metricMetaText}>
+                  {metrics.reviewCount} calificacion{metrics.reviewCount === 1 ? "" : "es"}
+                </p>
               </div>
             </div>
           </section>

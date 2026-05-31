@@ -336,7 +336,7 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
               Cancelar orden
             </button>
           )}
-          {!isProvider && showReviewButton && onReviewClick && (
+          {showReviewButton && onReviewClick && (
             <button className={styles.btnReview} onClick={onReviewClick}>
               <IconsApp.StarFilled /> Calificar
             </button>

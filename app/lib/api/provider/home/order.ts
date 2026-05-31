@@ -80,6 +80,13 @@ export interface ProviderOrderData {
     lastMessagePreview: string;
   };
   providerReview: null;
+  clientReview: null | {
+    id: number;
+    documentId: string;
+    rating: number;
+    comment: string | null;
+    createdAt: string | null;
+  };
   items: ProviderOrderItem[];
 }
 

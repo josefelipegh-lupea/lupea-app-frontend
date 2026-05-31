@@ -11,6 +11,7 @@ import {
   ProviderOrderData,
 } from "@/app/lib/api/provider/home/order";
 import { getOrderChatAsProvider } from "@/app/lib/api/provider/chat";
+import { getClientOrderReview } from "@/app/lib/api/client/review";
 import { SkeletonOrders } from "@/components/skeleton/SkeletonOrders";
 import OrderDetailCard from "@/components/order-card/OrderDetailCard";
 import { useSidebar } from "@/context/SidebarContext";
@@ -21,6 +22,7 @@ const VendorOrderDetailPage: React.FC = () => {
   const { jwt } = useAuth();
   const [order, setOrder] = useState<ProviderOrderData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasClientReview, setHasClientReview] = useState(false);
   const { isExpanded } = useSidebar();
 
   useEffect(() => {
@@ -32,6 +34,8 @@ const VendorOrderDetailPage: React.FC = () => {
         const res = await getProviderOrderById(jwt, params.id as string);
         if (res.ok) {
           setOrder(res.data.order);
+          const reviewRes = await getClientOrderReview(jwt, res.data.order.id.toString());
+          setHasClientReview(reviewRes.ok && !!reviewRes.data?.review);
         }
       } catch (error) {
         console.error("Error loading order:", error);
@@ -53,6 +57,11 @@ const VendorOrderDetailPage: React.FC = () => {
     } catch (error) {
       console.error("Error opening chat:", error);
     }
+  };
+
+  const handleReviewClick = () => {
+    if (!order) return;
+    router.push(`/home/vendor/orders/${order.id}/review`);
   };
 
   if (loading) {
@@ -101,6 +110,8 @@ const VendorOrderDetailPage: React.FC = () => {
             isExpanded={true}
             showExpandButton={false}
             onChatClick={handleChatClick}
+            onReviewClick={handleReviewClick}
+            showReviewButton={order.status === "completed" && !hasClientReview}
             isProvider={true}
           />
         </div>

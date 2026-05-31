@@ -25,6 +25,17 @@ export type ClientProfileResponse = {
   tokenMetricsMonth?: string;
   tokensLastRenewal?: string;
   tokensNextRenewal?: string;
+  metrics?: {
+    requestsCount: number;
+    quotesReceivedCount: number;
+    ordersCount: number;
+  };
+  reputation?: {
+    averageRating: number;
+    reviewCount: number;
+    reputationScore: number;
+    reputationLevel: string;
+  };
   avatar: AvatarData | null;
 };
 
