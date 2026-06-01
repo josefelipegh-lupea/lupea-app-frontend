@@ -595,25 +595,35 @@
 .pillContainer {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 
 .pillButton {
-  padding: 8px 14px;
-  border-radius: 20px;
-  border: 1px solid #e0e0e0;
-  background: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 50px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
   font-family: "Poppins";
-  font-size: 12px;
+  font-size: 0.875rem;
   font-weight: 500;
-  color: #333;
+  color: #4b5563;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+@media (hover: hover) {
+  .pillButton:hover {
+    background: #ff9100;
+    border-color: #ff9100;
+    color: #fff;
+  }
 }
 
 .pillButton.active {
-  background-color: #f08400;
-  border-color: #f08400;
-  color: white;
+  border-color: var(--primary-color, #f08100);
+  color: var(--primary-color, #f08100);
+  box-shadow: 0 0 0 1px var(--primary-color, #f08100);
+  background: #fff;
 }
 
 .pillButton:disabled {
@@ -810,11 +820,6 @@
 .requiredLabel::after {
   content: " *";
   color: #f08400;
-}
-.pillButton.active {
-  background-color: #f08400;
-  border-color: #f08400;
-  color: white;
 }
 .textAreaField::placeholder {
   color: #a1a1a1;

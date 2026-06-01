@@ -360,6 +360,20 @@ function NewQuotePageContent() {
   }
 
   const vehicleInfo = `${request.request.vehicle.brand} ${request.request.vehicle.model} ${request.request.vehicle.year}`;
+  const clientLocation = [
+    request.request.location.exactAddress,
+    request.request.location.address,
+    request.request.location.name,
+    [
+      request.request.location.parish,
+      request.request.location.municipality,
+      request.request.location.state,
+    ]
+      .filter(Boolean)
+      .join(", "),
+  ]
+    .map((value) => String(value ?? "").trim())
+    .find((value) => value.length > 0) ?? "-";
 
   return (
     <PageAnimation>
@@ -455,7 +469,7 @@ function NewQuotePageContent() {
                 </div>
                 <div className={styles.infoGroup}>
                   <label>Ubicación</label>
-                  <p>-</p>
+                  <p>{clientLocation}</p>
                 </div>
               </div>
             </div>
