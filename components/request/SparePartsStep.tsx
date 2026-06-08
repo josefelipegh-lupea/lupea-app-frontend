@@ -57,7 +57,7 @@ export default function SparePartsStep({
   const conditions = [
     { id: "no_importa", label: "Cualquiera" },
     { id: "original", label: "Original" },
-    { id: "alternativa", label: "Alternativa" },
+    { id: "alternativo", label: "Alternativa" },
   ];
 
   const selectedCategoryObj = categories.find(
