@@ -8,7 +8,7 @@ export const Hero = () => {
       <img
         className="absolute inset-0 w-full h-full object-cover"
         alt="High-performance car engine with dramatic lighting"
-        src="/images/landing/hero.png"
+        src="/images/landing/hero.webp"
       />
       <div
         className="absolute inset-0"
@@ -23,7 +23,9 @@ export const Hero = () => {
             La red más inteligente de repuestos automotrices.
           </h1>
           <p className="font-body-lg text-lg md:text-xl text-on-primary-container max-w-lg">
-            Conectamos talleres y particulares con la red más amplia de proveedores certificados para encontrar la pieza exacta en tiempo récord.
+            Conectamos talleres y usuarios particulares con la red más amplia de
+            proveedores certificados para encontrar la pieza exacta en tiempo
+            récord.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Link
