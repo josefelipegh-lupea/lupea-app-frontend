@@ -1,0 +1,11 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bento1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a2a5e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f1f45;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#bento1)"/>
+  <!-- TODO: Replace with actual automotive parts imagery -->
+  <text x="200" y="150" font-size="32" fill="rgba(255,255,255,0.1)" text-anchor="middle" font-family="Hanken Grotesk">Marketplace Image</text>
+</svg>
