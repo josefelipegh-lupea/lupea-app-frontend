@@ -1,14 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export const Hero = () => {
   return (
     <section className="relative h-[640px] w-full flex items-center overflow-hidden bg-primary-container">
-      <img
+      <Image
         className="absolute inset-0 w-full h-full object-cover"
         alt="High-performance car engine with dramatic lighting"
         src="/images/landing/hero.webp"
+        fill
+        priority
       />
       <div
         className="absolute inset-0"

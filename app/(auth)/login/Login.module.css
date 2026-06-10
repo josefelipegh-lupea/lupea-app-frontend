@@ -1,7 +1,7 @@
 .bgWrapper {
   min-height: 100vh;
   min-height: 100dvh;
-  background: url("/register-header.jpg") center/cover no-repeat;
+  background: url("/images/landing/hero.webp") center/cover no-repeat;
 
   display: flex;
   flex-direction: column;
@@ -62,7 +62,9 @@
   justify-content: center;
   cursor: pointer;
   z-index: 2;
-  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s;
+  transition:
+    transform 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s;
   cursor: pointer;
   outline: none;
 }
@@ -263,7 +265,9 @@
   margin-bottom: 18px;
   box-shadow: 0 2px 8px rgba(255, 145, 0, 0.1);
   cursor: pointer;
-  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s,
+  transition:
+    transform 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s,
     box-shadow 0.2s;
   transform-origin: center;
 }
