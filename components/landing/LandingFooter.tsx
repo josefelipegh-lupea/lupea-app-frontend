@@ -3,7 +3,74 @@
 import Link from "next/link";
 import { Share2, Globe, Send } from "lucide-react";
 
-export const LandingFooter = () => {
+interface FooterLink {
+  label: string;
+  url: string;
+  external?: boolean;
+}
+
+interface FooterColumn {
+  title: string;
+  links: FooterLink[];
+}
+
+interface FooterData {
+  description?: string;
+  columns?: FooterColumn[];
+  newsletterTitle?: string;
+  newsletterText?: string;
+}
+
+const DEFAULT_FOOTER: FooterData = {
+  description:
+    "La red inteligente de repuestos automotrices que conecta la oferta y demanda de piezas con eficiencia y transparencia.",
+  columns: [
+    {
+      title: "Plataforma",
+      links: [
+        {
+          label: "Explorar Marketplace",
+          url: "/user/register",
+          external: false,
+        },
+        {
+          label: "Proveedores Certificados",
+          url: "#",
+          external: false,
+        },
+        { label: "Lupea Pro", url: "#", external: false },
+        { label: "Soporte", url: "#", external: false },
+      ],
+    },
+    {
+      title: "Legal",
+      links: [
+        { label: "Privacidad", url: "#", external: false },
+        { label: "Términos y Condiciones", url: "#", external: false },
+        { label: "Políticas de Devolución", url: "#", external: false },
+        { label: "Contacto", url: "#", external: false },
+      ],
+    },
+    {
+      title: "Suscríbete",
+      links: [
+        {
+          label:
+            "Recibe alertas sobre piezas raras y ofertas exclusivas.",
+          url: "#newsletter",
+          external: false,
+        },
+      ],
+    },
+  ],
+  newsletterTitle: "Suscríbete",
+  newsletterText:
+    "Recibe alertas sobre piezas raras y ofertas exclusivas.",
+};
+
+export const LandingFooter = ({ data }: { data?: FooterData }) => {
+  const footer = { ...DEFAULT_FOOTER, ...data };
+
   return (
     <footer className="bg-primary text-on-primary">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-6 md:px-10 py-16 w-full max-w-7xl mx-auto">
@@ -17,111 +84,41 @@ export const LandingFooter = () => {
             />
           </div>
           <p className="font-body-md text-on-primary-container leading-relaxed">
-            La red inteligente de repuestos automotrices que conecta la oferta y demanda de piezas con eficiencia y transparencia.
+            {footer.description}
           </p>
         </div>
 
-        {/* Platform Column */}
-        <div>
-          <h4 className="font-label-bold text-label-bold uppercase tracking-widest text-white mb-6">
-            Plataforma
-          </h4>
-          <ul className="space-y-4">
-            <li>
-              <Link
-                className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
-                href="/user/register"
-              >
-                Explorar Marketplace
-              </Link>
-            </li>
-            <li>
-              <a
-                className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
-                href="#"
-              >
-                Proveedores Certificados
-              </a>
-            </li>
-            <li>
-              <a
-                className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
-                href="#"
-              >
-                Lupea Pro
-              </a>
-            </li>
-            <li>
-              <a
-                className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
-                href="#"
-              >
-                Soporte
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Legal Column */}
-        <div>
-          <h4 className="font-label-bold text-label-bold uppercase tracking-widest text-white mb-6">
-            Legal
-          </h4>
-          <ul className="space-y-4">
-            <li>
-              <a
-                className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
-                href="#"
-              >
-                Privacidad
-              </a>
-            </li>
-            <li>
-              <a
-                className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
-                href="#"
-              >
-                Términos y Condiciones
-              </a>
-            </li>
-            <li>
-              <a
-                className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
-                href="#"
-              >
-                Políticas de Devolución
-              </a>
-            </li>
-            <li>
-              <a
-                className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
-                href="#"
-              >
-                Contacto
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Newsletter Column */}
-        <div className="space-y-6">
-          <h4 className="font-label-bold text-label-bold uppercase tracking-widest text-white">
-            Suscríbete
-          </h4>
-          <p className="font-body-md text-on-primary-container">
-            Recibe alertas sobre piezas raras y ofertas exclusivas.
-          </p>
-          <div className="flex">
-            <input
-              className="bg-primary-container border-none text-white rounded-l-lg px-4 py-3 focus:ring-2 focus:ring-secondary-container w-full placeholder:text-on-primary-container/50"
-              placeholder="email@ejemplo.com"
-              type="email"
-            />
-            <button className="bg-secondary-container text-on-secondary-container p-3 rounded-r-lg hover:bg-secondary transition-all">
-              <Send size={20} />
-            </button>
+        {/* Footer Columns */}
+        {footer.columns?.map((column, idx) => (
+          <div key={idx}>
+            <h4 className="font-label-bold text-label-bold uppercase tracking-widest text-white mb-6">
+              {column.title}
+            </h4>
+            <ul className="space-y-4">
+              {column.links.map((link, lidx) => (
+                <li key={lidx}>
+                  {link.url.startsWith("http") ? (
+                    <a
+                      className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
+                      href={link.url}
+                      target={link.external ? "_blank" : undefined}
+                      rel={link.external ? "noopener noreferrer" : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
+                      href={link.url}
+                    >
+                      {link.label}
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
+        ))}
       </div>
 
       {/* Copyright Bar */}

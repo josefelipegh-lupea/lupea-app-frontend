@@ -21,6 +21,19 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/api/portraits/**",
       },
+      // Strapi local (dev)
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "1337",
+        pathname: "/**",
+      },
+      // Strapi Cloud (prod)
+      {
+        protocol: "https",
+        hostname: "*.strapiapp.com",
+        pathname: "/**",
+      },
     ],
   },
 };

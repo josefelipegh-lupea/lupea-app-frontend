@@ -1,7 +1,4 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Metadata } from "next";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { Hero } from "@/components/landing/Hero";
 import { StatsBar } from "@/components/landing/StatsBar";
@@ -9,33 +6,35 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 import { DualProposition } from "@/components/landing/DualProposition";
 import { MarketplaceBento } from "@/components/landing/MarketplaceBento";
 import { LandingFooter } from "@/components/landing/LandingFooter";
+import { AuthRedirectHandler } from "@/components/landing/AuthRedirectHandler";
+import { getLandingPageData } from "@/app/lib/api/getLandingPageData";
 
-export default function LandingPage() {
-  const router = useRouter();
+/**
+ * Server Component: SSR + ISR con fetch a Strapi
+ * Renderiza el landing con datos del CMS o defaults si falla
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const data = await getLandingPageData();
+  const seo = data?.seo;
 
-  useEffect(() => {
-    // Check if user is logged in (client-side only, no blocking)
-    const jwt = localStorage.getItem("jwt");
-    const userData = localStorage.getItem("userData");
+  return {
+    title:
+      seo?.metaTitle ||
+      "Lupea | Red Inteligente de Repuestos Automotrices",
+    description:
+      seo?.metaDescription ||
+      "Plataforma que conecta compradores de repuestos con 1.200+ proveedores certificados.",
+    openGraph: {
+      images: seo?.ogImage ? [{ url: seo.ogImage.url }] : [],
+    },
+  };
+}
 
-    if (jwt && userData) {
-      try {
-        const user = JSON.parse(userData);
-        const role = user?.role === "provider" ? "vendor" : "user";
-        // Redirect to dashboard by role
-        router.replace(`/home/${role}`);
-      } catch (error) {
-        // If parsing fails, default to /home/user
-        console.error("Error parsing user data:", error);
-        router.replace("/home/user");
-      }
-    }
-    // If no jwt, landing is already rendered (no flash)
-  }, [router]);
+export default async function LandingPage() {
+  const landingData = await getLandingPageData();
 
   return (
     <div className="flex flex-col min-h-screen bg-surface text-on-surface font-body-lg">
-      {/* Apply Hanken Grotesk to landing wrapper */}
       <style>{`
         .landing-wrapper {
           --font-hanken: 'Hanken Grotesk';
@@ -43,16 +42,22 @@ export default function LandingPage() {
       `}</style>
 
       <div className="landing-wrapper">
-        <LandingHeader />
+        <LandingHeader data={landingData?.nav} />
         <main className="flex-1">
-          <Hero />
-          <StatsBar />
-          <HowItWorks />
-          <DualProposition />
-          <MarketplaceBento />
+          <Hero data={landingData?.hero} />
+          <StatsBar data={landingData?.stats} />
+          <HowItWorks data={landingData?.howItWorks} />
+          <DualProposition data={landingData?.valueProps} />
+          <MarketplaceBento
+            data={landingData?.marketplace}
+            smartSearch={landingData?.smartSearch}
+          />
         </main>
-        <LandingFooter />
+        <LandingFooter data={landingData?.footer} />
       </div>
+
+      {/* Cliente-side redirect para usuarios autenticados */}
+      <AuthRedirectHandler />
     </div>
   );
 }
