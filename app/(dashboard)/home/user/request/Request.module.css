@@ -1075,3 +1075,61 @@
   margin: 8px 24px 16px;
   animation: fadeIn 0.2s ease;
 }
+
+/* Profile Incomplete Alert */
+.profileIncompleteAlert {
+  background-color: #fef3e2;
+  border: 1px solid #f4d8a8;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 0 0 20px 0;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.profileIncompleteAlert .icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: #d97706;
+}
+
+.profileIncompleteAlert .content {
+  flex: 1;
+}
+
+.profileIncompleteAlert .title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #92400e;
+  margin: 0 0 4px 0;
+}
+
+.profileIncompleteAlert .description {
+  font-size: 13px;
+  color: #b45309;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+.profileIncompleteAlert .link {
+  display: inline-block;
+  color: #b45309;
+  text-decoration: underline;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+}
+
+.profileIncompleteAlert .link:hover {
+  color: #92400e;
+}

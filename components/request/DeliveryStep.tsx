@@ -36,18 +36,6 @@ export default function DeliveryStep({
     saveDraft(updatedData);
   };
 
-  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-
-    const updatedData = {
-      ...formData,
-      deliveryCity: value,
-    };
-
-    setFormData(updatedData);
-    saveDraft(updatedData);
-  };
-
   return (
     <section className={styles.card} ref={sectionRef}>
       <div className={styles.cardHeader}>
@@ -66,34 +54,6 @@ export default function DeliveryStep({
       <div className={styles.divider} />
 
       <div className={styles.cardBody}>
-        <div className={`${styles.field} ${styles.fieldMarginTop}`}>
-          <label>
-            Ubicación <span className={styles.required}>*</span>
-          </label>
-          <div className={styles.selectWrapper}>
-            <div className={`${styles.iconOverlay} ${styles.iconOverlayLeft}`}>
-              <IconsApp.Pin />
-            </div>
-            <select
-              className={styles.selectWithLeftIcon}
-              name="deliveryCity"
-              value={formData.deliveryCity}
-              onChange={handleCityChange}
-            >
-              <option value="">Selecciona una ubicación</option>
-
-              {locations.map((loc) => (
-                <option key={`loc-${loc.id}`} value={loc.id}>
-                  {loc.name} - {loc.state}
-                </option>
-              ))}
-            </select>
-            <div className={styles.iconOverlay}>
-              <IconsApp.DownArrow />
-            </div>
-          </div>
-        </div>
-
         <div className={styles.deliveryToggleGroup}>
           <div
             className={`${styles.slider} ${
@@ -123,16 +83,10 @@ export default function DeliveryStep({
             Envío a domicilio
           </button>
         </div>
-
-        {locations.length === 0 && (
-          <p className={styles.warningText}>
-            * No tienes direcciones guardadas. Ve a tu perfil para agregar una.
-          </p>
-        )}
       </div>
       {showError && (
         <p className={styles.submitError}>
-          Selecciona una ubicación para continuar.
+          Selecciona una preferencia de entrega para continuar.
         </p>
       )}
     </section>

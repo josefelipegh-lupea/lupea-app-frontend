@@ -73,7 +73,7 @@ const formatMetricMonthLabel = (month: string) => {
 };
 
 export default function HomePage() {
-  const { jwt, loginProfile, refreshLoginProfile } = useAuth();
+  const { jwt, profile, loginProfile, refreshLoginProfile } = useAuth();
   const { isExpanded } = useSidebar();
   const { onNotification, notifications } = useSocket();
   const router = useRouter();
@@ -481,6 +481,28 @@ export default function HomePage() {
       }`}
     >
       <div className={styles.mainContainer}>
+        {/* PROFILE INCOMPLETE ALERT */}
+        {profile?.status === "incomplete" && (
+          <div className={styles.profileIncompleteAlert}>
+            <div className={styles.icon}>
+              <IconsApp.Warning color="#d97706" width="20" height="20" />
+            </div>
+            <div className={styles.content}>
+              <p className={styles.title}>Perfil incompleto</p>
+              <p className={styles.description}>
+                Para crear solicitudes debes completar tu perfil personal.
+              </p>
+              <button
+                type="button"
+                className={styles.link}
+                onClick={() => router.push("/profile/user/personal-info")}
+              >
+                Completar perfil
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 1. CARD DE LUPAS */}
         <div className={styles.leftSection}>
           <section className={styles.summaryCard}>

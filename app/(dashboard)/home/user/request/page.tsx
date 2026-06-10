@@ -31,10 +31,11 @@ import {
 } from "@/app/lib/api/client/location";
 import { useRequestForm } from "@/hooks/useRequesFormAutoSave";
 import { useFooterVisibility } from "@/context/FooterVisibilityContext";
+import DeliveryLocationStep from "@/components/request/DeliveryLocationStep";
 
 export default function RequestPage() {
   const router = useRouter();
-  const { jwt, refreshProfile, refreshLoginProfile } = useAuth();
+  const { jwt, profile, refreshProfile, refreshLoginProfile } = useAuth();
 
   const [allStates, setAllStates] = useState<State[]>([]);
   const [savedLocations, setSavedLocations] = useState<Location[]>([]);
@@ -50,6 +51,7 @@ export default function RequestPage() {
 
   const vehicleRef = useRef<HTMLElement>(null);
   const sparePartsRef = useRef<HTMLElement>(null);
+  const deliveryLocationRef = useRef<HTMLElement>(null);
   const deliveryRef = useRef<HTMLElement>(null);
 
   const { formData, setFormData, isValid, saveDraft, clearDraft } =
@@ -76,8 +78,24 @@ export default function RequestPage() {
     return [];
   };
 
+  const refreshLocations = async () => {
+    if (!jwt) return;
+    const res = await getClientLocations(jwt);
+    if (res.data) {
+      setSavedLocations(res.data);
+      return res.data;
+    }
+    return [];
+  };
+
   const handleSubmit = async () => {
     setSubmitAttempted(true);
+
+    // Validación: Perfil debe estar verificado
+    if (profile?.status !== "verified") {
+      toast.error("Completa tu perfil para crear solicitudes");
+      return;
+    }
 
     if (!isVehicleReady) {
       vehicleRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -85,6 +103,10 @@ export default function RequestPage() {
     }
     if (!isSparePartsReady) {
       sparePartsRef.current?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    if (!isDeliveryLocationReady) {
+      deliveryLocationRef.current?.scrollIntoView({ behavior: "smooth" });
       return;
     }
     if (!isDeliveryReady) {
@@ -147,8 +169,9 @@ export default function RequestPage() {
 
   const isVehicleReady = !!formData.userVehicle;
   const isSparePartsReady = formData.spareParts.length > 0;
-  const isDeliveryReady = !!formData.deliveryCity;
-  const isFormValid = isVehicleReady && isSparePartsReady && isDeliveryReady;
+  const isDeliveryLocationReady = !!formData.deliveryCity;
+  const isDeliveryReady = !!formData.deliveryMethod;
+  const isFormValid = isVehicleReady && isSparePartsReady && isDeliveryLocationReady && isDeliveryReady;
 
   useEffect(() => {
     if (isVehicleReady || isSparePartsReady || isDeliveryReady) {
@@ -200,6 +223,28 @@ export default function RequestPage() {
       >
         <Header title="Buscar repuesto" />
 
+        {/* PROFILE INCOMPLETE ALERT */}
+        {profile?.status === "incomplete" && (
+          <div className={styles.profileIncompleteAlert}>
+            <div className={styles.icon}>
+              <IconsApp.Warning color="#d97706" width="20" height="20" />
+            </div>
+            <div className={styles.content}>
+              <p className={styles.title}>Perfil incompleto</p>
+              <p className={styles.description}>
+                Para crear solicitudes debes completar tu perfil personal.
+              </p>
+              <button
+                type="button"
+                className={styles.link}
+                onClick={() => router.push("/profile/user/personal-info")}
+              >
+                Completar perfil
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className={styles.content} ref={contentRef}>
           <VehicleStep
             jwt={jwt!}
@@ -226,6 +271,19 @@ export default function RequestPage() {
             saveDraft={saveDraft}
             showError={submitAttempted && !isSparePartsReady}
             sectionRef={sparePartsRef}
+          />
+
+          <DeliveryLocationStep
+            jwt={jwt!}
+            locations={savedLocations}
+            states={allStates}
+            formData={formData}
+            setFormData={setFormData}
+            saveDraft={saveDraft}
+            isCompleted={isDeliveryLocationReady}
+            showError={submitAttempted && !isDeliveryLocationReady}
+            onLocationAdded={refreshLocations}
+            sectionRef={deliveryLocationRef}
           />
 
           <DeliveryStep
