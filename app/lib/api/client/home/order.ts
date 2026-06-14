@@ -273,6 +273,39 @@ export async function getOrderById(jwt: string, orderId: string): Promise<{
   }
 }
 
+export async function cancelClientOrder(
+  jwt: string,
+  orderId: string,
+  note?: string,
+): Promise<{
+  ok: boolean;
+  data: {
+    order: OrderData;
+  };
+}> {
+  try {
+    const res = await fetch(`${API_URL}/orders/client/me/${orderId}/cancel`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({ note }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error?.message || "Error al cancelar la orden");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Fetch error in cancelClientOrder:", error);
+    throw error;
+  }
+}
+
 export async function getQuoteOrder(
   jwt: string,
   quoteDocumentId: string

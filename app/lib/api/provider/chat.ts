@@ -292,6 +292,35 @@ export async function markChatAsReadAsProvider(
   }
 }
 
+export async function completeProviderOrderCash(
+  jwt: string,
+  orderId: string,
+): Promise<{ ok: boolean; message: string }> {
+  try {
+    const res = await fetch(
+      `${API_URL}/orders/provider/me/${orderId}/complete`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
+      },
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error?.message || "Error al completar la orden");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Fetch error in completeProviderOrderCash:", error);
+    throw error;
+  }
+}
+
 export async function confirmProviderPayment(
   jwt: string,
   orderId: string,

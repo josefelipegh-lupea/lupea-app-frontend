@@ -10,11 +10,13 @@ import {
   getProviderOrderById,
   ProviderOrderData,
 } from "@/app/lib/api/provider/home/order";
-import { getOrderChatAsProvider } from "@/app/lib/api/provider/chat";
+import { getOrderChatAsProvider, completeProviderOrderCash } from "@/app/lib/api/provider/chat";
 import { getClientOrderReview } from "@/app/lib/api/client/review";
 import { SkeletonOrders } from "@/components/skeleton/SkeletonOrders";
 import OrderDetailCard from "@/components/order-card/OrderDetailCard";
+import { ConfirmModal } from "@/components/confirm-modal/ConfirmModal";
 import { useSidebar } from "@/context/SidebarContext";
+import toast from "react-hot-toast";
 
 const VendorOrderDetailPage: React.FC = () => {
   const params = useParams();
@@ -23,6 +25,8 @@ const VendorOrderDetailPage: React.FC = () => {
   const [order, setOrder] = useState<ProviderOrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasClientReview, setHasClientReview] = useState(false);
+  const [completingOrder, setCompletingOrder] = useState(false);
+  const [showCompleteCashModal, setShowCompleteCashModal] = useState(false);
   const { isExpanded } = useSidebar();
 
   useEffect(() => {
@@ -56,6 +60,20 @@ const VendorOrderDetailPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error opening chat:", error);
+    }
+  };
+
+  const handleCompleteAsCash = async () => {
+    if (!jwt || !order) return;
+    try {
+      setCompletingOrder(true);
+      await completeProviderOrderCash(jwt, order.id.toString());
+      setOrder((prev) => prev ? { ...prev, status: "completed" } : null);
+      toast.success("Orden completada");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error al completar la orden");
+    } finally {
+      setCompletingOrder(false);
     }
   };
 
@@ -113,9 +131,22 @@ const VendorOrderDetailPage: React.FC = () => {
             onReviewClick={handleReviewClick}
             showReviewButton={order.status === "completed" && !hasClientReview}
             isProvider={true}
+            onCompleteCashClick={() => setShowCompleteCashModal(true)}
+            showCompleteCashButton={order.status === "active" && !completingOrder}
           />
         </div>
       </main>
+
+      <ConfirmModal
+        isOpen={showCompleteCashModal}
+        onClose={() => setShowCompleteCashModal(false)}
+        onConfirm={handleCompleteAsCash}
+        title="¿Completar orden?"
+        description="Confirma que recibiste el pago en efectivo y entregaste los productos al cliente."
+        confirmText="Sí, completar"
+        cancelText="No, volver"
+        variant="warning"
+      />
     </div>
   );
 };

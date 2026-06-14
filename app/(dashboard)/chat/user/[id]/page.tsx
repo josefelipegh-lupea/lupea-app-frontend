@@ -83,6 +83,7 @@ export default function ConversationPage(_props: PageProps) {
   const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const [notifyingPayment, setNotifyingPayment] = useState(false);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
   const [isProviderOnline, setIsProviderOnline] = useState(false);
   const [providerLeftAt, setProviderLeftAt] = useState<Date | null>(null);
   const [numericChatId, setNumericChatId] = useState<number | null>(null);
@@ -103,6 +104,8 @@ export default function ConversationPage(_props: PageProps) {
           setChatStatus(messagesRes.data.chat.status);
           setOrderStatus(messagesRes.data.chat.order.status);
           setNumericChatId(messagesRes.data.chat.id);
+          const saved = localStorage.getItem(`lupea_payment_${messagesRes.data.chat.order.documentId}`);
+          if (saved) setSelectedPaymentMethod(saved);
         }
         await markChatAsReadAsClient(jwt, chatId);
       } catch (error) {
@@ -304,8 +307,8 @@ export default function ConversationPage(_props: PageProps) {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Notify payment bar (above input, only when order is active) */}
-          {orderStatus === "active" && (
+          {/* Notify payment bar (above input, only when order is active and method is not Efectivo) */}
+          {orderStatus === "active" && selectedPaymentMethod !== "Efectivo" && (
             <div className={styles.notifyPaymentBar}>
               <button
                 className={styles.notifyPaymentBtn}

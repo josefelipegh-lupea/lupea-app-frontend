@@ -11,6 +11,8 @@ interface OrderItem {
   price: number;
   quantity: number;
   subtotal: number;
+  warranty?: string;
+  notes?: string;
 }
 
 interface OrderConditions {
@@ -73,6 +75,12 @@ interface OrderDetailCardProps {
   showExpandButton?: boolean;
   showReviewButton?: boolean;
   showCancelButton?: boolean;
+  selectedPaymentMethod?: string | null;
+  onPaymentMethodSelect?: (method: string) => void;
+  onNotifyPaymentClick?: () => void;
+  showNotifyPaymentButton?: boolean;
+  onCompleteCashClick?: () => void;
+  showCompleteCashButton?: boolean;
 }
 
 const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
@@ -86,6 +94,12 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
   showReviewButton = false,
   showCancelButton = true,
   isProvider = false,
+  selectedPaymentMethod,
+  onPaymentMethodSelect,
+  onNotifyPaymentClick,
+  showNotifyPaymentButton = false,
+  onCompleteCashClick,
+  showCompleteCashButton = false,
 }) => {
   const formatStatus = (
     status: string,
@@ -114,10 +128,6 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
 
   const getDeliveryStatus = (deliveryTime: string): "today" | "tomorrow" => {
     return deliveryTime.toLowerCase().includes("hoy") ? "today" : "tomorrow";
-  };
-
-  const formatPaymentMethods = (methods: string[]) => {
-    return methods.join(", ");
   };
 
   return (
@@ -214,6 +224,11 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
                     {item.brand && item.availability && " • "}
                     {item.availability}
                   </p>
+                  {item.warranty && item.warranty !== "" && (
+                    <p className={styles.itemWarranty}>
+                      <IconsApp.Shield width="12" height="12" /> {item.warranty}
+                    </p>
+                  )}
                 </div>
                 <div className={styles.itemPriceWrapper}>
                   <span className={styles.itemQuantity}>x{item.quantity}</span>
@@ -237,20 +252,33 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
 
           <h3 className={styles.sectionTitle}>Condiciones comerciales</h3>
           <div className={styles.conditionsList}>
-            <ConditionCard
-              icon={<IconsApp.CreditCard />}
-              label="Forma de pago"
-              value={formatPaymentMethods(order.conditions.paymentMethods)}
-            />
+            <div className={styles.conditionCard}>
+              <div className={styles.condIconBox}><IconsApp.CreditCard /></div>
+              <div className={styles.condText}>
+                <div className={styles.paymentMethodSection}>
+                  <small className={styles.condLabel}>Forma de pago</small>
+                  <div className={styles.paymentChips}>
+                    {order.conditions.paymentMethods.map((method) => (
+                      <button
+                        key={method}
+                        className={`${styles.paymentChip} ${
+                          selectedPaymentMethod === method ? styles.paymentChipSelected : ""
+                        }`}
+                        onClick={!isProvider ? () => onPaymentMethodSelect?.(method) : undefined}
+                        type="button"
+                        style={isProvider ? { cursor: "default" } : undefined}
+                      >
+                        {method}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
             <ConditionCard
               icon={<IconsApp.OrangeClock height="20" width="20" />}
               label="Tiempo de entrega"
               value={order.conditions.deliveryTime}
-            />
-            <ConditionCard
-              icon={<IconsApp.Shield width="20" height="20" />}
-              label="Garantía"
-              value={order.conditions.warrantyPolicy}
             />
           </div>
 
@@ -329,6 +357,16 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
                   order.client?.username ||
                   "Cliente"
                 : order.provider.businessName}
+            </button>
+          )}
+          {!isProvider && showNotifyPaymentButton && onNotifyPaymentClick && (
+            <button className={styles.btnNotifyPayment} onClick={onNotifyPaymentClick}>
+              <IconsApp.CreditCard /> Notificar pago
+            </button>
+          )}
+          {isProvider && showCompleteCashButton && onCompleteCashClick && (
+            <button className={styles.btnCompleteCash} onClick={onCompleteCashClick}>
+              Completar orden (Efectivo)
             </button>
           )}
           {!isProvider && onCancelClick && showCancelButton && (

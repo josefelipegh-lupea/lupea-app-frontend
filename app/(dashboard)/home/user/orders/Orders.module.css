@@ -443,6 +443,58 @@
   color: #000;
 }
 
+/* Payment Method Chips */
+.paymentMethodSection {
+  margin-bottom: 12px;
+}
+
+.condLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  color: #000;
+  margin-bottom: 8px;
+}
+
+.paymentChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.paymentChip {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background: white;
+  cursor: pointer;
+  color: #444;
+  transition: all 0.15s ease;
+}
+
+.paymentChip:active {
+  transform: scale(0.97);
+}
+
+.paymentChipSelected {
+  border-color: #f08100;
+  background: #fff7ed;
+  color: #f08100;
+  font-weight: 600;
+}
+
+/* Item warranty tag */
+.itemWarranty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 3px;
+}
+
 /* Botones */
 .btnChat {
   width: 100%;
@@ -468,6 +520,36 @@
   padding: 10px 16px;
   border-radius: 14px;
   color: #ef4444;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.btnNotifyPayment {
+  width: 100%;
+  background-color: #ecfdf5;
+  border: 1.5px solid #a7f3d0;
+  padding: 10px 16px;
+  border-radius: 14px;
+  color: #059669;
+  font-weight: 500;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.btnCompleteCash {
+  width: 100%;
+  background-color: #fff7ed;
+  border: 1.5px solid #fed7aa;
+  padding: 10px 16px;
+  border-radius: 14px;
+  color: #f08100;
   font-weight: 500;
   font-size: 16px;
   cursor: pointer;

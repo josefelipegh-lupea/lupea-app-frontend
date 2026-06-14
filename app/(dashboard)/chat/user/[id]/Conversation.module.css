@@ -179,6 +179,34 @@
   cursor: not-allowed;
 }
 
+.bannerActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.completeCashButton {
+  background-color: #fff7ed;
+  color: #f08100;
+  border: 1.5px solid #f08100;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  white-space: nowrap;
+}
+
+.completeCashButton:hover:not(:disabled) {
+  background-color: #fed7aa;
+}
+
+.completeCashButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ── Desktop layout (≥768px) ── */
 @media (min-width: 768px) {
   .pageWrapper {

@@ -12,6 +12,7 @@ import {
   sendMessageWithAttachmentAsProvider,
   markChatAsReadAsProvider,
   confirmProviderPayment,
+  completeProviderOrderCash,
   ChatMessage,
   ChatOrder,
   ChatListItem,
@@ -21,6 +22,7 @@ import ChatHeader from "@/components/chat/ChatHeader";
 import MessageBubble from "@/components/chat/MessageBubble";
 import DateSeparator from "@/components/chat/DateSeparator";
 import ChatInput from "@/components/chat/ChatInput";
+import { ConfirmModal } from "@/components/confirm-modal/ConfirmModal";
 import styles from "../../user/[id]/Conversation.module.css";
 import toast from "react-hot-toast";
 
@@ -81,6 +83,8 @@ export default function ConversationPage(_props: PageProps) {
   const [chatStatus, setChatStatus] = useState<string>("active");
   const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const [confirmingPayment, setConfirmingPayment] = useState(false);
+  const [completingCash, setCompletingCash] = useState(false);
+  const [showCompleteCashModal, setShowCompleteCashModal] = useState(false);
   const [isClientOnline, setIsClientOnline] = useState(false);
   const [clientLeftAt, setClientLeftAt] = useState<Date | null>(null);
   const [numericChatId, setNumericChatId] = useState<number | null>(null);
@@ -195,6 +199,22 @@ export default function ConversationPage(_props: PageProps) {
     };
   }, [chatId, onlineParticipants, onParticipantJoined, onParticipantLeft, chat]);
 
+  // Complete order as cash payment
+  const handleCompleteAsCash = async () => {
+    if (!jwt || !order?.id || completingCash) return;
+    setCompletingCash(true);
+    try {
+      await completeProviderOrderCash(jwt, order.id.toString());
+      toast.success("Orden completada (efectivo)");
+      setOrderStatus("completed");
+      setChatStatus("read_only");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error al completar la orden");
+    } finally {
+      setCompletingCash(false);
+    }
+  };
+
   // Confirm payment
   const handleConfirmPayment = async () => {
     if (!jwt || !order?.id || orderStatus !== "payment_validation" || confirmingPayment)
@@ -300,13 +320,23 @@ export default function ConversationPage(_props: PageProps) {
                 <span className={styles.bannerIcon}>⏳</span>
                 <span>Esperando que el cliente notifique el pago...</span>
               </div>
-              <button
-                className={styles.confirmPaymentButton}
-                disabled
-                type="button"
-              >
-                Confirmar pago
-              </button>
+              <div className={styles.bannerActions}>
+                <button
+                  className={styles.confirmPaymentButton}
+                  disabled
+                  type="button"
+                >
+                  Confirmar P2P
+                </button>
+                <button
+                  className={styles.completeCashButton}
+                  onClick={() => setShowCompleteCashModal(true)}
+                  disabled={completingCash}
+                  type="button"
+                >
+                  {completingCash ? "Completando..." : "Completar (Efectivo)"}
+                </button>
+              </div>
             </div>
           )}
 
@@ -364,6 +394,17 @@ export default function ConversationPage(_props: PageProps) {
           />
         </main>
       </div>
+
+      <ConfirmModal
+        isOpen={showCompleteCashModal}
+        onClose={() => setShowCompleteCashModal(false)}
+        onConfirm={handleCompleteAsCash}
+        title="¿Completar orden?"
+        description="Confirma que recibiste el pago en efectivo y entregaste los productos al cliente."
+        confirmText="Sí, completar"
+        cancelText="No, volver"
+        variant="warning"
+      />
     </PageAnimation>
   );
 }
