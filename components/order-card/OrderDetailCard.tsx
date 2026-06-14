@@ -2,6 +2,7 @@ import React from "react";
 
 import styles from "../../app/(dashboard)/home/user/orders/Orders.module.css";
 import { IconsApp } from "../icons/Icons";
+import { formatDeliveryTimeLabel } from "@/app/utils/formatDeliveryTimeLabel";
 
 interface OrderItem {
   documentId: string;
@@ -199,7 +200,7 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
             ) : (
               <IconsApp.OrangeClock />
             )}
-            {order.quote.deliveryTime}
+            {formatDeliveryTimeLabel(order.quote.deliveryTime)}
           </span>
           <span className={styles.totalText}>
             Total ${order.subtotal.toFixed(0)}
@@ -275,11 +276,6 @@ const OrderDetailCard: React.FC<OrderDetailCardProps> = ({
                 </div>
               </div>
             </div>
-            <ConditionCard
-              icon={<IconsApp.OrangeClock height="20" width="20" />}
-              label="Tiempo de entrega"
-              value={order.conditions.deliveryTime}
-            />
           </div>
 
           <div className={styles.cardDivider} />
