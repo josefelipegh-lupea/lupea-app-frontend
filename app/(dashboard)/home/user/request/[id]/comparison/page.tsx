@@ -20,6 +20,8 @@ import { SkeletonComparison } from "@/components/skeleton/SkeletonComparison";
 import styles from "./Comparison.module.css";
 import Header from "@/components/header/Header";
 import toast from "react-hot-toast";
+import { formatDeliveryTimeLabel } from "@/app/utils/formatDeliveryTimeLabel";
+import { formatProviderReputation } from "@/app/utils/formatProviderReputation";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -408,6 +410,10 @@ export default function ComparisonPage({ params }: PageProps) {
               </p>
             ) : (
               filteredData.map((quote) => {
+                const providerReputation = formatProviderReputation(
+                  quote.provider.rating,
+                  quote.provider.reviewCount,
+                );
                 // When filtering by requestItem, only show matching products
                 const visibleProducts =
                   activeFilters.requestItemId !== null
@@ -439,14 +445,12 @@ export default function ComparisonPage({ params }: PageProps) {
                             {quote.provider.name}
                           </span>
                         </div>
-                        <div className={styles.ratingBadge}>
-                          <IconsApp.StarFilled color="#F08100" />
-                          <span>
-                            {quote.provider.rating
-                              ? quote.provider.rating.toFixed(1)
-                              : "N/A"}
-                          </span>
-                        </div>
+                        {providerReputation.hasRating ? (
+                          <div className={styles.ratingBadge}>
+                            <IconsApp.StarFilled color="#F08100" />
+                            <span>{providerReputation.label}</span>
+                          </div>
+                        ) : null}
                       </div>
 
                       <p className={styles.partsCount}>
@@ -537,9 +541,7 @@ export default function ComparisonPage({ params }: PageProps) {
                         <span className={styles.deliveryTime}>
                           <IconsApp.GreenClock />
                           <span className={styles.deliveryTimeText}>
-                            {quote.deliveryTime
-                              ? `Entrega: ${quote.deliveryTime}`
-                              : "Entrega: a convenir"}
+                            {formatDeliveryTimeLabel(quote.deliveryTime)}
                           </span>
                         </span>
                         <div className={styles.cardTotal}>

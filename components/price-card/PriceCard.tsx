@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 
 import { IconsApp } from "../icons/Icons";
+import { formatDeliveryTimeLabel } from "@/app/utils/formatDeliveryTimeLabel";
+import { formatProviderReputation } from "@/app/utils/formatProviderReputation";
 
 import styles from "./PriceCard.module.css";
 
@@ -16,6 +18,7 @@ interface PriceProps {
   date: string;
   workshop: string;
   rating?: number;
+  reviewCount?: number;
   amount: string;
   time: string;
   items: Item[];
@@ -35,6 +38,7 @@ export const PriceCard: React.FC<PriceProps> = ({
   date,
   workshop,
   rating,
+  reviewCount,
   amount,
   time,
   items,
@@ -108,6 +112,7 @@ export const PriceCard: React.FC<PriceProps> = ({
   }, [isExpanded, collapsedHeight]);
 
   const formatNumber = (num: number) => (num < 10 ? `0${num}` : num);
+  const providerReputation = formatProviderReputation(rating, reviewCount);
 
   return (
     <div ref={cardRef} className={styles.card}>
@@ -125,10 +130,12 @@ export const PriceCard: React.FC<PriceProps> = ({
             <span className={styles.tallerName}>{workshop}</span>
           </div>
 
-          <div className={styles.reputation}>
-            {rating && <IconsApp.Star />}
-            <span className={styles.ratingValue}>{rating}</span>
-          </div>
+          {providerReputation.hasRating ? (
+            <div className={styles.reputation}>
+              <IconsApp.Star />
+              <span className={styles.ratingValue}>{providerReputation.label}</span>
+            </div>
+          ) : null}
         </div>
 
         <p className={styles.repuestosResumen}>
@@ -171,7 +178,7 @@ export const PriceCard: React.FC<PriceProps> = ({
             <span className={styles.clockIcon}>
               <IconsApp.GreenClock />
             </span>
-            {time}
+            {formatDeliveryTimeLabel(time)}
           </div>
           <div className={styles.monto}>${amount}</div>
         </div>

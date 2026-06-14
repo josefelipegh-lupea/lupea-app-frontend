@@ -13,6 +13,7 @@ import {
 } from "@/app/lib/api/client/home/quote";
 import { PriceCard } from "@/components/price-card/PriceCard";
 import { SkeletonComparison } from "@/components/skeleton/SkeletonComparison";
+import { formatConditionPreferred } from "@/app/utils/formatConditionPreferred";
 
 const RequestQuotesPage: React.FC = () => {
   const params = useParams();
@@ -83,12 +84,15 @@ const RequestQuotesPage: React.FC = () => {
               workshop={quote.provider.businessName}
               amount={quote.priceTotal.toFixed(2)}
               time={quote.deliveryTime}
+              rating={quote.provider.rating}
+              reviewCount={quote.provider.reviewCount}
               items={quote.items.map((item) => ({
                 name: item.productName,
-                model: item.offeredBrand || "",
-                type: item.availableQuantity?.toString() || "-",
+                model: `${quote.request.vehicle.brand} ${quote.request.vehicle.model} ${quote.request.vehicle.year}`,
+                type: item.offeredBrand || formatConditionPreferred(item.requestItem?.conditionPreferred),
+                notes: item.notes || null,
               }))}
-              totalSolicitados={quote.items.length}
+              totalSolicitados={quote.request.items.length}
               documentId={params.id as string}
               quoteDocumentId={quote.documentId}
               onCompare={(docId) =>

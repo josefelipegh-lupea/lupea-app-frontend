@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import styles from "./QuoteDetailCard.module.css";
 import { IconsApp } from "../icons/Icons";
 import { ClientQuote } from "@/app/lib/api/client/home/quote";
+import { formatDeliveryTimeLabel } from "@/app/utils/formatDeliveryTimeLabel";
 
 interface QuoteDetailCardProps {
   quote: ClientQuote;
@@ -151,7 +152,7 @@ const QuoteDetailCard: React.FC<QuoteDetailCardProps> = ({
           <div className={styles.summaryRow}>
             <span className={styles.deliveryTime}>
               <IconsApp.OrangeClock />
-              {quote.deliveryTime}
+              {formatDeliveryTimeLabel(quote.deliveryTime)}
             </span>
             <span className={styles.totalText}>
               Total ${quote.priceTotal.toFixed(2)}

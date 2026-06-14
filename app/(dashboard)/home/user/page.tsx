@@ -24,6 +24,7 @@ import {
   getQuoteOrder,
   OrderData,
 } from "@/app/lib/api/client/home/order";
+import { formatConditionPreferred } from "@/app/utils/formatConditionPreferred";
 import styles from "./Home.module.css";
 
 interface FeaturedQuoteData {
@@ -304,12 +305,14 @@ export default function HomePage() {
               workshop={data.featuredQuote.provider.businessName}
               amount={data.featuredQuote.priceTotal.toFixed(2)}
               time={data.featuredQuote.deliveryTime}
+              rating={data.featuredQuote.provider.rating}
+              reviewCount={data.featuredQuote.provider.reviewCount}
               items={data.featuredQuote.items.map((item) => ({
-                name: item.productName,
-                model: `${data.request.vehicle.brand} ${data.request.vehicle.model} ${data.request.vehicle.year}`,
-                type: item.offeredBrand || item.requestItem?.conditionPreferred || "Original",
-                notes: item.notes || null,
-              }))}
+                 name: item.productName,
+                 model: `${data.request.vehicle.brand} ${data.request.vehicle.model} ${data.request.vehicle.year}`,
+                 type: item.offeredBrand || formatConditionPreferred(item.requestItem?.conditionPreferred),
+                 notes: item.notes || null,
+               }))}
               totalSolicitados={data.request.items.length}
               documentId={data.request.documentId}
               quoteDocumentId={data.featuredQuote.documentId}

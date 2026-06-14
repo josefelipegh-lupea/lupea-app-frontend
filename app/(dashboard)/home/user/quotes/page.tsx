@@ -112,6 +112,8 @@ export default function AllQuotesPage() {
                   workshop={data.featuredQuote.provider.businessName}
                   amount={data.featuredQuote.priceTotal.toFixed(2)}
                   time={data.featuredQuote.deliveryTime}
+                  rating={data.featuredQuote.provider.rating}
+                  reviewCount={data.featuredQuote.provider.reviewCount}
                   items={data.request.items.map((item) => ({
                     name: item.productName,
                     model: `${data.request.vehicle.brand} ${data.request.vehicle.model} ${data.request.vehicle.year}`,

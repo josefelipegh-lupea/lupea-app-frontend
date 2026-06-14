@@ -119,6 +119,10 @@ export interface ClientQuote {
     documentId: string;
     businessName: string;
     username: string;
+    rating?: number;
+    reviewCount?: number;
+    reputationScore?: number;
+    reputationLevel?: string;
     paymentMethods: string[];
     warrantyPolicy: string | null;
     returnPolicy: string | null;

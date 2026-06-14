@@ -22,6 +22,9 @@ import { IconsApp } from "@/components/icons/Icons";
 import Button from "@/components/button/Button";
 import { PageAnimation } from "@/components/page-animation/PageAnimation";
 import { SkeletonComparison } from "@/components/skeleton/SkeletonComparison";
+import { formatConditionPreferred } from "@/app/utils/formatConditionPreferred";
+import { formatDeliveryTimeLabel } from "@/app/utils/formatDeliveryTimeLabel";
+import { formatProviderReputation } from "@/app/utils/formatProviderReputation";
 
 const QuoteDetailPage: React.FC = () => {
   const params = useParams();
@@ -157,6 +160,10 @@ const QuoteDetailPage: React.FC = () => {
   }
 
   const isOrdered = quote.request.status === "ordered";
+  const providerReputation = formatProviderReputation(
+    quote.provider.rating,
+    quote.provider.reviewCount,
+  );
 
   return (
     <PageAnimation>
@@ -202,6 +209,12 @@ const QuoteDetailPage: React.FC = () => {
                       {quote.provider.businessName}
                     </span>
                   </div>
+                  {providerReputation.hasRating ? (
+                    <div className={styles.ratingBadge}>
+                      <IconsApp.StarFilled color="#F08100" />
+                      <span>{providerReputation.label}</span>
+                    </div>
+                  ) : null}
                 </div>
 
                 <p className={styles.partsCount}>
@@ -232,8 +245,7 @@ const QuoteDetailPage: React.FC = () => {
                           <p className={styles.partName}>{item.productName}</p>
                           <p className={styles.partSub}>
                             {item.offeredBrand ||
-                              item.requestItem?.conditionPreferred ||
-                              "Original"}
+                              formatConditionPreferred(item.requestItem?.conditionPreferred)}
                           </p>
                           {item.notes && (
                             <p className={styles.partNotes}>{item.notes}</p>
@@ -265,7 +277,7 @@ const QuoteDetailPage: React.FC = () => {
                         fontSize: 13,
                       }}
                     >
-                      {quote.deliveryTime}
+                      {formatDeliveryTimeLabel(quote.deliveryTime)}
                     </span>
                   </span>
                   <div className={styles.cardTotal}>
