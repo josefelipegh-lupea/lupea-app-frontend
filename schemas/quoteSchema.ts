@@ -6,7 +6,7 @@ export const quoteItemSchema = z.object({
   availableQuantity: z.number().min(1, "La disponibilidad es obligatoria y debe ser al menos 1"),
   unitPrice: z.number().min(0.01, "El precio es obligatorio y debe ser mayor a 0"),
   warranty: z.string().optional(),
-  notes: z.string().optional(),
+  notes: z.string().trim().min(1, "La descripcion del producto es obligatoria"),
 });
 
 export const quoteSubmissionSchema = z.object({

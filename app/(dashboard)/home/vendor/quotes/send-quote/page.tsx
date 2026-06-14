@@ -34,6 +34,15 @@ const PAYMENT_METHODS = [
 
 const DELIVERY_METHODS = ["Retiro en tienda", "Envío local", "Envío nacional"];
 
+const WARRANTY_TYPES = [
+  { value: "none", label: "No aplica" },
+  { value: "duration", label: "Por tiempo" },
+  { value: "until_date", label: "Hasta fecha" },
+] as const;
+
+const WARRANTY_DURATION_UNITS = ["días", "meses", "años"] as const;
+const DELIVERY_TIME_UNITS = ["horas", "días", "semanas"] as const;
+
 function NewQuotePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -57,14 +66,19 @@ function NewQuotePageContent() {
     string[]
   >([]);
 
-  const [deliveryTime, setDeliveryTime] = useState("");
+  const [deliveryTimeMode, setDeliveryTimeMode] = useState<"immediate" | "duration">("duration");
+  const [deliveryTimeValue, setDeliveryTimeValue] = useState("");
+  const [deliveryTimeUnit, setDeliveryTimeUnit] = useState<(typeof DELIVERY_TIME_UNITS)[number]>("horas");
   const [validityDate, setValidityDate] = useState("");
   const [noteGeneral, setNoteGeneral] = useState("");
 
   type OfferEntry = {
     unitPrice: string;
     availableQuantity: string;
-    warranty: string;
+    warrantyType: (typeof WARRANTY_TYPES)[number]["value"];
+    warrantyDurationValue: string;
+    warrantyDurationUnit: (typeof WARRANTY_DURATION_UNITS)[number];
+    warrantyUntilDate: string;
     notes: string;
     offeredBrand: string;
   };
@@ -106,7 +120,10 @@ function NewQuotePageContent() {
                 {
                   unitPrice: "",
                   availableQuantity: item.quantity.toString(),
-                  warranty: "",
+                  warrantyType: "none",
+                  warrantyDurationValue: "",
+                  warrantyDurationUnit: "días",
+                  warrantyUntilDate: "",
                   notes: "",
                   offeredBrand: "",
                 },
@@ -182,12 +199,35 @@ function NewQuotePageContent() {
         {
           unitPrice: "",
           availableQuantity: requestedQty.toString(),
-          warranty: "",
+          warrantyType: "none",
+          warrantyDurationValue: "",
+          warrantyDurationUnit: "días",
+          warrantyUntilDate: "",
           notes: "",
           offeredBrand: "",
         },
       ],
     }));
+  };
+
+  const buildWarrantyValue = (offer: OfferEntry): string | undefined => {
+    if (offer.warrantyType === "none") return "No aplica";
+    if (offer.warrantyType === "duration") {
+      const value = Number(offer.warrantyDurationValue);
+      if (!Number.isFinite(value) || value < 1) return undefined;
+      return `${value} ${offer.warrantyDurationUnit}`;
+    }
+    if (offer.warrantyType === "until_date") {
+      return offer.warrantyUntilDate || undefined;
+    }
+    return undefined;
+  };
+
+  const buildDeliveryTimeValue = (): string => {
+    if (deliveryTimeMode === "immediate") return "Entrega inmediata";
+    const value = Number(deliveryTimeValue);
+    if (!Number.isFinite(value) || value < 1) return "";
+    return `${value} ${deliveryTimeUnit}`;
   };
 
   const removeOffer = (itemId: number, offerIdx: number) => {
@@ -262,6 +302,8 @@ function NewQuotePageContent() {
   const handleSubmitQuote = async () => {
     if (!request || !jwt) return;
 
+    const normalizedDeliveryTime = buildDeliveryTimeValue();
+
     const items = request.request.items.flatMap((item) => {
       const offers = itemData[item.id] || [];
       return offers.map((offer, offerIdx) => ({
@@ -269,14 +311,14 @@ function NewQuotePageContent() {
         offeredBrand: offer.offeredBrand || undefined,
         availableQuantity: parseInt(offer.availableQuantity) || undefined,
         unitPrice: parseFloat(offer.unitPrice) || 0,
-        warranty: offer.warranty || undefined,
+        warranty: buildWarrantyValue(offer),
         notes: offer.notes || undefined,
         photoId: itemPhotos[`${item.id}_${offerIdx}`]?.uploadedId ?? undefined,
       }));
     });
 
     const payload = {
-      deliveryTime,
+      deliveryTime: normalizedDeliveryTime,
       validityDate,
       paymentMethods: selectedPaymentMethods,
       deliveryMethods: selectedDeliveryMethods,
@@ -301,8 +343,27 @@ function NewQuotePageContent() {
           if (!offer.availableQuantity || parseInt(offer.availableQuantity) < 1) {
             fieldErrors[`items.${item.id}.${offerIdx}.availableQuantity`] = "La disponibilidad es obligatoria";
           }
+          if (!offer.notes || offer.notes.trim().length < 1) {
+            fieldErrors[`items.${item.id}.${offerIdx}.notes`] = "La descripcion del producto es obligatoria";
+          }
+          if (offer.warrantyType === "duration") {
+            const value = Number(offer.warrantyDurationValue);
+            if (!Number.isFinite(value) || value < 1) {
+              fieldErrors[`items.${item.id}.${offerIdx}.warranty`] = "La duracion de garantia debe ser mayor a 0";
+            }
+          }
+          if (offer.warrantyType === "until_date" && !offer.warrantyUntilDate) {
+            fieldErrors[`items.${item.id}.${offerIdx}.warranty`] = "Selecciona una fecha de garantia";
+          }
         });
       });
+
+      if (deliveryTimeMode === "duration") {
+        const parsedDeliveryTime = Number(deliveryTimeValue);
+        if (!Number.isFinite(parsedDeliveryTime) || parsedDeliveryTime < 1) {
+          fieldErrors["deliveryTime"] = "El tiempo de entrega debe ser mayor a 0";
+        }
+      }
 
       // Errores de condiciones comerciales del schema
       result.error.issues.forEach((issue) => {
@@ -576,24 +637,94 @@ function NewQuotePageContent() {
 
                   <div className={styles.colWarranty} data-label="Garantía / Descripción">
                     <div className={styles.obsContainer}>
-                      <input
-                        type="text"
-                        placeholder="Garantía"
-                        className={styles.capsuleInput}
-                        value={offer.warranty}
-                        onChange={(e) =>
-                          handleItemChange(item.id, offerIdx, "warranty", e.target.value)
-                        }
-                      />
-                      <input
-                        type="text"
-                        placeholder="Descripción del producto"
-                        className={styles.capsuleInput}
+                      <label className={styles.warrantyLabel}>Garantía</label>
+                      <div className={styles.inlinePillGroup}>
+                        {WARRANTY_TYPES.map((option) => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            className={`${styles.inlinePill} ${offer.warrantyType === option.value ? styles.inlinePillActive : ""}`}
+                            onClick={() => {
+                              handleItemChange(item.id, offerIdx, "warrantyType", option.value);
+                              setErrors((prev) => {
+                                const newErrors = { ...prev };
+                                delete newErrors[`items.${item.id}.${offerIdx}.warranty`];
+                                return newErrors;
+                              });
+                            }}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className={styles.dynamicSlot}>
+                        <div
+                          className={`${styles.dynamicPanel} ${offer.warrantyType === "duration" ? styles.dynamicPanelActive : ""}`}
+                        >
+                          <div className={styles.inlineInputRow}>
+                            <input
+                              type="number"
+                              min="1"
+                              placeholder="Tiempo"
+                              className={`${styles.smallInput} ${errors[`items.${item.id}.${offerIdx}.warranty`] ? styles.inputError : ""}`}
+                              value={offer.warrantyDurationValue}
+                              onChange={(e) =>
+                                handleItemChange(item.id, offerIdx, "warrantyDurationValue", e.target.value)
+                              }
+                              disabled={offer.warrantyType !== "duration"}
+                              tabIndex={offer.warrantyType === "duration" ? 0 : -1}
+                            />
+                            <select
+                              className={styles.smallSelect}
+                              value={offer.warrantyDurationUnit}
+                              onChange={(e) =>
+                                handleItemChange(item.id, offerIdx, "warrantyDurationUnit", e.target.value)
+                              }
+                              disabled={offer.warrantyType !== "duration"}
+                              tabIndex={offer.warrantyType === "duration" ? 0 : -1}
+                            >
+                              {WARRANTY_DURATION_UNITS.map((unit) => (
+                                <option key={unit} value={unit}>
+                                  {unit}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        <div
+                          className={`${styles.dynamicPanel} ${offer.warrantyType === "until_date" ? styles.dynamicPanelActive : ""}`}
+                        >
+                          <input
+                            type="date"
+                            min={new Date().toISOString().split("T")[0]}
+                            className={`${styles.smallInput} ${errors[`items.${item.id}.${offerIdx}.warranty`] ? styles.inputError : ""}`}
+                            value={offer.warrantyUntilDate}
+                            onChange={(e) =>
+                              handleItemChange(item.id, offerIdx, "warrantyUntilDate", e.target.value)
+                            }
+                            disabled={offer.warrantyType !== "until_date"}
+                            tabIndex={offer.warrantyType === "until_date" ? 0 : -1}
+                          />
+                        </div>
+                      </div>
+                      <div className={styles.errorSlot}>
+                        {errors[`items.${item.id}.${offerIdx}.warranty`] && (
+                          <span className={styles.errorText}>{errors[`items.${item.id}.${offerIdx}.warranty`]}</span>
+                        )}
+                      </div>
+                      <label className={styles.requiredNotesLabel}>Descripción del producto</label>
+                      <textarea
+                        placeholder="Ej: Marca, referencia, material u otros detalles relevantes"
+                        className={`${styles.notesTextarea} ${errors[`items.${item.id}.${offerIdx}.notes`] ? styles.inputError : ""}`}
                         value={offer.notes}
                         onChange={(e) =>
                           handleItemChange(item.id, offerIdx, "notes", e.target.value)
                         }
+                        rows={3}
                       />
+                      {errors[`items.${item.id}.${offerIdx}.notes`] && (
+                        <span className={styles.errorText}>{errors[`items.${item.id}.${offerIdx}.notes`]}</span>
+                      )}
                     </div>
                   </div>
 
@@ -751,27 +882,91 @@ function NewQuotePageContent() {
                 <div className={styles.commercialCol}>
                   <div className={styles.rowInputs}>
                     <div className={styles.inputSubGroup}>
-                      <label>Tiempo entrega estimado</label>
-                      <div className={styles.inputIconWrapper}>
-                        <input
-                          type="text"
-                          placeholder="Ej: 24-48 horas"
-                          className={`${styles.smallInput} ${errors["deliveryTime"] ? styles.inputError : ""}`}
-                          value={deliveryTime}
-                          onChange={(e) => {
-                            setDeliveryTime(e.target.value);
+                      <label className={styles.requiredLabel}>Tiempo entrega estimado</label>
+                      <div className={styles.modeToggleRow}>
+                        <button
+                          type="button"
+                          className={`${styles.inlinePill} ${deliveryTimeMode === "immediate" ? styles.inlinePillActive : ""}`}
+                          onClick={() => {
+                            setDeliveryTimeMode("immediate");
                             setErrors((prev) => {
                               const newErrors = { ...prev };
                               delete newErrors["deliveryTime"];
                               return newErrors;
                             });
                           }}
-                        />
+                        >
+                          Entrega inmediata
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.inlinePill} ${deliveryTimeMode === "duration" ? styles.inlinePillActive : ""}`}
+                          onClick={() => {
+                            setDeliveryTimeMode("duration");
+                            setErrors((prev) => {
+                              const newErrors = { ...prev };
+                              delete newErrors["deliveryTime"];
+                              return newErrors;
+                            });
+                          }}
+                        >
+                          Por tiempo
+                        </button>
+                      </div>
+                      <div className={styles.dynamicSlot}>
+                        <div
+                          className={`${styles.dynamicPanel} ${deliveryTimeMode === "duration" ? styles.dynamicPanelActive : ""}`}
+                        >
+                          <div className={styles.inlineInputRow}>
+                            <input
+                              type="number"
+                              min="1"
+                              placeholder="Cantidad"
+                              className={`${styles.smallInput} ${errors["deliveryTime"] ? styles.inputError : ""}`}
+                              value={deliveryTimeValue}
+                              onChange={(e) => {
+                                setDeliveryTimeValue(e.target.value);
+                                setErrors((prev) => {
+                                  const newErrors = { ...prev };
+                                  delete newErrors["deliveryTime"];
+                                  return newErrors;
+                                });
+                              }}
+                              disabled={deliveryTimeMode !== "duration"}
+                              tabIndex={deliveryTimeMode === "duration" ? 0 : -1}
+                            />
+                            <select
+                              className={styles.smallSelect}
+                              value={deliveryTimeUnit}
+                              onChange={(e) => {
+                                setDeliveryTimeUnit(e.target.value as (typeof DELIVERY_TIME_UNITS)[number]);
+                                setErrors((prev) => {
+                                  const newErrors = { ...prev };
+                                  delete newErrors["deliveryTime"];
+                                  return newErrors;
+                                });
+                              }}
+                              disabled={deliveryTimeMode !== "duration"}
+                              tabIndex={deliveryTimeMode === "duration" ? 0 : -1}
+                            >
+                              {DELIVERY_TIME_UNITS.map((unit) => (
+                                <option key={unit} value={unit}>
+                                  {unit}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      <div className={styles.errorSlot}>
+                        {errors["deliveryTime"] && (
+                          <span className={styles.errorText}>{errors["deliveryTime"]}</span>
+                        )}
                       </div>
                     </div>
 
                     <div className={styles.inputSubGroup}>
-                      <label>Vigencia cotización</label>
+                      <label className={styles.requiredLabel}>Vigencia cotización</label>
                       <div className={styles.dateInputWrapper}>
                         <input
                           type="date"
