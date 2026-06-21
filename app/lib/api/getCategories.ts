@@ -46,7 +46,7 @@ export interface RepuestoFlat {
 
 export async function getCategories(): Promise<CategoriesResponse> {
   const res = await fetch(
-    `${API_URL}/categories?populate=children&filters[parent][$null]=true`,
+    `${API_URL}/categories/tree`,
     {
       method: "GET",
       headers: {

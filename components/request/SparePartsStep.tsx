@@ -497,7 +497,7 @@ export default function SparePartsStep({
                             className={styles.suggestionItem}
                             onMouseDown={(e) => { e.preventDefault(); handleSelectRepuesto(r); }}
                           >
-                            <span style={{ fontWeight: 500 }}>{r.name}</span>
+                            <span style={{ fontWeight: 500, color: "#111827" }}>{r.name}</span>
                             <span style={{ fontSize: "11px", color: "#6B7280", marginLeft: "6px" }}>
                               {r.subcategoria} / {r.categoria}
                             </span>
