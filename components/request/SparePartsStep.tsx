@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { IconsApp } from "@/components/icons/Icons";
 import styles from "../../app/(dashboard)/home/user/request/Request.module.css";
 import StepTransition from "../provider-onboarding/step-transition/StepTransition";
-import { Category } from "@/app/lib/api/getCategories";
+import {
+  Category,
+  RepuestoFlat,
+  getAllCategoriesFlat,
+  buildRepuestosFlat,
+} from "@/app/lib/api/getCategories";
 import { QuoteRequestFormData, SparePart } from "@/hooks/useRequesFormAutoSave";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
@@ -45,6 +50,13 @@ export default function SparePartsStep({
   const [isUploading, setIsUploading] = useState(false);
   const [showScrollArrow, setShowScrollArrow] = useState(false);
 
+  const [inputMode, setInputMode] = useState<"catalog" | "libre">("catalog");
+  const [repuestos, setRepuestos] = useState<RepuestoFlat[]>([]);
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const autocompleteRef = useRef<HTMLDivElement>(null);
+
   const [localPart, setLocalPart] = useState<SparePart>({
     category: "",
     subcategory: "",
@@ -64,6 +76,12 @@ export default function SparePartsStep({
     (c) => c.name === localPart.category
   );
   const subCategories = selectedCategoryObj?.children || [];
+
+  const suggestions = useMemo(() => {
+    if (!debouncedQuery.trim() || debouncedQuery.length < 2) return [];
+    const q = debouncedQuery.toLowerCase();
+    return repuestos.filter((r) => r.name.toLowerCase().includes(q)).slice(0, 8);
+  }, [debouncedQuery, repuestos]);
 
   const scrollToCard = () => {
     if (cardRef.current) {
@@ -114,6 +132,10 @@ export default function SparePartsStep({
       description: "",
     });
     setEditingIndex(null);
+    setQuery("");
+    setDebouncedQuery("");
+    setShowSuggestions(false);
+    setInputMode("catalog");
   };
 
   // --- Lógica de Imágenes ---
@@ -172,6 +194,17 @@ export default function SparePartsStep({
     }, 300);
   };
 
+  const handleSelectRepuesto = (r: RepuestoFlat) => {
+    setLocalPart((p) => ({
+      ...p,
+      category: r.categoria,
+      subcategory: r.subcategoria,
+      partName: r.name,
+    }));
+    setQuery(r.label);
+    setShowSuggestions(false);
+  };
+
   const handleEdit = (index: number) => {
     const partToEdit = formData.spareParts[index];
     setLocalPart({
@@ -185,6 +218,20 @@ export default function SparePartsStep({
       photoUrl: partToEdit.photoUrl,
     });
 
+    const inCatalog = repuestos.find(
+      (r) =>
+        r.name === partToEdit.partName &&
+        r.categoria === partToEdit.category &&
+        r.subcategoria === partToEdit.subcategory,
+    );
+    if (inCatalog) {
+      setInputMode("catalog");
+      setQuery(inCatalog.label);
+    } else {
+      setInputMode("libre");
+      setQuery("");
+    }
+    setShowSuggestions(false);
     setEditingIndex(index);
     goToForm();
   };
@@ -245,6 +292,28 @@ export default function SparePartsStep({
     });
     return () => cancelAnimationFrame(frameId);
   }, [formData.spareParts, showForm]);
+
+  useEffect(() => {
+    if (!jwt) return;
+    getAllCategoriesFlat(jwt)
+      .then((nodes) => setRepuestos(buildRepuestosFlat(nodes)))
+      .catch(() => {});
+  }, [jwt]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 150);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (autocompleteRef.current && !autocompleteRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <section
@@ -373,66 +442,144 @@ export default function SparePartsStep({
             </div>
           ) : (
             <div className={styles.subStepContainer}>
+              {/* ── NOMBRE DEL REPUESTO (modo catálogo o libre) ── */}
               <div className={styles.field}>
-                <label>Categoría <span className={styles.required}>*</span></label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    name="category"
-                    value={localPart.category}
-                    onChange={handleChange}
-                  >
-                    <option value="">Seleccionar Categoría</option>
-                    {categories.map((c) => (
-                      <option key={c.documentId} value={c.name}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className={styles.iconOverlay}>
-                    <IconsApp.DownArrow />
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.field}>
-                <label>Subcategoría <span className={styles.required}>*</span></label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    name="subcategory"
-                    value={localPart.subcategory}
-                    onChange={handleChange}
-                    disabled={!localPart.category}
-                  >
-                    <option value="">
-                      {!localPart.category
-                        ? "Selecciona primero una categoría"
-                        : "Seleccionar Subcategoría"}
-                    </option>
-                    {subCategories.map((sub) => (
-                      <option key={sub.id} value={sub.name}>
-                        {sub.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className={styles.iconOverlay}>
-                    <IconsApp.DownArrow />
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.rowSparParts}>
-                <div className={`${styles.field} ${styles.flex2}`}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <label>Nombre del repuesto <span className={styles.required}>*</span></label>
-                  <input
-                    type="text"
-                    name="partName"
-                    value={localPart.partName}
-                    onChange={handleChange}
-                    placeholder="Ej: Bomba de agua"
-                    className={styles.input}
-                  />
+                  {inputMode === "catalog" ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInputMode("libre");
+                        setQuery("");
+                        setLocalPart((p) => ({ ...p, category: "", subcategory: "", partName: "" }));
+                      }}
+                      style={{ fontSize: "12px", color: "#f58220", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                    >
+                      Escribir manualmente
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInputMode("catalog");
+                        setQuery("");
+                        setLocalPart((p) => ({ ...p, category: "", subcategory: "", partName: "" }));
+                      }}
+                      style={{ fontSize: "12px", color: "#f58220", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                    >
+                      Buscar en catálogo
+                    </button>
+                  )}
                 </div>
-                <div className={`${styles.field} ${styles.flex1}`}>
+
+                {inputMode === "catalog" ? (
+                  <div ref={autocompleteRef} style={{ position: "relative" }}>
+                    <input
+                      type="text"
+                      value={query}
+                      onChange={(e) => {
+                        setQuery(e.target.value);
+                        setShowSuggestions(true);
+                        if (!e.target.value) {
+                          setLocalPart((p) => ({ ...p, category: "", subcategory: "", partName: "" }));
+                        }
+                      }}
+                      onFocus={() => { if (query.length >= 2) setShowSuggestions(true); }}
+                      placeholder="Ej: Bielas, Bomba de agua..."
+                      className={styles.input}
+                    />
+                    {showSuggestions && suggestions.length > 0 && (
+                      <div className={styles.suggestionsList}>
+                        {suggestions.map((r) => (
+                          <div
+                            key={r.id}
+                            className={styles.suggestionItem}
+                            onMouseDown={(e) => { e.preventDefault(); handleSelectRepuesto(r); }}
+                          >
+                            <span style={{ fontWeight: 500 }}>{r.name}</span>
+                            <span style={{ fontSize: "11px", color: "#6B7280", marginLeft: "6px" }}>
+                              {r.subcategoria} / {r.categoria}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {localPart.category && (
+                      <div className={styles.catalogContext}>
+                        <span>{localPart.category}</span>
+                        <span style={{ margin: "0 4px", color: "#9CA3AF" }}>›</span>
+                        <span>{localPart.subcategory}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      name="partName"
+                      value={localPart.partName}
+                      onChange={handleChange}
+                      placeholder="Ej: Bomba de agua"
+                      className={styles.input}
+                    />
+                  </>
+                )}
+              </div>
+
+              {/* ── CATEGORÍA Y SUBCATEGORÍA: solo en modo libre ── */}
+              {inputMode === "libre" && (
+                <>
+                  <div className={styles.field}>
+                    <label>Categoría <span className={styles.required}>*</span></label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        name="category"
+                        value={localPart.category}
+                        onChange={handleChange}
+                      >
+                        <option value="">Seleccionar Categoría</option>
+                        {categories.map((c) => (
+                          <option key={c.documentId} value={c.name}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className={styles.iconOverlay}>
+                        <IconsApp.DownArrow />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.field}>
+                    <label>Subcategoría <span className={styles.required}>*</span></label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        name="subcategory"
+                        value={localPart.subcategory}
+                        onChange={handleChange}
+                        disabled={!localPart.category}
+                      >
+                        <option value="">
+                          {!localPart.category
+                            ? "Selecciona primero una categoría"
+                            : "Seleccionar Subcategoría"}
+                        </option>
+                        {subCategories.map((sub) => (
+                          <option key={sub.id} value={sub.name}>
+                            {sub.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className={styles.iconOverlay}>
+                        <IconsApp.DownArrow />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className={styles.field}>
                   <label>Cantidad</label>
                   <div className={styles.quantitySelector}>
                     <button type="button" onClick={() => handleQuantity(-1)}>
@@ -443,7 +590,6 @@ export default function SparePartsStep({
                       +
                     </button>
                   </div>
-                </div>
               </div>
 
               <div className={styles.field}>
