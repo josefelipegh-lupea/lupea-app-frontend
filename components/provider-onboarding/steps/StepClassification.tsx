@@ -83,6 +83,19 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
     [dbCategories]
   );
 
+  const brandGroups = useMemo(
+    () => [
+      {
+        key: "brands",
+        options: dbBrands.map((b) => ({
+          id: (b as unknown as BrandWithId).id,
+          label: b.name,
+        })),
+      },
+    ],
+    [dbBrands]
+  );
+
   const subcategoryGroups = useMemo(
     () =>
       allSubcategoriesFromSelected.map((group) => ({
@@ -154,32 +167,69 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
     }
   }, [dbCategories, vendor, isHydrated, setFormData]);
 
-  const handleSelectChange = (
-    e: React.ChangeEvent<HTMLSelectElement>,
-    type: "brands"
-  ) => {
-    const selectedValue = e.target.value;
-    if (!selectedValue) return;
+  const toggleBrand = (id: string | number) => {
+    const numericId = Number(id);
+    const brand = dbBrands.find((b) => (b as unknown as BrandWithId).id === numericId);
+    if (!brand) return;
+    const exists = formData.brands.some((b) => b.id === numericId);
+    if (exists) {
+      removeItem("brands", brand.documentId);
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        brands: [
+          ...prev.brands,
+          { id: numericId, name: brand.name, documentId: brand.documentId },
+        ],
+      }));
+    }
+  };
 
-    setFormData((prev) => {
-      if (type === "brands") {
-        const item = dbBrands.find((b) => b.documentId === selectedValue);
-        if (item) {
-          const numericId = (item as unknown as BrandWithId).id || 0;
-          if (!prev.brands.some((b) => b.documentId === selectedValue)) {
-            return {
-              ...prev,
-              brands: [
-                ...prev.brands,
-                { id: numericId, name: item.name, documentId: item.documentId },
-              ],
-            };
-          }
-        }
-      }
-      return prev;
-    });
-    e.target.value = "";
+  const handleSelectAllCategories = () => {
+    setFormData((prev) => ({
+      ...prev,
+      mainCategories: dbCategories.map((c) => ({
+        id: c.id,
+        documentId: c.documentId,
+        name: c.name,
+      })),
+    }));
+  };
+
+  const handleClearAllCategories = () => {
+    setLastSelectedCatId(null);
+    setFormData((prev) => ({ ...prev, mainCategories: [], subcategories: [] }));
+  };
+
+  const handleSelectAllSubcategories = () => {
+    const allSubs = allSubcategoriesFromSelected.flatMap((group) =>
+      group.subcategories.map((sub) => ({
+        id: sub.id,
+        documentId: sub.documentId,
+        name: sub.name,
+        parentName: group.categoryName,
+      }))
+    );
+    setFormData((prev) => ({ ...prev, subcategories: allSubs }));
+  };
+
+  const handleClearAllSubcategories = () => {
+    setFormData((prev) => ({ ...prev, subcategories: [] }));
+  };
+
+  const handleSelectAllBrands = () => {
+    setFormData((prev) => ({
+      ...prev,
+      brands: dbBrands.map((b) => ({
+        id: (b as unknown as BrandWithId).id || 0,
+        name: b.name,
+        documentId: b.documentId,
+      })),
+    }));
+  };
+
+  const handleClearAllBrands = () => {
+    setFormData((prev) => ({ ...prev, brands: [] }));
   };
 
   const toggleMainCategory = (id: string | number) => {
@@ -293,6 +343,8 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
           groups={mainCategoryGroups}
           selectedIds={formData.mainCategories.map((cat) => cat.id)}
           onToggle={toggleMainCategory}
+          onSelectAll={handleSelectAllCategories}
+          onClearAll={handleClearAllCategories}
           searchPlaceholder="Buscar categorías..."
           noResultsText="No hay categorías"
           icon={<IconsApp.ToolInput />}
@@ -334,6 +386,8 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
           groups={subcategoryGroups}
           selectedIds={formData.subcategories.map((sub) => sub.documentId)}
           onToggle={toggleSubcategory}
+          onSelectAll={formData.mainCategories.length > 0 ? handleSelectAllSubcategories : undefined}
+          onClearAll={formData.subcategories.length > 0 ? handleClearAllSubcategories : undefined}
           disabled={formData.mainCategories.length === 0}
           searchPlaceholder="Buscar subcategorías..."
           noResultsText="No hay subcategorías"
@@ -374,35 +428,18 @@ const StepClassification: React.FC<StepProps> = ({ formData, setFormData }) => {
       {/* MARCAS */}
       <div className={`${styles.fullWidth} ${styles.sectionMarginTop} `}>
         <label className={styles.label}>Marcas que manejas <span className={styles.required}>*</span></label>
-        <div className={styles.selectWrapper}>
-          <span className={styles.icon}>
-            <IconsApp.ToolInput />
-          </span>
-          <select
-            className={styles.input}
-            onChange={(e) => handleSelectChange(e, "brands")}
-            value=""
-          >
-            <option value="" disabled>
-              Selecciona marcas
-            </option>
-            {dbBrands
-              .filter(
-                (brand) =>
-                  !formData.brands.some(
-                    (s) => s.documentId === brand.documentId
-                  )
-              )
-              .map((brand) => (
-                <option key={brand.documentId} value={brand.documentId}>
-                  {brand.name}
-                </option>
-              ))}
-          </select>
-          <div className={styles.iconOverlay}>
-            <IconsApp.DownArrow />
-          </div>
-        </div>
+        <MultiSelectDropdown
+          placeholder="Selecciona marcas"
+          selectedCountLabel="marcas"
+          groups={brandGroups}
+          selectedIds={formData.brands.map((b) => b.id)}
+          onToggle={toggleBrand}
+          onSelectAll={handleSelectAllBrands}
+          onClearAll={handleClearAllBrands}
+          searchPlaceholder="Buscar marcas..."
+          noResultsText="No hay marcas"
+          icon={<IconsApp.ToolInput />}
+        />
         <div className={styles.tagsScrollContainer}>
           {formData.brands.length === 0 ? (
             <p className={styles.emptyStateText}>Añade marcas de vehículos</p>

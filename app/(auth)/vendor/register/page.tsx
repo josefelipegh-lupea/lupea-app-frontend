@@ -122,6 +122,33 @@ export default function VendorRegisterPage() {
     fetchData();
   }, []);
 
+  const handleSelectAllCategories = () => {
+    setSelectedMainCategories(
+      dbCategories.map((c) => ({ id: c.id, documentId: c.documentId, name: c.name }))
+    );
+  };
+
+  const handleClearAllCategories = () => {
+    setSelectedMainCategories([]);
+    setSelectedSubs([]);
+  };
+
+  const handleSelectAllSubcategories = () => {
+    const allSubs = allSubcategoriesFromSelected.flatMap((group) =>
+      group.subcategories.map((sub) => ({
+        id: sub.id,
+        documentId: sub.documentId,
+        name: sub.name,
+        parentName: group.categoryName,
+      }))
+    );
+    setSelectedSubs(allSubs);
+  };
+
+  const handleClearAllSubcategories = () => {
+    setSelectedSubs([]);
+  };
+
   const handleMainCategoryToggle = (documentId: string | number) => {
     const docId = String(documentId);
     if (selectedMainCategories.some((cat) => cat.documentId === docId)) {
@@ -307,6 +334,8 @@ export default function VendorRegisterPage() {
               groups={mainCategoryGroups}
               selectedIds={selectedMainCategories.map((cat) => cat.documentId)}
               onToggle={handleMainCategoryToggle}
+              onSelectAll={handleSelectAllCategories}
+              onClearAll={handleClearAllCategories}
               searchPlaceholder="Buscar categorías..."
               noResultsText="No hay categorías"
               icon={<IconsApp.ToolInput />}
@@ -345,6 +374,8 @@ export default function VendorRegisterPage() {
               groups={subcategoryGroups}
               selectedIds={selectedSubs.map((sub) => sub.documentId)}
               onToggle={handleSubcategoryToggle}
+              onSelectAll={selectedMainCategories.length > 0 ? handleSelectAllSubcategories : undefined}
+              onClearAll={selectedSubs.length > 0 ? handleClearAllSubcategories : undefined}
               disabled={selectedMainCategories.length === 0}
               searchPlaceholder="Buscar subcategorías..."
               noResultsText="No hay subcategorías"

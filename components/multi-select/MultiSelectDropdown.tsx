@@ -21,6 +21,8 @@ type MultiSelectDropdownProps = {
   groups: OptionGroup[];
   selectedIds: Array<string | number>;
   onToggle: (id: string | number) => void;
+  onSelectAll?: () => void;
+  onClearAll?: () => void;
   disabled?: boolean;
   searchPlaceholder?: string;
   noResultsText?: string;
@@ -33,6 +35,8 @@ export default function MultiSelectDropdown({
   groups,
   selectedIds,
   onToggle,
+  onSelectAll,
+  onClearAll,
   disabled = false,
   searchPlaceholder = "Buscar...",
   noResultsText = "No hay resultados",
@@ -152,6 +156,22 @@ export default function MultiSelectDropdown({
               onChange={(event) => setQuery(event.target.value)}
             />
           </div>
+
+          {(onSelectAll || onClearAll) && (
+            <div className={styles.selectAllRow}>
+              {onSelectAll && (
+                <button type="button" className={styles.selectAllBtn} onClick={onSelectAll}>
+                  Seleccionar todos
+                </button>
+              )}
+              {onSelectAll && onClearAll && <span className={styles.selectAllDivider}>·</span>}
+              {onClearAll && (
+                <button type="button" className={styles.selectAllBtn} onClick={onClearAll}>
+                  Deseleccionar todos
+                </button>
+              )}
+            </div>
+          )}
 
           <div className={styles.options}>
             {!hasOptions ? (
