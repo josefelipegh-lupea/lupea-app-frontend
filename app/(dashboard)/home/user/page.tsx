@@ -13,6 +13,8 @@ import LupitaChat from "@/components/lupita/LupitaChat";
 import LupitaTrigger from "@/components/lupita/LupitaTrigger";
 import { useRouter } from "next/navigation";
 import { getMyRequests, QuoteRequest } from "@/app/lib/api/client/home/request";
+import { getClientVehicles } from "@/app/lib/api/client/vehicle";
+import { getClientLocations } from "@/app/lib/api/client/location";
 import {
   getClientRequestQuotes,
   ClientQuote,
@@ -81,6 +83,13 @@ export default function HomePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("COTIZACIONES");
   const [isLupitaOpen, setIsLupitaOpen] = useState(false);
+  // null = aún cargando; [] = vacío de verdad (distinción para Lupita)
+  const [lupitaVehicles, setLupitaVehicles] = useState<
+    { id: number; label: string }[] | null
+  >(null);
+  const [lupitaLocations, setLupitaLocations] = useState<
+    { id: number; label: string }[] | null
+  >(null);
 
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [featuredQuotes, setFeaturedQuotes] = useState<FeaturedQuoteData[]>([]);
@@ -221,7 +230,41 @@ export default function HomePage() {
       }
     };
 
+    // Datos para el context de Lupita (vehículos + direcciones del cliente).
+    // Fallo → lista vacía, no rompe el home.
+    const loadLupitaContext = async () => {
+      if (!jwt) return;
+      try {
+        const res = await getClientVehicles(jwt);
+        setLupitaVehicles(
+          (res.data ?? []).map((vehicle) => ({
+            id: vehicle.id,
+            label: [vehicle.brand, vehicle.model, vehicle.year, vehicle.engine]
+              .filter(Boolean)
+              .join(" "),
+          })),
+        );
+      } catch (error) {
+        console.error("Error loading vehicles for Lupita:", error);
+        setLupitaVehicles([]);
+      }
+
+      try {
+        const res = await getClientLocations(jwt);
+        setLupitaLocations(
+          (res.data ?? []).map((location) => ({
+            id: location.id,
+            label: `${location.name} - ${location.state}, ${location.municipality}`,
+          })),
+        );
+      } catch (error) {
+        console.error("Error loading locations for Lupita:", error);
+        setLupitaLocations([]);
+      }
+    };
+
     fetchData();
+    loadLupitaContext();
   }, [jwt, refreshLoginProfile]);
 
   useEffect(() => {
@@ -553,10 +596,15 @@ export default function HomePage() {
             context={{
               firstName:
                 (profile as { firstName?: string } | null)?.firstName ?? "",
-              // v1: el dashboard aún no carga vehículos/direcciones; se
-              // pasan vacíos (no se crean fetch nuevos en esta fase).
-              vehicles: [],
-              locations: [],
+              // null mientras carga → LupitaChat no manda arrays vacíos
+              // prematuros; [] real = cliente sin vehículos/direcciones.
+              vehicles: lupitaVehicles,
+              locations: lupitaLocations,
+              saldo: {
+                available: tokensAvailable,
+                total: tokensTotal,
+                nextRenewal: tokensNextRenewal,
+              },
             }}
           />
 

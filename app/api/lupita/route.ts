@@ -3,9 +3,16 @@ import OpenAI from "openai";
 import fs from "fs";
 import path from "path";
 
-// Modelo único de la v1. Free tier de OpenRouter.
-// Para migrar a Claude: model = "anthropic/claude-haiku-4.5"
-const MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free";
+// Modelos free de OpenRouter, en orden de preferencia. Se intentan en cadena:
+// si uno agota su cuota free / falla, se pasa al siguiente. Buenos en español.
+// Para migrar a Claude: MODELS = ["anthropic/claude-haiku-4.5"]
+const MODELS = [
+  "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "google/gemma-4-31b-it:free",
+  "openai/gpt-oss-120b:free",
+];
 
 const MAX_MESSAGE_LENGTH = 1000;
 
@@ -19,8 +26,14 @@ interface ChatMessage {
 
 interface SessionContext {
   firstName?: string;
-  vehicles?: Array<{ id: number; label: string }>;
-  locations?: Array<{ id: number; label: string }>;
+  // null = aún cargando; [] = vacío de verdad; undefined = no enviado
+  vehicles?: Array<{ id: number; label: string }> | null;
+  locations?: Array<{ id: number; label: string }> | null;
+  saldo?: {
+    available?: number;
+    total?: number;
+    nextRenewal?: string;
+  };
 }
 
 // La base de conocimiento se lee una sola vez por proceso.
@@ -47,28 +60,43 @@ function loadKnowledge(): string {
   return cachedKnowledge;
 }
 
-function buildContextBlock(context: SessionContext): string {
-  const vehicles =
-    context.vehicles && context.vehicles.length > 0
-      ? context.vehicles
-          .map((vehicle) => `- id ${vehicle.id}: ${vehicle.label}`)
-          .join("\n")
-      : "ninguno";
+function formatList(
+  items: Array<{ id: number; label: string }> | null | undefined,
+  emptyLabel: string,
+): string {
+  // null/undefined = todavía cargando; no afirmar que no hay nada
+  if (items === null || items === undefined) {
+    return "(cargando, aún sin confirmar; no asumas que no tiene)";
+  }
 
-  const locations =
-    context.locations && context.locations.length > 0
-      ? context.locations
-          .map((location) => `- id ${location.id}: ${location.label}`)
-          .join("\n")
-      : "ninguna";
+  if (items.length === 0) {
+    return emptyLabel;
+  }
+
+  return items
+    .map((item) => `- id ${item.id}: ${item.label}`)
+    .join("\n");
+}
+
+function buildContextBlock(context: SessionContext): string {
+  const vehicles = formatList(context.vehicles, "ninguno");
+  const locations = formatList(context.locations, "ninguna");
+
+  const saldo =
+    context.saldo && context.saldo.available !== undefined
+      ? `Saldo de lupas: ${context.saldo.available} disponibles de ${context.saldo.total ?? "?"}; renueva ${context.saldo.nextRenewal ?? "s/f"}.`
+      : "Saldo de lupas: no disponible en esta sesión.";
 
   return [
     "CONTEXTO DE ESTA SESIÓN",
     `Usuario: ${context.firstName || "sin nombre"}`,
     `Vehículos guardados:\n${vehicles}`,
     `Direcciones guardadas:\n${locations}`,
-    "Usa estos ids para anclar las referencias. Si una lista está vacía, el",
-    "Usuario aún no tiene guardados y debes pedir los datos.",
+    saldo,
+    "Usa estos ids para anclar las referencias (no los muestres al Usuario).",
+    "Si una lista dice 'ninguno/ninguna', el Usuario aún no tiene guardados y",
+    "debes pedir los datos. Habla del saldo como saldo, nunca como escasez, y",
+    "menciónalo solo en el resumen de confirmación.",
   ].join("\n");
 }
 
@@ -146,31 +174,46 @@ export async function POST(request: NextRequest) {
       baseURL: "https://openrouter.ai/api/v1",
     });
 
-    const res = await client.chat.completions.create({
-      model: MODEL,
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...messages.map((message) => ({
-          role: message.role,
-          content: message.content,
-        })),
-      ],
-    });
+    const chatMessages = [
+      { role: "system" as const, content: systemPrompt },
+      ...messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      })),
+    ];
 
-    // OpenRouter puede responder 200 con { error } y sin choices
-    // (rate limit del free tier, key inválida, modelo caído).
-    const reply = res?.choices?.[0]?.message?.content;
+    // Cadena de modelos free: si uno agota su cuota / falla / responde sin
+    // choices, se intenta el siguiente.
+    for (const model of MODELS) {
+      try {
+        const res = await client.chat.completions.create({
+          model,
+          messages: chatMessages,
+        });
 
-    if (!reply) {
-      const upstreamError = (res as unknown as { error?: unknown })?.error;
-      console.error(
-        "[lupita] Respuesta sin choices del modelo:",
-        upstreamError ?? res,
-      );
-      return NextResponse.json({ reply: FALLBACK_REPLY });
+        // OpenRouter puede responder 200 con { error } y sin choices
+        // (rate limit del free tier, key inválida, modelo caído).
+        const reply = res?.choices?.[0]?.message?.content;
+
+        if (reply) {
+          return NextResponse.json({ reply });
+        }
+
+        const upstreamError = (res as unknown as { error?: unknown })?.error;
+        console.error(
+          `[lupita] '${model}' respondió sin choices, probando siguiente:`,
+          upstreamError ?? res,
+        );
+      } catch (modelError) {
+        console.error(
+          `[lupita] '${model}' falló, probando siguiente:`,
+          modelError,
+        );
+      }
     }
 
-    return NextResponse.json({ reply });
+    console.error("[lupita] Todos los modelos free fallaron");
+    return NextResponse.json({ reply: FALLBACK_REPLY });
   } catch (error) {
     console.error("[lupita] Error llamando al modelo:", error);
     return NextResponse.json({ reply: FALLBACK_REPLY });
