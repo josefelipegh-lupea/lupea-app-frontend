@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
+import remarkGfm from "remark-gfm";
 
 import { IconsApp } from "@/components/icons/Icons";
 import LupitaAvatar from "./LupitaAvatar";
@@ -220,7 +221,7 @@ export default function LupitaChat({
                 className={`${styles.bubbleLupita} ${styles.markdown}`}
               >
                 <ReactMarkdown
-                  remarkPlugins={[remarkBreaks]}
+                  remarkPlugins={[remarkGfm, remarkBreaks]}
                   components={{
                     a: ({ ...props }) => (
                       <a
