@@ -21,6 +21,10 @@
   order: 1;
 }
 
+.lupitaSlot {
+  order: 2;
+}
+
 .ofertasContainer {
   order: 3;
 }
@@ -405,6 +409,7 @@
 @media (min-width: 1220px) {
   .summaryCard,
   .btnNuevaSolicitud,
+  .lupitaSlot,
   .ofertasContainer,
   .metricsContainer {
     order: initial;

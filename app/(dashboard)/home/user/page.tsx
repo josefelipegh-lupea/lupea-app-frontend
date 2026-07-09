@@ -9,7 +9,8 @@ import StarRating from "@/components/star-rating/StarRating";
 import { RequestCard } from "@/components/request-card/RequestCard";
 import { PriceCard } from "@/components/price-card/PriceCard";
 import { OrderCard } from "@/components/order-card/OrderCard";
-import Button from "@/components/button/Button";
+import LupitaChat from "@/components/lupita/LupitaChat";
+import LupitaTrigger from "@/components/lupita/LupitaTrigger";
 import { useRouter } from "next/navigation";
 import { getMyRequests, QuoteRequest } from "@/app/lib/api/client/home/request";
 import {
@@ -79,6 +80,7 @@ export default function HomePage() {
   const { onNotification, notifications } = useSocket();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("COTIZACIONES");
+  const [isLupitaOpen, setIsLupitaOpen] = useState(false);
 
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [featuredQuotes, setFeaturedQuotes] = useState<FeaturedQuoteData[]>([]);
@@ -538,18 +540,25 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* BOTÓN NUEVA SOLICITUD */}
-          <Button
-            className={styles.btnNuevaSolicitud}
-            onClick={() => {
-              router.push("/home/user/request");
+          {/* LUPITA: NUEVA SOLICITUD ASISTIDA */}
+          <div className={styles.lupitaSlot}>
+            <LupitaTrigger
+              onOpen={() => setIsLupitaOpen(true)}
+              onManualRequest={() => router.push("/home/user/request")}
+            />
+          </div>
+          <LupitaChat
+            open={isLupitaOpen}
+            onClose={() => setIsLupitaOpen(false)}
+            context={{
+              firstName:
+                (profile as { firstName?: string } | null)?.firstName ?? "",
+              // v1: el dashboard aún no carga vehículos/direcciones; se
+              // pasan vacíos (no se crean fetch nuevos en esta fase).
+              vehicles: [],
+              locations: [],
             }}
-          >
-            <span className={styles.plusIcon}>
-              <IconsApp.Plus />
-            </span>{" "}
-            Nueva solicitud
-          </Button>
+          />
 
           {/* 3. MÉTRICAS */}
           <section className={styles.metricsContainer}>
