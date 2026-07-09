@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 
 import { IconsApp } from "@/components/icons/Icons";
 import LupitaAvatar from "./LupitaAvatar";
@@ -29,8 +31,14 @@ interface RequestDraft {
 
 export interface LupitaSessionContext {
   firstName: string;
-  vehicles: Array<{ id: number; label: string }>;
-  locations: Array<{ id: number; label: string }>;
+  // null = aún cargando (no confirmado); [] = vacío de verdad
+  vehicles: Array<{ id: number; label: string }> | null;
+  locations: Array<{ id: number; label: string }> | null;
+  saldo?: {
+    available: number;
+    total: number;
+    nextRenewal: string;
+  };
 }
 
 interface LupitaChatProps {
@@ -199,18 +207,35 @@ export default function LupitaChat({
         </header>
 
         <div className={styles.thread} role="log" aria-live="polite">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={
-                message.role === "user"
-                  ? styles.bubbleUser
-                  : styles.bubbleLupita
-              }
-            >
-              {message.content}
-            </div>
-          ))}
+          {messages.map((message, index) =>
+            message.role === "user" ? (
+              // Burbuja del Usuario: texto plano a propósito (seguridad).
+              <div key={index} className={styles.bubbleUser}>
+                {message.content}
+              </div>
+            ) : (
+              // Burbuja de Lupita: Markdown estándar (sin HTML crudo).
+              <div
+                key={index}
+                className={`${styles.bubbleLupita} ${styles.markdown}`}
+              >
+                <ReactMarkdown
+                  remarkPlugins={[remarkBreaks]}
+                  components={{
+                    a: ({ ...props }) => (
+                      <a
+                        {...props}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      />
+                    ),
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+              </div>
+            ),
+          )}
 
           {isLoading && (
             <div
