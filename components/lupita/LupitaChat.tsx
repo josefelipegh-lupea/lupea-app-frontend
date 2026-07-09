@@ -1,0 +1,278 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+import { IconsApp } from "@/components/icons/Icons";
+import LupitaAvatar from "./LupitaAvatar";
+import styles from "./LupitaChat.module.css";
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface DraftItem {
+  productName: string;
+  quantity: number;
+  conditionPreferred?: string | null;
+  preferredBrand?: string | null;
+  oemCode?: string | null;
+  description?: string | null;
+}
+
+interface RequestDraft {
+  vehicleId: number | null;
+  locationId: number | null;
+  deliveryPreference: "pickup" | "delivery" | null;
+  items: DraftItem[];
+}
+
+export interface LupitaSessionContext {
+  firstName: string;
+  vehicles: Array<{ id: number; label: string }>;
+  locations: Array<{ id: number; label: string }>;
+}
+
+interface LupitaChatProps {
+  open: boolean;
+  onClose: () => void;
+  context: LupitaSessionContext;
+}
+
+const GREETING_MESSAGES: ChatMessage[] = [
+  {
+    role: "assistant",
+    content:
+      "Hola, soy Lupita. Cuéntame qué necesitas para tu carro y yo armo la solicitud por ti.",
+  },
+  {
+    role: "assistant",
+    content:
+      "Puedes escribirlo con tus palabras: la marca, el año y qué se dañó. Yo me encargo del resto.",
+  },
+];
+
+const ERROR_MESSAGE: ChatMessage = {
+  role: "assistant",
+  content: "Se me cruzaron los cables, inténtalo de nuevo.",
+};
+
+const DRAFT_REGEX = /\[LUPITA_DRAFT\]([\s\S]*?)\[\/LUPITA_DRAFT\]/;
+
+function extractDraft(reply: string): {
+  text: string;
+  draft: RequestDraft | null;
+} {
+  const match = reply.match(DRAFT_REGEX);
+  if (!match) return { text: reply, draft: null };
+
+  const text = reply.replace(DRAFT_REGEX, "").trim();
+
+  try {
+    const draft = JSON.parse(match[1]) as RequestDraft;
+    return { text, draft };
+  } catch {
+    return { text, draft: null };
+  }
+}
+
+export default function LupitaChat({
+  open,
+  onClose,
+  context,
+}: LupitaChatProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>(GREETING_MESSAGES);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [draft, setDraft] = useState<RequestDraft | null>(null);
+
+  const threadEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    threadEndRef.current?.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
+  }, [messages, isLoading, open]);
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus();
+  }, [open]);
+
+  const handleSend = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || isLoading) return;
+
+    const nextMessages: ChatMessage[] = [
+      ...messages,
+      { role: "user", content: trimmed },
+    ];
+
+    setMessages(nextMessages);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/lupita", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: nextMessages, context }),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data: { reply?: string } = await res.json();
+      const reply = data.reply ?? ERROR_MESSAGE.content;
+
+      const { text: cleanText, draft: parsedDraft } = extractDraft(reply);
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: cleanText || reply },
+      ]);
+
+      if (parsedDraft) setDraft(parsedDraft);
+    } catch (error) {
+      console.error("[lupita] Error enviando mensaje:", error);
+      setMessages((prev) => [...prev, ERROR_MESSAGE]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleSend(input);
+    }
+  };
+
+  const handleSubmitStub = () => {
+    // TODO: resolver categoryId + vehicleId/locationId y POST
+    // /quote-requests/me (JWT usuario, policy is-client, gasta 1 lupa).
+    // NO se llama en esta v1.
+    console.log("[lupita] Borrador de solicitud (STUB, no se envía):", {
+      vehicleId: draft?.vehicleId ?? null,
+      locationId: draft?.locationId ?? null,
+      deliveryPreference: draft?.deliveryPreference ?? null,
+      items: draft?.items ?? [],
+      unresolved: {
+        categoryId: "pendiente: se resuelve a partir del productName",
+        vehicleId: draft?.vehicleId === null ? "sin resolver" : "ok",
+        locationId: draft?.locationId === null ? "sin resolver" : "ok",
+      },
+    });
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className={styles.overlay} onClick={onClose}>
+      <div
+        className={styles.sheet}
+        role="dialog"
+        aria-label="Chat con Lupita"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header className={styles.header}>
+          <LupitaAvatar size={44} />
+          <div className={styles.headerText}>
+            <span className={styles.headerName}>Lupita</span>
+            <span className={styles.headerSubtitle}>
+              Te ayudo a pedir tu repuesto
+            </span>
+          </div>
+          <button
+            type="button"
+            className={styles.closeButton}
+            aria-label="Cerrar chat"
+            onClick={onClose}
+          >
+            <IconsApp.Close width="14" height="14" />
+          </button>
+        </header>
+
+        <div className={styles.thread} role="log" aria-live="polite">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={
+                message.role === "user"
+                  ? styles.bubbleUser
+                  : styles.bubbleLupita
+              }
+            >
+              {message.content}
+            </div>
+          ))}
+
+          {isLoading && (
+            <div
+              className={`${styles.bubbleLupita} ${styles.typing}`}
+              aria-label="Lupita está escribiendo"
+            >
+              <span className={styles.dot} />
+              <span className={styles.dot} />
+              <span className={styles.dot} />
+            </div>
+          )}
+
+          {draft && !isLoading && (
+            <button
+              type="button"
+              className={styles.submitButton}
+              onClick={handleSubmitStub}
+            >
+              Enviar solicitud
+            </button>
+          )}
+
+          <div ref={threadEndRef} />
+        </div>
+
+        <footer className={styles.inputArea}>
+          <textarea
+            ref={inputRef}
+            className={styles.input}
+            aria-label="Escríbele a Lupita"
+            placeholder="Cuéntame qué necesitas para tu carro"
+            rows={1}
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <button
+            type="button"
+            className={styles.sendButton}
+            aria-label="Enviar mensaje"
+            disabled={!input.trim() || isLoading}
+            onClick={() => handleSend(input)}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M2 8H14M14 8L8.5 2.5M14 8L8.5 13.5"
+                stroke="#ffffff"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
+}
