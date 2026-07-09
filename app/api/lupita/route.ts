@@ -7,7 +7,8 @@ import path from "path";
 // si uno agota su cuota free / falla, se pasa al siguiente. Buenos en español.
 // Para migrar a Claude: MODELS = ["anthropic/claude-haiku-4.5"]
 const MODELS = [
-  "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "openai/gpt-oss-20b:free",
+  "nvidia/nemotron-nano-9b-v2:free",
   "meta-llama/llama-3.3-70b-instruct:free",
   "qwen/qwen3-next-80b-a3b-instruct:free",
   "google/gemma-4-31b-it:free",
