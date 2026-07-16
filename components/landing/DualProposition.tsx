@@ -3,7 +3,6 @@
 import Link from "next/link";
 import {
   BadgeCheck,
-  TrendingUp,
   ShoppingCart,
   Store,
 } from "lucide-react";
@@ -17,28 +16,28 @@ export const DualProposition = () => {
           <div className="flex-1 relative p-12 bg-primary-container rounded-3xl text-white overflow-hidden">
             <div className="relative z-10">
               <span className="inline-block px-3 py-1 bg-secondary-container text-on-secondary-container rounded-lg font-label-bold text-[10px] uppercase mb-4">
-                Para Compradores
+                Conductores y Talleres
               </span>
-              <h2 className="font-display-lg text-3xl mb-4">Compre con confianza</h2>
+              <h2 className="font-display-lg text-3xl mb-4">Tu tiempo vale</h2>
               <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3">
-                  <BadgeCheck size={20} className="text-secondary-container flex-shrink-0" />
-                  <span className="font-body-md">Garantía de compatibilidad total</span>
+                <li className="flex items-start gap-3">
+                  <BadgeCheck size={20} className="text-secondary-container flex-shrink-0 mt-1" />
+                  <span className="font-body-md">Ahorra tiempo y olvídate de llamadas que no contestan, mensajes por WhatsApp en visto o recorrer la calle buscando una pieza.</span>
                 </li>
-                <li className="flex items-center gap-3">
-                  <BadgeCheck size={20} className="text-secondary-container flex-shrink-0" />
-                  <span className="font-body-md">Pagos seguros y protegidos</span>
+                <li className="flex items-start gap-3">
+                  <BadgeCheck size={20} className="text-secondary-container flex-shrink-0 mt-1" />
+                  <span className="font-body-md">Recibe y compara múltiples cotizaciones y decide cuál es tu mejor opción.</span>
                 </li>
-                <li className="flex items-center gap-3">
-                  <BadgeCheck size={20} className="text-secondary-container flex-shrink-0" />
-                  <span className="font-body-md">Soporte técnico especializado</span>
+                <li className="flex items-start gap-3">
+                  <BadgeCheck size={20} className="text-secondary-container flex-shrink-0 mt-1" />
+                  <span className="font-body-md">Tus datos de contacto y teléfono están totalmente protegidos, solo se desbloquean al elegir un proveedor para comprarle.</span>
                 </li>
               </ul>
               <Link
                 href="/user/register"
                 className="bg-white text-primary font-label-bold uppercase py-4 px-8 rounded-full hover:bg-secondary-container hover:text-on-secondary-container transition-all inline-block"
               >
-                Buscar Repuestos
+                Buscar un Repuesto
               </Link>
             </div>
             <div className="absolute -right-10 -bottom-10 opacity-10">
@@ -50,28 +49,28 @@ export const DualProposition = () => {
           <div className="flex-1 relative p-12 bg-tertiary-container rounded-3xl text-white overflow-hidden">
             <div className="relative z-10">
               <span className="inline-block px-3 py-1 bg-on-tertiary-container text-white rounded-lg font-label-bold text-[10px] uppercase mb-4">
-                Lupea Pro
+                Tiendas y Proveedores
               </span>
-              <h2 className="font-display-lg text-3xl mb-4">Venda más y mejor</h2>
+              <h2 className="font-display-lg text-3xl mb-4">Clientes listos para comprar</h2>
               <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3">
-                  <TrendingUp size={20} className="text-on-tertiary-container flex-shrink-0" />
-                  <span className="font-body-md">Acceso a miles de pedidos mensuales</span>
+                <li className="flex items-start gap-3">
+                  <BadgeCheck size={20} className="text-tertiary-fixed flex-shrink-0 mt-1" />
+                  <span className="font-body-md">Recibe consultas limpias, detalladas y de clientes listos para comprar.</span>
                 </li>
-                <li className="flex items-center gap-3">
-                  <TrendingUp size={20} className="text-on-tertiary-container flex-shrink-0" />
-                  <span className="font-body-md">Gestión de inventario inteligente</span>
+                <li className="flex items-start gap-3">
+                  <BadgeCheck size={20} className="text-tertiary-fixed flex-shrink-0 mt-1" />
+                  <span className="font-body-md">Conéctate directo con clientes que están cerca de ti.</span>
                 </li>
-                <li className="flex items-center gap-3">
-                  <TrendingUp size={20} className="text-on-tertiary-container flex-shrink-0" />
-                  <span className="font-body-md">Reportes de mercado en tiempo real</span>
+                <li className="flex items-start gap-3">
+                  <BadgeCheck size={20} className="text-tertiary-fixed flex-shrink-0 mt-1" />
+                  <span className="font-body-md">El cliente llega directamente a tu negocio, y solo pagas cuando el cliente decide comprarte.</span>
                 </li>
               </ul>
               <Link
                 href="/vendor/register"
                 className="bg-secondary-container text-on-secondary-container font-label-bold uppercase py-4 px-8 rounded-full hover:bg-white hover:text-primary transition-all inline-block"
               >
-                Unirse como Proveedor
+                Unirse a la Red Lupea
               </Link>
             </div>
             <div className="absolute -right-10 -bottom-10 opacity-10">

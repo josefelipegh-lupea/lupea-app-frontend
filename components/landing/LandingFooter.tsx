@@ -2,8 +2,29 @@
 
 import Link from "next/link";
 import { Share2, Globe, Send } from "lucide-react";
+import { useState } from "react";
+import { subscribeLead } from "@/app/lib/api/subscribe";
 
 export const LandingFooter = () => {
+  const [footerEmail, setFooterEmail] = useState("");
+  const [footerStatus, setFooterStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  const handleFooterSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!footerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(footerEmail)) {
+      setFooterStatus("error");
+      return;
+    }
+    setFooterStatus("loading");
+    try {
+      await subscribeLead(footerEmail, "footer");
+      setFooterStatus("success");
+      setFooterEmail("");
+    } catch {
+      setFooterStatus("error");
+    }
+  };
+
   return (
     <footer className="bg-primary text-on-primary">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-6 md:px-10 py-16 w-full max-w-7xl mx-auto">
@@ -17,7 +38,7 @@ export const LandingFooter = () => {
             />
           </div>
           <p className="font-body-md text-on-primary-container leading-relaxed">
-            La red inteligente de repuestos automotrices que conecta la oferta y demanda de piezas con eficiencia y transparencia.
+            Los repuestos de tu carro en un solo lugar. Sin caminar, sin llamadas, sin estrés. La IA que cuida la salud de tu vehículo.
           </p>
         </div>
 
@@ -32,32 +53,32 @@ export const LandingFooter = () => {
                 className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
                 href="/user/register"
               >
-                Explorar Marketplace
+                Buscar Repuestos
               </Link>
             </li>
             <li>
               <a
                 className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
-                href="#"
+                href="#how-it-works"
               >
-                Proveedores Certificados
+                Cómo Funciona
               </a>
             </li>
             <li>
               <a
                 className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
-                href="#"
+                href="#ecosistema"
               >
-                Lupea Pro
+                El Ecosistema
               </a>
             </li>
             <li>
-              <a
+              <Link
                 className="font-label-sm text-on-primary-container hover:text-white transition-all hover:underline"
-                href="#"
+                href="/vendor/register"
               >
-                Soporte
-              </a>
+                Unirse a la Red
+              </Link>
             </li>
           </ul>
         </div>
@@ -109,18 +130,34 @@ export const LandingFooter = () => {
             Suscríbete
           </h4>
           <p className="font-body-md text-on-primary-container">
-            Recibe alertas sobre piezas raras y ofertas exclusivas.
+            Recibe novedades de Lupea y sé el primero en probar el Diagnóstico con IA.
           </p>
-          <div className="flex">
-            <input
-              className="bg-primary-container border-none text-white rounded-l-lg px-4 py-3 focus:ring-2 focus:ring-secondary-container w-full placeholder:text-on-primary-container/50"
-              placeholder="email@ejemplo.com"
-              type="email"
-            />
-            <button className="bg-secondary-container text-on-secondary-container p-3 rounded-r-lg hover:bg-secondary transition-all">
-              <Send size={20} />
-            </button>
-          </div>
+          {footerStatus === "success" ? (
+            <p className="font-label-sm text-secondary-container">¡Listo! Te tendremos al tanto.</p>
+          ) : (
+            <form onSubmit={handleFooterSubscribe} className="flex flex-col gap-2">
+              <div className="flex">
+                <input
+                  className="bg-primary-container border-none text-white rounded-l-lg px-4 py-3 focus:ring-2 focus:ring-secondary-container w-full placeholder:text-on-primary-container/50 focus:outline-none"
+                  placeholder="email@ejemplo.com"
+                  type="email"
+                  value={footerEmail}
+                  onChange={(e) => setFooterEmail(e.target.value)}
+                  disabled={footerStatus === "loading"}
+                />
+                <button
+                  type="submit"
+                  disabled={footerStatus === "loading"}
+                  className="bg-secondary-container text-on-secondary-container p-3 rounded-r-lg hover:bg-secondary transition-all disabled:opacity-60"
+                >
+                  <Send size={20} />
+                </button>
+              </div>
+              {footerStatus === "error" && (
+                <p className="font-label-sm text-error-container">Ingresa un correo válido o intenta de nuevo.</p>
+              )}
+            </form>
+          )}
         </div>
       </div>
 
@@ -128,7 +165,7 @@ export const LandingFooter = () => {
       <div className="bg-primary-container py-6">
         <div className="max-w-7xl mx-auto px-6 md:px-10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="font-label-sm text-on-primary-container">
-            © 2026 Lupea. La red inteligente de repuestos automotrices.
+            © 2026 Lupea. Los repuestos de tu carro en un solo lugar.
           </p>
           <div className="flex gap-6">
             <a

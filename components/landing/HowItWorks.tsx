@@ -2,32 +2,26 @@
 
 import {
   FileText,
-  Network,
-  BadgeCheck,
-  Truck,
+  Scale,
+  CheckCircle,
 } from "lucide-react";
 
 export const HowItWorks = () => {
   const steps = [
     {
       Icon: FileText,
-      title: "Solicitud",
-      description: "Carga los datos de tu vehículo y la pieza que necesitas. Es rápido y sencillo.",
+      title: "Llenas la consulta",
+      description: "Elige los datos de tu carro y escribe lo que necesitas (¡Te toma menos de un minuto!).",
     },
     {
-      Icon: Network,
-      title: "Distribución",
-      description: "Tu pedido se envía instantáneamente a nuestra red inteligente de proveedores.",
+      Icon: Scale,
+      title: "Comparas",
+      description: "Recibes ofertas reales de proveedores verificados y las comparas lado a lado de forma transparente.",
     },
     {
-      Icon: BadgeCheck,
-      title: "Cotización",
-      description: "Recibe múltiples ofertas competitivas de piezas originales, OEM o alternativas.",
-    },
-    {
-      Icon: Truck,
-      title: "Orden",
-      description: "Elige la mejor opción y recibe tu repuesto donde prefieras con total seguridad.",
+      Icon: CheckCircle,
+      title: "Decides",
+      description: "Eliges la mejor opción, se genera la orden de compra y se activa un chat directo para concretar.",
     },
   ];
 
@@ -35,14 +29,14 @@ export const HowItWorks = () => {
     <section id="how-it-works" className="py-24 bg-surface">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <span className="text-secondary-container font-label-bold uppercase tracking-[0.2em]">
-            Metodología Lupea
-          </span>
           <h2 className="font-display-lg text-4xl text-primary mt-2">
-            Cómo funciona la red
+            Nosotros buscamos por ti.
           </h2>
+          <p className="font-body-lg text-on-surface-variant mt-4 max-w-xl mx-auto">
+            Con Lupea solucionas la búsqueda en tres pasos sencillos y transparentes:
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {steps.map((step, idx) => (
             <div
               key={idx}

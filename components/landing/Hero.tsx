@@ -23,25 +23,17 @@ export const Hero = () => {
       <div className="relative max-w-7xl mx-auto px-6 w-full">
         <div className="max-w-2xl space-y-6">
           <h1 className="font-display-lg text-5xl md:text-6xl text-white leading-tight">
-            La red más inteligente de repuestos automotrices.
+            Los repuestos de tu carro en un solo lugar. Sin caminar, sin llamadas, sin estrés.
           </h1>
           <p className="font-body-lg text-lg md:text-xl text-on-primary-container max-w-lg">
-            Conectamos talleres y usuarios particulares con la red más amplia de
-            proveedores certificados para encontrar la pieza exacta en tiempo
-            récord.
+            La potencia de la IA te acompaña y te guía para mantener la salud de tu carro. Realiza una sola consulta y recibe decenas de cotizaciones de las tiendas de repuestos de tu ciudad.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Link
               href="/user/register"
               className="bg-secondary-container hover:bg-secondary text-on-secondary-container font-label-bold text-lg uppercase tracking-widest px-8 py-5 rounded-3xl shadow-xl active:scale-95 transition-all inline-block text-center"
             >
-              Explorar Marketplace
-            </Link>
-            <Link
-              href="/user/register"
-              className="bg-transparent border-2 border-white/30 hover:border-white text-white font-label-bold text-lg uppercase tracking-widest px-8 py-5 rounded-3xl backdrop-blur-sm transition-all inline-block text-center"
-            >
-              Registro Gratis
+              Registrarme Gratis
             </Link>
           </div>
         </div>

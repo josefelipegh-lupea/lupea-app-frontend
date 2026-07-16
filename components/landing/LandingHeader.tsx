@@ -34,9 +34,9 @@ export const LandingHeader = () => {
           </a>
           <a
             className="text-on-surface-variant hover:text-primary transition-all font-label-bold text-label-bold uppercase tracking-wider px-3 py-2 rounded-lg hover:bg-surface-container"
-            href="#marketplace"
+            href="#ecosistema"
           >
-            Marketplace
+            Ecosistema
           </a>
         </nav>
 
@@ -86,10 +86,10 @@ export const LandingHeader = () => {
             </a>
             <a
               className="text-on-surface-variant hover:text-primary transition-all font-label-bold uppercase"
-              href="#marketplace"
+              href="#ecosistema"
               onClick={() => setMenuOpen(false)}
             >
-              Marketplace
+              Ecosistema
             </a>
             <Link href="/login" className="text-on-surface-variant font-label-bold uppercase">
               Iniciar Sesión
