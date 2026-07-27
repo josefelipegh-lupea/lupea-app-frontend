@@ -6,6 +6,7 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
 import { IconsApp } from "@/components/icons/Icons";
+import { useAuth } from "@/context/AuthContext";
 import LupitaAvatar from "./LupitaAvatar";
 import styles from "./LupitaChat.module.css";
 
@@ -90,6 +91,7 @@ export default function LupitaChat({
   onClose,
   context,
 }: LupitaChatProps) {
+  const { jwt } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>(GREETING_MESSAGES);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -130,7 +132,10 @@ export default function LupitaChat({
     try {
       const res = await fetch("/api/lupita", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
+        },
         body: JSON.stringify({ messages: nextMessages, context }),
       });
 

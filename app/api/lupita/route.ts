@@ -125,7 +125,56 @@ function isValidMessage(message: unknown): message is ChatMessage {
   );
 }
 
+const STRAPI_API_URL =
+  process.env.NEXT_PUBLIC_STRAPI_API_URL ?? "http://localhost:1337/api";
+
+// Defensa en profundidad: aunque el home ya oculta el trigger de Lupita para
+// clientes sin el feature flag, este endpoint también lo valida contra el
+// backend antes de gastar tokens de LLM. La UI puede fallar/ser bypaseada;
+// el backend (Strapi) es la fuente de verdad del flag.
+async function assertLupitaEnabled(
+  authHeader: string | null,
+): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
+  if (!authHeader) {
+    return { ok: false, status: 401, error: "No autenticado" };
+  }
+
+  try {
+    const res = await fetch(`${STRAPI_API_URL}/client-profiles/me`, {
+      method: "GET",
+      headers: { Authorization: authHeader },
+    });
+
+    if (!res.ok) {
+      return { ok: false, status: 401, error: "No autenticado" };
+    }
+
+    const data = await res.json();
+    if (data?.featureFlags?.lupita !== true) {
+      return {
+        ok: false,
+        status: 403,
+        error: "Lupita no está habilitada para este usuario",
+      };
+    }
+
+    return { ok: true };
+  } catch {
+    return { ok: false, status: 401, error: "No autenticado" };
+  }
+}
+
 export async function POST(request: NextRequest) {
+  const featureCheck = await assertLupitaEnabled(
+    request.headers.get("authorization"),
+  );
+  if (!featureCheck.ok) {
+    return NextResponse.json(
+      { error: featureCheck.error },
+      { status: featureCheck.status },
+    );
+  }
+
   let body: { messages?: unknown; context?: unknown };
 
   try {

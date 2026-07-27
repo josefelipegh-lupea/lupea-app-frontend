@@ -39,6 +39,8 @@ export type LoginResponse = {
     tokensNextRenewal?: string;
     privacyLevel?: string;
     status?: string;
+    /** Client-only. Feature flags resueltas para este cliente, ej: { lupita: false } */
+    featureFlags?: Record<string, boolean>;
   };
 };
 

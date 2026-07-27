@@ -9,12 +9,14 @@ import StarRating from "@/components/star-rating/StarRating";
 import { RequestCard } from "@/components/request-card/RequestCard";
 import { PriceCard } from "@/components/price-card/PriceCard";
 import { OrderCard } from "@/components/order-card/OrderCard";
+import Button from "@/components/button/Button";
 import LupitaChat from "@/components/lupita/LupitaChat";
 import LupitaTrigger from "@/components/lupita/LupitaTrigger";
 import { useRouter } from "next/navigation";
 import { getMyRequests, QuoteRequest } from "@/app/lib/api/client/home/request";
 import { getClientVehicles } from "@/app/lib/api/client/vehicle";
 import { getClientLocations } from "@/app/lib/api/client/location";
+import { isFeatureEnabled } from "@/app/lib/featureFlags";
 import {
   getClientRequestQuotes,
   ClientQuote,
@@ -81,6 +83,9 @@ export default function HomePage() {
   const { isExpanded } = useSidebar();
   const { onNotification, notifications } = useSocket();
   const router = useRouter();
+  // Gate por parámetro: mientras no llegue el flag resuelto del backend,
+  // se asume false → versión anterior (botón manual) por defecto.
+  const lupitaEnabled = isFeatureEnabled(loginProfile, "lupita");
   const [activeTab, setActiveTab] = useState("COTIZACIONES");
   const [isLupitaOpen, setIsLupitaOpen] = useState(false);
   // null = aún cargando; [] = vacío de verdad (distinción para Lupita)
@@ -230,10 +235,17 @@ export default function HomePage() {
       }
     };
 
-    // Datos para el context de Lupita (vehículos + direcciones del cliente).
-    // Fallo → lista vacía, no rompe el home.
+    fetchData();
+  }, [jwt, refreshLoginProfile]);
+
+  // Datos para el context de Lupita (vehículos + direcciones del cliente).
+  // Solo se cargan si el cliente tiene el feature flag activo: si está
+  // apagado, el home muestra el botón manual y no necesita este fetch.
+  // Fallo → lista vacía, no rompe el home.
+  useEffect(() => {
+    if (!jwt || !lupitaEnabled) return;
+
     const loadLupitaContext = async () => {
-      if (!jwt) return;
       try {
         const res = await getClientVehicles(jwt);
         setLupitaVehicles(
@@ -263,9 +275,8 @@ export default function HomePage() {
       }
     };
 
-    fetchData();
     loadLupitaContext();
-  }, [jwt, refreshLoginProfile]);
+  }, [jwt, lupitaEnabled]);
 
   useEffect(() => {
     const unsubscribe = onNotification((notification) => {
@@ -583,30 +594,47 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* LUPITA: NUEVA SOLICITUD ASISTIDA */}
-          <div className={styles.lupitaSlot}>
-            <LupitaTrigger
-              onOpen={() => setIsLupitaOpen(true)}
-              onManualRequest={() => router.push("/home/user/request")}
-            />
-          </div>
-          <LupitaChat
-            open={isLupitaOpen}
-            onClose={() => setIsLupitaOpen(false)}
-            context={{
-              firstName:
-                (profile as { firstName?: string } | null)?.firstName ?? "",
-              // null mientras carga → LupitaChat no manda arrays vacíos
-              // prematuros; [] real = cliente sin vehículos/direcciones.
-              vehicles: lupitaVehicles,
-              locations: lupitaLocations,
-              saldo: {
-                available: tokensAvailable,
-                total: tokensTotal,
-                nextRenewal: tokensNextRenewal,
-              },
-            }}
-          />
+          {/* NUEVA SOLICITUD: Lupita (IA) para clientes habilitados por
+              feature flag; botón manual para el resto (default). */}
+          {lupitaEnabled ? (
+            <>
+              <div className={styles.lupitaSlot}>
+                <LupitaTrigger
+                  onOpen={() => setIsLupitaOpen(true)}
+                  onManualRequest={() => router.push("/home/user/request")}
+                />
+              </div>
+              <LupitaChat
+                open={isLupitaOpen}
+                onClose={() => setIsLupitaOpen(false)}
+                context={{
+                  firstName:
+                    (profile as { firstName?: string } | null)?.firstName ?? "",
+                  // null mientras carga → LupitaChat no manda arrays vacíos
+                  // prematuros; [] real = cliente sin vehículos/direcciones.
+                  vehicles: lupitaVehicles,
+                  locations: lupitaLocations,
+                  saldo: {
+                    available: tokensAvailable,
+                    total: tokensTotal,
+                    nextRenewal: tokensNextRenewal,
+                  },
+                }}
+              />
+            </>
+          ) : (
+            <Button
+              className={styles.btnNuevaSolicitud}
+              onClick={() => {
+                router.push("/home/user/request");
+              }}
+            >
+              <span className={styles.plusIcon}>
+                <IconsApp.Plus />
+              </span>{" "}
+              Nueva solicitud
+            </Button>
+          )}
 
           {/* 3. MÉTRICAS */}
           <section className={styles.metricsContainer}>

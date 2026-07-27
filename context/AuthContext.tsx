@@ -207,6 +207,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               tokenMetricsMonth: resolvedData.tokenMetricsMonth || "",
               freeTokensGrantedThisMonth: resolvedData.freeTokensGrantedThisMonth || 0,
               privacyLevel: resolvedData.privacyLevel,
+              featureFlags: resolvedData.featureFlags || {},
             };
           }
 

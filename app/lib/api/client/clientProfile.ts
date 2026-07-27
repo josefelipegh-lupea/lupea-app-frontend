@@ -25,6 +25,8 @@ export type ClientProfileResponse = {
   tokenMetricsMonth?: string;
   tokensLastRenewal?: string;
   tokensNextRenewal?: string;
+  /** Feature flags resueltas para este cliente, ej: { lupita: false } */
+  featureFlags?: Record<string, boolean>;
   metrics?: {
     requestsCount: number;
     quotesReceivedCount: number;
