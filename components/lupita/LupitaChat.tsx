@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 
 import { IconsApp } from "@/components/icons/Icons";
 import { useAuth } from "@/context/AuthContext";
+import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import LupitaAvatar from "./LupitaAvatar";
 import styles from "./LupitaChat.module.css";
 
@@ -96,6 +97,9 @@ export default function LupitaChat({
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [draft, setDraft] = useState<RequestDraft | null>(null);
+  // 0 en Android/desktop (interactiveWidget ya encoge el viewport solo);
+  // >0 en iOS Safari, que hace overlay del teclado sin redimensionar.
+  const keyboardHeight = useKeyboardHeight();
 
   const threadEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -110,7 +114,9 @@ export default function LupitaChat({
     threadEndRef.current?.scrollIntoView({
       behavior: prefersReducedMotion ? "auto" : "smooth",
     });
-  }, [messages, isLoading, open]);
+    // keyboardHeight: re-scrollea al fondo cuando el teclado abre/cierra en
+    // iOS, para que el último mensaje no quede tapado.
+  }, [messages, isLoading, open, keyboardHeight]);
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
@@ -127,6 +133,11 @@ export default function LupitaChat({
 
     setMessages(nextMessages);
     setInput("");
+    // El auto-grow del textarea setea altura inline por JS; sin este reset
+    // quedaría "crecido" tras vaciar el texto.
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
     setIsLoading(true);
 
     try {
@@ -167,6 +178,16 @@ export default function LupitaChat({
     }
   };
 
+  // Auto-grow: mismo patrón que ChatInput.tsx del chat de mensajería.
+  const handleInputChange = (
+    event: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    setInput(event.target.value);
+    const el = event.target;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  };
+
   const handleSubmitStub = () => {
     // TODO: resolver categoryId + vehicleId/locationId y POST
     // /quote-requests/me (JWT usuario, policy is-client, gasta 1 lupa).
@@ -187,7 +208,13 @@ export default function LupitaChat({
   if (!open) return null;
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
+    <div
+      className={styles.overlay}
+      onClick={onClose}
+      // Empuja el sheet (clamped a max-height:100% en el CSS) por encima
+      // del teclado en iOS. No-op en Android/desktop (keyboardHeight = 0).
+      style={keyboardHeight > 0 ? { paddingBottom: keyboardHeight } : undefined}
+    >
       <div
         className={styles.sheet}
         role="dialog"
@@ -275,8 +302,19 @@ export default function LupitaChat({
             placeholder="Cuéntame qué necesitas para tu carro"
             rows={1}
             value={input}
-            onChange={(event) => setInput(event.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
+            onFocus={() => {
+              // Espera a que el teclado termine de animarse (~300ms) y
+              // luego hace scroll para que el textarea quede visible sobre
+              // el teclado. Mismo patrón que ChatInput.tsx.
+              setTimeout(() => {
+                inputRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "nearest",
+                });
+              }, 300);
+            }}
           />
           <button
             type="button"

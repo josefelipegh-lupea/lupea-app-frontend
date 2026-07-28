@@ -21,7 +21,11 @@
   display: flex;
   flex-direction: column;
   height: 88dvh;
-  max-height: 88dvh;
+  /* 100% (no 88dvh fijo) para que se encoja cuando .overlay recibe
+     paddingBottom dinámico por el teclado en iOS (ver useKeyboardHeight en
+     LupitaChat.tsx) — sin esto el sheet no se achica y el header/input
+     quedan recortados fuera de pantalla con el teclado abierto. */
+  max-height: 100%;
   overflow: hidden;
   animation: slideUp 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -93,6 +97,10 @@
 
 .thread {
   flex: 1;
+  /* Sin esto, min-height:auto impide que el thread (y por lo tanto .sheet)
+     se encoja por debajo de la altura de su contenido — el max-height:100%
+     de .sheet no lograría nada. Mismo patrón que Conversation.module.css. */
+  min-height: 0;
   overflow-y: auto;
   padding: 20px 16px;
   display: flex;
@@ -415,12 +423,26 @@
 
   .sheet {
     border-radius: 24px;
-    height: min(720px, 85vh);
+    height: min(720px, 85dvh);
     animation: fadeInScale 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .header {
     border-radius: 24px 24px 0 0;
+  }
+}
+
+/* Landscape / viewports muy cortos (mobile): el sheet a 88dvh deja poco
+   aire; toma pantalla completa en vez de dejar backdrop muerto arriba. */
+@media (max-height: 500px) {
+  .sheet {
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .header {
+    border-radius: 0;
   }
 }
 
