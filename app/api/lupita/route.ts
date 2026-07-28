@@ -15,6 +15,13 @@ const MODELS = [
   "openai/gpt-oss-120b:free",
 ];
 
+// Proveedor: "gemini" pega directo a Google (vía su endpoint OpenAI-compatible,
+// mismo SDK `openai`); cualquier otro valor (o ausente) usa la cadena de
+// modelos free de OpenRouter de arriba. Se controla 100% desde .env.local.
+const LLM_MODE = process.env.LLM_MODE === "gemini" ? "gemini" : "openrouter";
+const GEMINI_BASE_URL =
+  "https://generativelanguage.googleapis.com/v1beta/openai/";
+
 const MAX_MESSAGE_LENGTH = 1000;
 
 const FALLBACK_REPLY =
@@ -219,10 +226,24 @@ export async function POST(request: NextRequest) {
       buildContextBlock(sessionContext),
     ].join("\n\n---\n\n");
 
-    const client = new OpenAI({
-      apiKey: process.env.OPENROUTER_API_KEY,
-      baseURL: "https://openrouter.ai/api/v1",
-    });
+    const client =
+      LLM_MODE === "gemini"
+        ? new OpenAI({
+            apiKey: process.env.GOOGLE_API_KEY,
+            baseURL: GEMINI_BASE_URL,
+          })
+        : new OpenAI({
+            apiKey: process.env.OPENROUTER_API_KEY,
+            baseURL: "https://openrouter.ai/api/v1",
+          });
+
+    // Gemini: un solo modelo fijo (LLM_MODEL). OpenRouter: cadena de modelos
+    // free, si uno agota su cuota / falla / responde sin choices, se intenta
+    // el siguiente.
+    const models =
+      LLM_MODE === "gemini" && process.env.LLM_MODEL
+        ? [process.env.LLM_MODEL]
+        : MODELS;
 
     const chatMessages = [
       { role: "system" as const, content: systemPrompt },
@@ -232,9 +253,7 @@ export async function POST(request: NextRequest) {
       })),
     ];
 
-    // Cadena de modelos free: si uno agota su cuota / falla / responde sin
-    // choices, se intenta el siguiente.
-    for (const model of MODELS) {
+    for (const model of models) {
       try {
         const res = await client.chat.completions.create({
           model,
