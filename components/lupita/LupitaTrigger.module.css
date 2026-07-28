@@ -1,0 +1,60 @@
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: #ffffff;
+  border: none;
+  border-radius: 32px;
+  padding: 10px 10px 10px 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  text-align: left;
+}
+
+.trigger:active {
+  scale: 0.98;
+}
+
+.triggerText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.triggerName {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f08100;
+}
+
+.triggerPlaceholder {
+  font-size: 14px;
+  color: #a9a9a9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.triggerArrow {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f08100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.manualLink {
+  display: block;
+  margin: 12px auto 0;
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: #47464f;
+  text-decoration: underline;
+  cursor: pointer;
+}

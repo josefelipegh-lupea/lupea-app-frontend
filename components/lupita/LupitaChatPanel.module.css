@@ -1,42 +1,3 @@
-/* --- OVERLAY Y SHEET --- */
-
-.overlay {
-  position: fixed;
-  /* top/height explícitos (no `inset: 0`) para que LupitaChat.tsx pueda
-     sobrescribir solo estos dos vía useVisualViewportRect, sin pelear con un
-     `bottom: 0` implícito — necesario para contrarrestar el scroll que
-     Safari le aplica a elementos fixed al enfocar un input dentro. */
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100dvh;
-  z-index: 20;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(2px);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.sheet {
-  background: #f4f2f5;
-  border-radius: 24px 24px 0 0;
-  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  height: 88dvh;
-  /* 100% (no 88dvh fijo) para que se encoja cuando .overlay recibe
-     paddingBottom dinámico por el teclado en iOS (ver useKeyboardHeight en
-     LupitaChat.tsx) — sin esto el sheet no se achica y el header/input
-     quedan recortados fuera de pantalla con el teclado abierto. */
-  max-height: 100%;
-  overflow: hidden;
-  animation: slideUp 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
 /* --- HEADER --- */
 
 .header {
@@ -45,24 +6,8 @@
   gap: 12px;
   padding: 16px 20px;
   background: #ffffff;
-  border-radius: 24px 24px 0 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
-}
-
-.headerAvatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: #f5dfc0;
-}
-
-.avatarImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .headerText {
@@ -104,9 +49,9 @@
 
 .thread {
   flex: 1;
-  /* Sin esto, min-height:auto impide que el thread (y por lo tanto .sheet)
-     se encoja por debajo de la altura de su contenido — el max-height:100%
-     de .sheet no lograría nada. Mismo patrón que Conversation.module.css. */
+  /* Sin esto, min-height:auto impide que el thread se encoja por debajo de
+     la altura de su contenido dentro del pageWrapper con paddingBottom
+     dinámico del teclado. Mismo patrón que Conversation.module.css. */
   min-height: 0;
   overflow-y: auto;
   padding: 20px 16px;
@@ -275,6 +220,23 @@
   animation-delay: 0.3s;
 }
 
+@keyframes bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+  }
+}
+
 /* --- BOTÓN ENVIAR SOLICITUD (STUB) --- */
 
 .submitButton {
@@ -348,153 +310,4 @@
 
 .sendButton:not(:disabled):active {
   scale: 0.92;
-}
-
-/* --- TRIGGER (barra en el home) --- */
-
-.trigger {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  background: #ffffff;
-  border: none;
-  border-radius: 32px;
-  padding: 10px 10px 10px 12px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  text-align: left;
-}
-
-.trigger:active {
-  scale: 0.98;
-}
-
-.triggerAvatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: #f5dfc0;
-}
-
-.triggerText {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-
-.triggerName {
-  font-size: 12px;
-  font-weight: 700;
-  color: #f08100;
-}
-
-.triggerPlaceholder {
-  font-size: 14px;
-  color: #a9a9a9;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.triggerArrow {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #f08100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.manualLink {
-  display: block;
-  margin: 12px auto 0;
-  background: none;
-  border: none;
-  font-size: 13px;
-  color: #47464f;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-/* --- DESKTOP --- */
-
-@media (min-width: 768px) {
-  .overlay {
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-  }
-
-  .sheet {
-    border-radius: 24px;
-    height: min(720px, 85dvh);
-    animation: fadeInScale 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .header {
-    border-radius: 24px 24px 0 0;
-  }
-}
-
-/* Landscape / viewports muy cortos (mobile): el sheet a 88dvh deja poco
-   aire; toma pantalla completa en vez de dejar backdrop muerto arriba. */
-@media (max-height: 500px) {
-  .sheet {
-    height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0;
-  }
-
-  .header {
-    border-radius: 0;
-  }
-}
-
-/* --- ANIMACIONES --- */
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes bounce {
-  0%,
-  60%,
-  100% {
-    transform: translateY(0);
-  }
-  30% {
-    transform: translateY(-5px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sheet {
-    animation: none;
-  }
-
-  .dot {
-    animation: none;
-  }
 }

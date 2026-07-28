@@ -10,12 +10,9 @@ import { RequestCard } from "@/components/request-card/RequestCard";
 import { PriceCard } from "@/components/price-card/PriceCard";
 import { OrderCard } from "@/components/order-card/OrderCard";
 import Button from "@/components/button/Button";
-import LupitaChat from "@/components/lupita/LupitaChat";
 import LupitaTrigger from "@/components/lupita/LupitaTrigger";
 import { useRouter } from "next/navigation";
 import { getMyRequests, QuoteRequest } from "@/app/lib/api/client/home/request";
-import { getClientVehicles } from "@/app/lib/api/client/vehicle";
-import { getClientLocations } from "@/app/lib/api/client/location";
 import { isFeatureEnabled } from "@/app/lib/featureFlags";
 import {
   getClientRequestQuotes,
@@ -87,14 +84,6 @@ export default function HomePage() {
   // se asume false → versión anterior (botón manual) por defecto.
   const lupitaEnabled = isFeatureEnabled(loginProfile, "lupita");
   const [activeTab, setActiveTab] = useState("COTIZACIONES");
-  const [isLupitaOpen, setIsLupitaOpen] = useState(false);
-  // null = aún cargando; [] = vacío de verdad (distinción para Lupita)
-  const [lupitaVehicles, setLupitaVehicles] = useState<
-    { id: number; label: string }[] | null
-  >(null);
-  const [lupitaLocations, setLupitaLocations] = useState<
-    { id: number; label: string }[] | null
-  >(null);
 
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [featuredQuotes, setFeaturedQuotes] = useState<FeaturedQuoteData[]>([]);
@@ -237,46 +226,6 @@ export default function HomePage() {
 
     fetchData();
   }, [jwt, refreshLoginProfile]);
-
-  // Datos para el context de Lupita (vehículos + direcciones del cliente).
-  // Solo se cargan si el cliente tiene el feature flag activo: si está
-  // apagado, el home muestra el botón manual y no necesita este fetch.
-  // Fallo → lista vacía, no rompe el home.
-  useEffect(() => {
-    if (!jwt || !lupitaEnabled) return;
-
-    const loadLupitaContext = async () => {
-      try {
-        const res = await getClientVehicles(jwt);
-        setLupitaVehicles(
-          (res.data ?? []).map((vehicle) => ({
-            id: vehicle.id,
-            label: [vehicle.brand, vehicle.model, vehicle.year, vehicle.engine]
-              .filter(Boolean)
-              .join(" "),
-          })),
-        );
-      } catch (error) {
-        console.error("Error loading vehicles for Lupita:", error);
-        setLupitaVehicles([]);
-      }
-
-      try {
-        const res = await getClientLocations(jwt);
-        setLupitaLocations(
-          (res.data ?? []).map((location) => ({
-            id: location.id,
-            label: `${location.name} - ${location.state}, ${location.municipality}`,
-          })),
-        );
-      } catch (error) {
-        console.error("Error loading locations for Lupita:", error);
-        setLupitaLocations([]);
-      }
-    };
-
-    loadLupitaContext();
-  }, [jwt, lupitaEnabled]);
 
   useEffect(() => {
     const unsubscribe = onNotification((notification) => {
@@ -594,34 +543,16 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* NUEVA SOLICITUD: Lupita (IA) para clientes habilitados por
-              feature flag; botón manual para el resto (default). */}
+          {/* NUEVA SOLICITUD: Lupita (IA, página propia en /home/user/lupita)
+              para clientes habilitados por feature flag; botón manual para
+              el resto (default). */}
           {lupitaEnabled ? (
-            <>
-              <div className={styles.lupitaSlot}>
-                <LupitaTrigger
-                  onOpen={() => setIsLupitaOpen(true)}
-                  onManualRequest={() => router.push("/home/user/request")}
-                />
-              </div>
-              <LupitaChat
-                open={isLupitaOpen}
-                onClose={() => setIsLupitaOpen(false)}
-                context={{
-                  firstName:
-                    (profile as { firstName?: string } | null)?.firstName ?? "",
-                  // null mientras carga → LupitaChat no manda arrays vacíos
-                  // prematuros; [] real = cliente sin vehículos/direcciones.
-                  vehicles: lupitaVehicles,
-                  locations: lupitaLocations,
-                  saldo: {
-                    available: tokensAvailable,
-                    total: tokensTotal,
-                    nextRenewal: tokensNextRenewal,
-                  },
-                }}
+            <div className={styles.lupitaSlot}>
+              <LupitaTrigger
+                onOpen={() => router.push("/home/user/lupita")}
+                onManualRequest={() => router.push("/home/user/request")}
               />
-            </>
+            </div>
           ) : (
             <Button
               className={styles.btnNuevaSolicitud}

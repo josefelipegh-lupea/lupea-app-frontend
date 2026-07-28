@@ -1,7 +1,7 @@
 "use client";
 
 import LupitaAvatar from "./LupitaAvatar";
-import styles from "./LupitaChat.module.css";
+import styles from "./LupitaTrigger.module.css";
 
 interface LupitaTriggerProps {
   onOpen: () => void;

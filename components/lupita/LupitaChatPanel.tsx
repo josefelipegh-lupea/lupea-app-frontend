@@ -7,9 +7,8 @@ import remarkGfm from "remark-gfm";
 
 import { IconsApp } from "@/components/icons/Icons";
 import { useAuth } from "@/context/AuthContext";
-import { useVisualViewportRect } from "@/hooks/useVisualViewportRect";
 import LupitaAvatar from "./LupitaAvatar";
-import styles from "./LupitaChat.module.css";
+import styles from "./LupitaChatPanel.module.css";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -44,8 +43,7 @@ export interface LupitaSessionContext {
   };
 }
 
-interface LupitaChatProps {
-  open: boolean;
+interface LupitaChatPanelProps {
   onClose: () => void;
   context: LupitaSessionContext;
 }
@@ -87,27 +85,29 @@ function extractDraft(reply: string): {
   }
 }
 
-export default function LupitaChat({
-  open,
+/**
+ * Contenido del chat (header + hilo + input). Se monta como página normal
+ * en `app/(dashboard)/home/user/lupita/page.tsx` — a propósito NO es un
+ * overlay/modal `position:fixed`: esa arquitectura se probó dos veces y
+ * falló en iOS Safari real (Safari desplaza elementos `fixed` al enfocar
+ * un input dentro, de forma impredecible). En flujo de documento normal,
+ * el teclado se maneja con `useKeyboardHeight` en la página contenedora,
+ * igual que el chat de mensajería Aliado↔Cliente.
+ */
+export default function LupitaChatPanel({
   onClose,
   context,
-}: LupitaChatProps) {
+}: LupitaChatPanelProps) {
   const { jwt } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>(GREETING_MESSAGES);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [draft, setDraft] = useState<RequestDraft | null>(null);
-  // Rectángulo visible real (offsetTop + height) del visualViewport. Se usa
-  // para re-posicionar el overlay fixed y contrarrestar el scroll que Safari
-  // le aplica al enfocar un input dentro (ver useVisualViewportRect).
-  const viewportRect = useVisualViewportRect();
 
   const threadEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (!open) return;
-
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
@@ -115,20 +115,14 @@ export default function LupitaChat({
     threadEndRef.current?.scrollIntoView({
       behavior: prefersReducedMotion ? "auto" : "smooth",
     });
-    // viewportRect: re-scrollea al fondo cuando el teclado abre/cierra en
-    // iOS, para que el último mensaje no quede tapado.
-  }, [messages, isLoading, open, viewportRect]);
+  }, [messages, isLoading]);
 
   useEffect(() => {
-    if (!open) return;
-    // Espera a que termine la animación de apertura (slideUp, 450ms) antes
-    // de enfocar el input. Si el teclado empieza a animar mientras el sheet
-    // todavía se está deslizando, los dos movimientos se superponen y se ve
-    // entrecortado; también le da un momento estable al listener de
-    // useVisualViewportRect antes de que el teclado se abra.
-    const timer = setTimeout(() => inputRef.current?.focus(), 450);
-    return () => clearTimeout(timer);
-  }, [open]);
+    // Página normal, sin animación de apertura con la que competir → foco
+    // directo al montar (a diferencia del modal anterior, que retrasaba
+    // el focus 450ms para no solapar con el slideUp).
+    inputRef.current?.focus();
+  }, []);
 
   const handleSend = async (text: string) => {
     const trimmed = text.trim();
@@ -213,137 +207,113 @@ export default function LupitaChat({
     });
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      className={styles.overlay}
-      onClick={onClose}
-      // Re-posiciona el overlay al rectángulo visible real, contrarrestando
-      // el scroll que Safari le aplica a elementos fixed con un input
-      // enfocado adentro. null en SSR/sin soporte → cae al CSS estático.
-      style={
-        viewportRect
-          ? { top: viewportRect.top, height: viewportRect.height }
-          : undefined
-      }
-    >
-      <div
-        className={styles.sheet}
-        role="dialog"
-        aria-label="Chat con Lupita"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className={styles.header}>
-          <LupitaAvatar size={44} />
-          <div className={styles.headerText}>
-            <span className={styles.headerName}>Lupita</span>
-            <span className={styles.headerSubtitle}>
-              Te ayudo a pedir tu repuesto
-            </span>
-          </div>
-          <button
-            type="button"
-            className={styles.closeButton}
-            aria-label="Cerrar chat"
-            onClick={onClose}
-          >
-            <IconsApp.Close width="14" height="14" />
-          </button>
-        </header>
-
-        <div className={styles.thread} role="log" aria-live="polite">
-          {messages.map((message, index) =>
-            message.role === "user" ? (
-              // Burbuja del Usuario: texto plano a propósito (seguridad).
-              <div key={index} className={styles.bubbleUser}>
-                {message.content}
-              </div>
-            ) : (
-              // Burbuja de Lupita: Markdown estándar (sin HTML crudo).
-              <div
-                key={index}
-                className={`${styles.bubbleLupita} ${styles.markdown}`}
-              >
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkBreaks]}
-                  components={{
-                    a: ({ ...props }) => (
-                      <a
-                        {...props}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      />
-                    ),
-                  }}
-                >
-                  {message.content}
-                </ReactMarkdown>
-              </div>
-            ),
-          )}
-
-          {isLoading && (
-            <div
-              className={`${styles.bubbleLupita} ${styles.typing}`}
-              aria-label="Lupita está escribiendo"
-            >
-              <span className={styles.dot} />
-              <span className={styles.dot} />
-              <span className={styles.dot} />
-            </div>
-          )}
-
-          {draft && !isLoading && (
-            <button
-              type="button"
-              className={styles.submitButton}
-              onClick={handleSubmitStub}
-            >
-              Enviar solicitud
-            </button>
-          )}
-
-          <div ref={threadEndRef} />
+    <>
+      <header className={styles.header}>
+        <LupitaAvatar size={44} />
+        <div className={styles.headerText}>
+          <span className={styles.headerName}>Lupita</span>
+          <span className={styles.headerSubtitle}>
+            Te ayudo a pedir tu repuesto
+          </span>
         </div>
+        <button
+          type="button"
+          className={styles.closeButton}
+          aria-label="Cerrar chat"
+          onClick={onClose}
+        >
+          <IconsApp.Close width="14" height="14" />
+        </button>
+      </header>
 
-        <footer className={styles.inputArea}>
-          <textarea
-            ref={inputRef}
-            className={styles.input}
-            aria-label="Escríbele a Lupita"
-            placeholder="Cuéntame qué necesitas para tu carro"
-            rows={1}
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-          />
+      <div className={styles.thread} role="log" aria-live="polite">
+        {messages.map((message, index) =>
+          message.role === "user" ? (
+            // Burbuja del Usuario: texto plano a propósito (seguridad).
+            <div key={index} className={styles.bubbleUser}>
+              {message.content}
+            </div>
+          ) : (
+            // Burbuja de Lupita: Markdown estándar (sin HTML crudo).
+            <div
+              key={index}
+              className={`${styles.bubbleLupita} ${styles.markdown}`}
+            >
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkBreaks]}
+                components={{
+                  a: ({ ...props }) => (
+                    <a {...props} target="_blank" rel="noopener noreferrer" />
+                  ),
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
+          ),
+        )}
+
+        {isLoading && (
+          <div
+            className={`${styles.bubbleLupita} ${styles.typing}`}
+            aria-label="Lupita está escribiendo"
+          >
+            <span className={styles.dot} />
+            <span className={styles.dot} />
+            <span className={styles.dot} />
+          </div>
+        )}
+
+        {draft && !isLoading && (
           <button
             type="button"
-            className={styles.sendButton}
-            aria-label="Enviar mensaje"
-            disabled={!input.trim() || isLoading}
-            onClick={() => handleSend(input)}
+            className={styles.submitButton}
+            onClick={handleSubmitStub}
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                d="M2 8H14M14 8L8.5 2.5M14 8L8.5 13.5"
-                stroke="#ffffff"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            Enviar solicitud
           </button>
-        </footer>
+        )}
+
+        <div ref={threadEndRef} />
       </div>
-    </div>
+
+      <footer className={styles.inputArea}>
+        <textarea
+          ref={inputRef}
+          className={styles.input}
+          aria-label="Escríbele a Lupita"
+          placeholder="Cuéntame qué necesitas para tu carro"
+          rows={1}
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+        />
+        <button
+          type="button"
+          className={styles.sendButton}
+          aria-label="Enviar mensaje"
+          disabled={!input.trim() || isLoading}
+          onClick={() => handleSend(input)}
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M2 8H14M14 8L8.5 2.5M14 8L8.5 13.5"
+              stroke="#ffffff"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </footer>
+    </>
   );
 }

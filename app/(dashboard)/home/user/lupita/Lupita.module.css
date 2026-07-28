@@ -1,0 +1,59 @@
+/* Calcado de app/(dashboard)/chat/user/[id]/Conversation.module.css — misma
+   técnica probada de layout + teclado, aplicada a Lupita. */
+
+.pageWrapper {
+  /* Mobile: resta la tab bar fija de 90px */
+  height: calc(100dvh - 90px);
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa;
+  overflow: hidden;
+}
+
+/* Pantallas cortas (ej. celulares en landscape) — la tab bar se encoge a 60px */
+@media (max-height: 500px) {
+  .pageWrapper {
+    height: calc(100dvh - 60px);
+  }
+}
+
+.mainContainer {
+  width: 100%;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+/* --- Desktop (≥768px) --- */
+@media (min-width: 768px) {
+  .pageWrapper {
+    /* El navbar pasa a sidebar izquierdo — se restaura el alto completo */
+    height: 100dvh;
+    padding: 24px 0;
+    box-sizing: border-box;
+    margin-left: 230px;
+    width: calc(100% - 230px);
+    background-color: #f2f2f2;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+  }
+
+  .pageWrapper.sidebarCollapsed {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+  }
+
+  .mainContainer {
+    width: 95%;
+    /* Más angosto que el chat de mensajería (max-width:1000px): Lupita es
+       un asistente de una sola columna, no una mensajería de negocio. */
+    max-width: 640px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  }
+}
