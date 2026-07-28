@@ -7,7 +7,7 @@ import remarkGfm from "remark-gfm";
 
 import { IconsApp } from "@/components/icons/Icons";
 import { useAuth } from "@/context/AuthContext";
-import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
+import { useVisualViewportRect } from "@/hooks/useVisualViewportRect";
 import LupitaAvatar from "./LupitaAvatar";
 import styles from "./LupitaChat.module.css";
 
@@ -97,9 +97,10 @@ export default function LupitaChat({
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [draft, setDraft] = useState<RequestDraft | null>(null);
-  // 0 en Android/desktop (interactiveWidget ya encoge el viewport solo);
-  // >0 en iOS Safari, que hace overlay del teclado sin redimensionar.
-  const keyboardHeight = useKeyboardHeight();
+  // Rectángulo visible real (offsetTop + height) del visualViewport. Se usa
+  // para re-posicionar el overlay fixed y contrarrestar el scroll que Safari
+  // le aplica al enfocar un input dentro (ver useVisualViewportRect).
+  const viewportRect = useVisualViewportRect();
 
   const threadEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -114,12 +115,19 @@ export default function LupitaChat({
     threadEndRef.current?.scrollIntoView({
       behavior: prefersReducedMotion ? "auto" : "smooth",
     });
-    // keyboardHeight: re-scrollea al fondo cuando el teclado abre/cierra en
+    // viewportRect: re-scrollea al fondo cuando el teclado abre/cierra en
     // iOS, para que el último mensaje no quede tapado.
-  }, [messages, isLoading, open, keyboardHeight]);
+  }, [messages, isLoading, open, viewportRect]);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (!open) return;
+    // Espera a que termine la animación de apertura (slideUp, 450ms) antes
+    // de enfocar el input. Si el teclado empieza a animar mientras el sheet
+    // todavía se está deslizando, los dos movimientos se superponen y se ve
+    // entrecortado; también le da un momento estable al listener de
+    // useVisualViewportRect antes de que el teclado se abra.
+    const timer = setTimeout(() => inputRef.current?.focus(), 450);
+    return () => clearTimeout(timer);
   }, [open]);
 
   const handleSend = async (text: string) => {
@@ -211,9 +219,14 @@ export default function LupitaChat({
     <div
       className={styles.overlay}
       onClick={onClose}
-      // Empuja el sheet (clamped a max-height:100% en el CSS) por encima
-      // del teclado en iOS. No-op en Android/desktop (keyboardHeight = 0).
-      style={keyboardHeight > 0 ? { paddingBottom: keyboardHeight } : undefined}
+      // Re-posiciona el overlay al rectángulo visible real, contrarrestando
+      // el scroll que Safari le aplica a elementos fixed con un input
+      // enfocado adentro. null en SSR/sin soporte → cae al CSS estático.
+      style={
+        viewportRect
+          ? { top: viewportRect.top, height: viewportRect.height }
+          : undefined
+      }
     >
       <div
         className={styles.sheet}
@@ -304,17 +317,6 @@ export default function LupitaChat({
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            onFocus={() => {
-              // Espera a que el teclado termine de animarse (~300ms) y
-              // luego hace scroll para que el textarea quede visible sobre
-              // el teclado. Mismo patrón que ChatInput.tsx.
-              setTimeout(() => {
-                inputRef.current?.scrollIntoView({
-                  behavior: "smooth",
-                  block: "nearest",
-                });
-              }, 300);
-            }}
           />
           <button
             type="button"

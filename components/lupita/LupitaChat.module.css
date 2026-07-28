@@ -2,7 +2,14 @@
 
 .overlay {
   position: fixed;
-  inset: 0;
+  /* top/height explícitos (no `inset: 0`) para que LupitaChat.tsx pueda
+     sobrescribir solo estos dos vía useVisualViewportRect, sin pelear con un
+     `bottom: 0` implícito — necesario para contrarrestar el scroll que
+     Safari le aplica a elementos fixed al enfocar un input dentro. */
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100dvh;
   z-index: 20;
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(2px);
@@ -105,6 +112,9 @@
   padding: 20px 16px;
   display: flex;
   flex-direction: column;
+  /* Conversaciones cortas se anclan abajo (pegadas al input) en vez de
+     arriba con hueco vacío debajo — patrón estándar de chat. */
+  justify-content: flex-end;
   gap: 12px;
   -webkit-overflow-scrolling: touch;
 }
