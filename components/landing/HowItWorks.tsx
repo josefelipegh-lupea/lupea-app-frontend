@@ -10,18 +10,18 @@ export const HowItWorks = () => {
   const steps = [
     {
       Icon: FileText,
-      title: "Llenas la consulta",
-      description: "Elige los datos de tu carro y escribe lo que necesitas (¡Te toma menos de un minuto!).",
+      title: "Lupea",
+      description: "Cuéntanos qué necesita tu carro. Te toma menos de un minuto.",
     },
     {
       Icon: Scale,
-      title: "Comparas",
-      description: "Recibes ofertas reales de proveedores verificados y las comparas lado a lado de forma transparente.",
+      title: "Compara",
+      description: "Recibe ofertas reales de proveedores verificados y compáralas lado a lado, sin letra pequeña.",
     },
     {
       Icon: CheckCircle,
-      title: "Decides",
-      description: "Eliges la mejor opción, se genera la orden de compra y se activa un chat directo para concretar.",
+      title: "Decide",
+      description: "Elige la mejor opción: la orden de compra se genera sola y se abre un chat directo para concretar.",
     },
   ];
 
@@ -45,7 +45,7 @@ export const HowItWorks = () => {
               <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mb-6 text-primary group-hover:bg-secondary-container group-hover:text-white transition-colors">
                 <step.Icon size={32} />
               </div>
-              <h3 className="font-headline-sm text-primary mb-3">{step.title}</h3>
+              <h3 className="font-headline-sm text-primary mb-3 font-bold uppercase">{step.title}</h3>
               <p className="font-body-md text-on-surface-variant">{step.description}</p>
             </div>
           ))}

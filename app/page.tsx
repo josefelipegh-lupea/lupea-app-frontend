@@ -8,6 +8,8 @@ import { StatsBar } from "@/components/landing/StatsBar";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { DualProposition } from "@/components/landing/DualProposition";
 import { MarketplaceBento } from "@/components/landing/MarketplaceBento";
+import { LupitaSection } from "@/components/landing/LupitaSection";
+import { NewsletterSection } from "@/components/landing/NewsletterSection";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 
 export default function LandingPage() {
@@ -50,6 +52,8 @@ export default function LandingPage() {
           <HowItWorks />
           <DualProposition />
           <MarketplaceBento />
+          <LupitaSection />
+          <NewsletterSection />
         </main>
         <LandingFooter />
       </div>

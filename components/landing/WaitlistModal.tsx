@@ -69,8 +69,16 @@ export const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
           <h3 className="font-display-lg text-xl text-primary">Lupita se está entrenando</h3>
         </div>
 
+        <p className="font-body-md text-on-surface-variant mb-4">
+          Cuando esté lista, va a poder:
+        </p>
+        <ul className="font-body-md text-on-surface-variant list-disc list-inside space-y-1 mb-6">
+          <li>Diagnosticar tu carro gratis</li>
+          <li>Conectarte con talleres certificados</li>
+          <li>Llevar el historial completo de tu vehículo</li>
+        </ul>
         <p className="font-body-md text-on-surface-variant mb-6">
-          Déjanos tu correo para ser de los primeros en probar el Diagnóstico con IA.
+          Déjanos tu correo y sé de las primeras personas en probarla.
         </p>
 
         {status === "success" ? (
@@ -95,7 +103,7 @@ export const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
               disabled={status === "loading"}
               className="bg-secondary-container hover:bg-secondary text-on-secondary-container font-label-bold uppercase py-3 px-6 rounded-full transition-all active:scale-95 disabled:opacity-60"
             >
-              {status === "loading" ? "Registrando..." : "Quiero ser el primero"}
+              {status === "loading" ? "Registrando..." : "Avísame cuando Lupita esté lista"}
             </button>
           </form>
         )}

@@ -46,13 +46,13 @@ export const LandingHeader = () => {
             href="/login"
             className="hidden md:block font-label-bold text-label-bold uppercase tracking-wider text-on-surface-variant hover:text-primary px-4 py-2 transition-all"
           >
-            Iniciar Sesión
+            Inicia sesión
           </Link>
           <Link
             href="/user/register"
             className="bg-secondary-container hover:bg-secondary text-on-secondary-container font-label-bold text-label-bold uppercase tracking-wider px-6 py-3 rounded-full shadow-md active:scale-95 transition-all"
           >
-            Registrarse
+            Regístrate
           </Link>
         </div>
 
@@ -92,7 +92,7 @@ export const LandingHeader = () => {
               Ecosistema
             </a>
             <Link href="/login" className="text-on-surface-variant font-label-bold uppercase">
-              Iniciar Sesión
+              Inicia sesión
             </Link>
           </nav>
         </div>

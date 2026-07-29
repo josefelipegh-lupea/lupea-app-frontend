@@ -130,7 +130,7 @@ export const LandingFooter = () => {
             Suscríbete
           </h4>
           <p className="font-body-md text-on-primary-container">
-            Recibe novedades de Lupea y sé el primero en probar el Diagnóstico con IA.
+            Recibe novedades de Lupea y sé la primera persona en probar nuestro diagnóstico IA.
           </p>
           {footerStatus === "success" ? (
             <p className="font-label-sm text-secondary-container">¡Listo! Te tendremos al tanto.</p>

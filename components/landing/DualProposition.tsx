@@ -37,7 +37,7 @@ export const DualProposition = () => {
                 href="/user/register"
                 className="bg-white text-primary font-label-bold uppercase py-4 px-8 rounded-full hover:bg-secondary-container hover:text-on-secondary-container transition-all inline-block"
               >
-                Buscar un Repuesto
+                Lupea tu repuesto
               </Link>
             </div>
             <div className="absolute -right-10 -bottom-10 opacity-10">
@@ -65,12 +65,16 @@ export const DualProposition = () => {
                   <BadgeCheck size={20} className="text-tertiary-fixed flex-shrink-0 mt-1" />
                   <span className="font-body-md">El cliente llega directamente a tu negocio, y solo pagas cuando el cliente decide comprarte.</span>
                 </li>
+                <li className="flex items-start gap-3">
+                  <BadgeCheck size={20} className="text-tertiary-fixed flex-shrink-0 mt-1" />
+                  <span className="font-body-md">Como Aliado Pro: recibe respuestas y cotizaciones automáticas 24/7 con nuestra IA de gestión de inventario.</span>
+                </li>
               </ul>
               <Link
                 href="/vendor/register"
                 className="bg-secondary-container text-on-secondary-container font-label-bold uppercase py-4 px-8 rounded-full hover:bg-white hover:text-primary transition-all inline-block"
               >
-                Unirse a la Red Lupea
+                Únete a la Red Lupea
               </Link>
             </div>
             <div className="absolute -right-10 -bottom-10 opacity-10">
