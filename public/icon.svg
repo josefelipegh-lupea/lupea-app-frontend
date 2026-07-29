@@ -23,7 +23,7 @@
 		<i:aipgfRef  xlink:href="#adobe_illustrator_pgf">
 		</i:aipgfRef>
 	</foreignObject>
-	<g i:extraneous="self">
+	<g i:extraneous="self" transform="translate(250,250) scale(1.4) translate(-250,-250)">
 		<g>
 			<g>
 				<path class="st1" d="M250,106.2c-59.1,0-107.3,46.3-110.4,104.6l-0.2-0.1v183l77-71.6c10.6,3.4,21.9,5.2,33.6,5.2
