@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import toast from "react-hot-toast";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ImageViewer } from "@/components/image-viewer/ImageViewer";
 import { formatRelativeTime } from "@/app/lib/utils/formatRelativeTime";
+import {
+  QuestionSheet,
+  type QuestionSheetItem,
+} from "@/components/question-sheet/QuestionSheet";
 import type {
   RequestThreadData,
   ThreadQuestion,
@@ -18,6 +21,11 @@ interface QuestionsCardProps {
   error: boolean;
   threadData: RequestThreadData | null;
   onRetry: () => void;
+  items: QuestionSheetItem[];
+  requestDocId: string;
+  jwt: string;
+  onQuestionCreated: (question: ThreadQuestion) => void;
+  onNeedsRefetch: () => void;
 }
 
 function QuestionBadge({ status }: { status: QuestionStatus }) {
@@ -28,11 +36,27 @@ function QuestionBadge({ status }: { status: QuestionStatus }) {
   return <span className={styles.badgeDismissed}>Sin respuesta</span>;
 }
 
-function QuestionItem({ q }: { q: ThreadQuestion }) {
+function QuestionItem({
+  q,
+  registerRef,
+  highlighted,
+}: {
+  q: ThreadQuestion;
+  registerRef: (id: string, el: HTMLDivElement | null) => void;
+  highlighted: boolean;
+}) {
   const [viewerSrc, setViewerSrc] = useState<string | null>(null);
 
   return (
-    <div className={styles.question}>
+    <div
+      ref={(el) => registerRef(q.id, el)}
+      className={styles.question}
+      style={
+        highlighted
+          ? { boxShadow: "0 0 0 2px #f08100", borderRadius: 8, transition: "box-shadow 0.3s" }
+          : { transition: "box-shadow 0.3s" }
+      }
+    >
       <div className={styles.questionMeta}>
         <span className={styles.categoryLabel}>{q.categoryLabel}</span>
         {q.item && (
@@ -96,14 +120,71 @@ export function QuestionsCard({
   error,
   threadData,
   onRetry,
+  items,
+  requestDocId,
+  jwt,
+  onQuestionCreated,
+  onNeedsRefetch,
 }: QuestionsCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [pendingScrollQid, setPendingScrollQid] = useState<string | null>(null);
+  const [highlightedQid, setHighlightedQid] = useState<string | null>(null);
+
+  const refsMap = useRef<Map<string, HTMLDivElement>>(new Map());
+  const registerRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) refsMap.current.set(id, el);
+    else refsMap.current.delete(id);
+  }, []);
 
   const total = threadData?.thread.total ?? 0;
   const answered = threadData?.thread.answered ?? 0;
+  const pending = threadData?.thread.pending ?? 0;
   const isReadOnly = threadData?.thread.status === "read_only";
-  const questions = threadData?.questions ?? [];
+  const questions = useMemo(
+    () => threadData?.questions ?? [],
+    [threadData?.questions],
+  );
+  const permissions = threadData?.permissions;
   const visible = expanded ? questions : questions.slice(0, COLLAPSED_COUNT);
+
+  // "Ver respuesta": expandir la card y luego hacer scroll al nodo cuando exista.
+  useEffect(() => {
+    if (!pendingScrollQid) return;
+    const raf = requestAnimationFrame(() => {
+      const el = refsMap.current.get(pendingScrollQid);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setHighlightedQid(pendingScrollQid);
+      }
+      // Si no está en el DOM tras expandir: cerrar en silencio (ya está cerrado el sheet).
+      setPendingScrollQid(null);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [pendingScrollQid, expanded, questions]);
+
+  // Limpiar el resalte tras un momento.
+  useEffect(() => {
+    if (!highlightedQid) return;
+    const t = setTimeout(() => setHighlightedQid(null), 1800);
+    return () => clearTimeout(t);
+  }, [highlightedQid]);
+
+  const handleViewAnswer = (qid: string) => {
+    setSheetOpen(false);
+    setExpanded(true);
+    setPendingScrollQid(qid);
+  };
+
+  // Texto cuando el proveedor no puede preguntar (prioridad: read_only → 0 → pending).
+  const noAskText = (() => {
+    if (isReadOnly) return "Esta solicitud ya no admite preguntas.";
+    if (permissions && permissions.remaining === 0)
+      return "Alcanzaste el máximo de 3 preguntas para esta solicitud.";
+    if (pending >= 10)
+      return "Este cliente tiene varias preguntas pendientes. Puedes cotizar indicando tus supuestos.";
+    return "Esta solicitud ya no admite preguntas.";
+  })();
 
   return (
     <section className={styles.card}>
@@ -185,7 +266,12 @@ export function QuestionsCard({
         <>
           <div className={styles.questionList}>
             {visible.map((q) => (
-              <QuestionItem key={q.id} q={q} />
+              <QuestionItem
+                key={q.id}
+                q={q}
+                registerRef={registerRef}
+                highlighted={highlightedQid === q.id}
+              />
             ))}
           </div>
 
@@ -200,14 +286,34 @@ export function QuestionsCard({
         </>
       )}
 
-      {/* CTA button */}
-      {!loading && !error && !isReadOnly && (
-        <button
-          className={styles.ctaButton}
-          onClick={() => toast("Disponible próximamente")}
-        >
-          Hacer una pregunta
-        </button>
+      {/* CTA / motivo bloqueado */}
+      {!loading && !error && permissions && (
+        permissions.canAsk ? (
+          <button
+            className={styles.ctaButton}
+            onClick={() => setSheetOpen(true)}
+          >
+            Hacer una pregunta
+          </button>
+        ) : (
+          <p className={styles.emptySubtitle} style={{ textAlign: "center", marginTop: 12 }}>
+            {noAskText}
+          </p>
+        )
+      )}
+
+      {permissions && (
+        <QuestionSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          items={items}
+          permissions={permissions}
+          requestDocId={requestDocId}
+          jwt={jwt}
+          onCreated={onQuestionCreated}
+          onViewAnswer={handleViewAnswer}
+          onNeedsRefetch={onNeedsRefetch}
+        />
       )}
     </section>
   );

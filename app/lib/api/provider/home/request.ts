@@ -30,6 +30,18 @@ export interface ThreadQuestion {
   } | null;
 }
 
+export interface BlockedCategory {
+  category: QuestionCategory;
+  itemId: string | null;
+  questionId: string;
+}
+
+export interface ThreadPermissions {
+  canAsk: boolean;
+  remaining: number;
+  blockedCategories: BlockedCategory[];
+}
+
 export interface RequestThreadData {
   thread: {
     status: ThreadStatus;
@@ -38,6 +50,49 @@ export interface RequestThreadData {
     pending: number;
   };
   questions: ThreadQuestion[];
+  permissions: ThreadPermissions;
+}
+
+export interface CreateQuestionBody {
+  category: QuestionCategory;
+  requestItemId?: string | null;
+  content?: string;
+}
+
+export type CreateQuestionResult =
+  | { ok: true; question: ThreadQuestion }
+  | { ok: false; code: string };
+
+export async function createThreadQuestion(
+  jwt: string,
+  requestDocumentId: string,
+  body: CreateQuestionBody,
+): Promise<CreateQuestionResult> {
+  try {
+    const res = await fetch(
+      `${API_URL}/quote-requests/${requestDocumentId}/thread/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
+        body: JSON.stringify(body),
+      },
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      const code = data?.error?.details?.code ?? "UNKNOWN";
+      return { ok: false, code };
+    }
+
+    return { ok: true, question: data.data.question };
+  } catch (error) {
+    console.error("Fetch error in createThreadQuestion:", error);
+    return { ok: false, code: "UNKNOWN" };
+  }
 }
 
 export async function getRequestThread(

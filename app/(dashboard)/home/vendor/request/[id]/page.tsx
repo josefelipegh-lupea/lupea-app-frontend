@@ -16,6 +16,7 @@ import {
   getRequestThread,
   ProviderQuoteRequest,
   RequestThreadData,
+  ThreadQuestion,
 } from "@/app/lib/api/provider/home/request";
 import { QuestionsCard } from "@/components/questions-card/QuestionsCard";
 import Header from "@/components/header/Header";
@@ -72,6 +73,35 @@ export default function RequestDetailPage() {
   }, [jwt]);
 
   useEffect(() => {
+    if (request?.request.documentId) {
+      fetchThread(request.request.documentId);
+    }
+  }, [request, fetchThread]);
+
+  // Insert optimista de la pregunta creada + ajuste de contadores (total/pending).
+  // La fuente de verdad sigue siendo el backend: se refetch en segundo plano.
+  const handleQuestionCreated = useCallback(
+    (question: ThreadQuestion) => {
+      setThreadData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          questions: [question, ...prev.questions],
+          thread: {
+            ...prev.thread,
+            total: prev.thread.total + 1,
+            pending: prev.thread.pending + 1,
+          },
+        };
+      });
+      if (request?.request.documentId) {
+        fetchThread(request.request.documentId);
+      }
+    },
+    [request, fetchThread],
+  );
+
+  const handleNeedsRefetch = useCallback(() => {
     if (request?.request.documentId) {
       fetchThread(request.request.documentId);
     }
@@ -239,6 +269,14 @@ export default function RequestDetailPage() {
               error={threadError}
               threadData={threadData}
               onRetry={() => fetchThread(request.request.documentId)}
+              items={request.request.items.map((item) => ({
+                documentId: item.documentId,
+                productName: item.productName,
+              }))}
+              requestDocId={request.request.documentId}
+              jwt={jwt ?? ""}
+              onQuestionCreated={handleQuestionCreated}
+              onNeedsRefetch={handleNeedsRefetch}
             />
 
             {request.status === "pending" && (
