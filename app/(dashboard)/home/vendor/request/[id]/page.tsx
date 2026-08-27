@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { useSidebar } from "@/context/SidebarContext";
@@ -13,8 +13,11 @@ import { PageAnimation } from "@/components/page-animation/PageAnimation";
 import { SkeletonRequestDetail } from "@/components/skeleton/SkeletonRequestDetail";
 import {
   getProviderRequests,
+  getRequestThread,
   ProviderQuoteRequest,
+  RequestThreadData,
 } from "@/app/lib/api/provider/home/request";
+import { QuestionsCard } from "@/components/questions-card/QuestionsCard";
 import Header from "@/components/header/Header";
 
 export default function RequestDetailPage() {
@@ -25,6 +28,10 @@ export default function RequestDetailPage() {
 
   const [request, setRequest] = useState<ProviderQuoteRequest | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [threadData, setThreadData] = useState<RequestThreadData | null>(null);
+  const [threadLoading, setThreadLoading] = useState(true);
+  const [threadError, setThreadError] = useState(false);
 
   useEffect(() => {
     const fetchRequest = async () => {
@@ -48,6 +55,27 @@ export default function RequestDetailPage() {
 
     fetchRequest();
   }, [jwt, params.id]);
+
+  const fetchThread = useCallback(async (quoteRequestDocId: string) => {
+    if (!jwt) return;
+    try {
+      setThreadLoading(true);
+      setThreadError(false);
+      const res = await getRequestThread(jwt, quoteRequestDocId);
+      if (res.ok) setThreadData(res.data);
+      else setThreadError(true);
+    } catch {
+      setThreadError(true);
+    } finally {
+      setThreadLoading(false);
+    }
+  }, [jwt]);
+
+  useEffect(() => {
+    if (request?.request.documentId) {
+      fetchThread(request.request.documentId);
+    }
+  }, [request, fetchThread]);
 
   if (loading) {
     return (
@@ -167,14 +195,26 @@ export default function RequestDetailPage() {
                   <IconsApp.Location />
                   <div>
                     <p className={styles.locationName}>{locationInfo.name}</p>
-                    <p className={styles.locationAddress}>
-                      {locationInfo.exactAddress}
-                    </p>
                     <p className={styles.locationParish}>
                       {locationInfo.parish}, {locationInfo.municipality},{" "}
                       {locationInfo.state}
                     </p>
                   </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+                  <svg
+                    width="13"
+                    height="15"
+                    viewBox="0 0 13 15"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect x="0.75" y="6.25" width="11.5" height="8.5" rx="1.25" stroke="#aaa" strokeWidth="1.5" />
+                    <path d="M3.5 6V4.5a3 3 0 016 0V6" stroke="#aaa" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  <p style={{ fontSize: 12, color: "#aaa", margin: 0 }}>
+                    Dirección exacta disponible al generar la orden.
+                  </p>
                 </div>
               </div>
             </section>
@@ -193,6 +233,13 @@ export default function RequestDetailPage() {
                 </div>
               </div>
             </section>
+
+            <QuestionsCard
+              loading={threadLoading}
+              error={threadError}
+              threadData={threadData}
+              onRetry={() => fetchThread(request.request.documentId)}
+            />
 
             {request.status === "pending" && (
               <div className={styles.actionsContainer}>

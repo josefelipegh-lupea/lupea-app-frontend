@@ -493,7 +493,7 @@ function NewQuotePageContent() {
                   const quoted = request.request.items.filter(
                     (item) => itemData[item.id]?.[0]?.unitPrice,
                   ).length;
-                  return `${quoted} de ${total} productos completados`;
+                  return `${quoted} de ${total} ${total === 1 ? "producto completado" : "productos completados"}`;
                 })()}
               </span>
             </div>
@@ -1063,7 +1063,7 @@ function NewQuotePageContent() {
                         width="16"
                         height="16"
                       />
-                      <span>Faltan {missingCount} productos por cotizar</span>
+                      <span>{missingCount === 1 ? "Falta" : "Faltan"} {missingCount} {missingCount === 1 ? "producto" : "productos"} por cotizar</span>
                     </>
                   );
                 })()}
