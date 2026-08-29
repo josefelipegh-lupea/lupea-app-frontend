@@ -123,6 +123,7 @@ export default function AllRequestsPage() {
                   matchingSummary={req.matchingSummary}
                   documentId={req.documentId}
                   status={status}
+                  onOpenDetail={(docId) => router.push(`/home/user/request/${docId}`)}
                   onViewOffers={(docId) => router.push(`/home/user/request/${docId}/quotes`)}
                   onViewQuote={(docId) => router.push(`/home/user/quotes/${quoteDocId}`)}
                 />

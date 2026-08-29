@@ -1,57 +1,24 @@
 const API_URL =
   process.env.NEXT_PUBLIC_STRAPI_API_URL ?? "http://localhost:1337/api";
 
-// ── Request Thread ────────────────────────────────────────────────────────────
+// ── Request Thread — types and getRequestThread live in app/lib/api/thread.ts ─
+// Re-exported here for backwards compatibility with existing provider imports.
 
-export type ThreadStatus = "open" | "read_only";
-export type QuestionStatus = "pending" | "answered" | "dismissed" | "expired";
-export type QuestionCategory =
-  | "part_photo"
-  | "oem_code"
-  | "engine_version"
-  | "side"
-  | "accepts_aftermarket"
-  | "quantity"
-  | "other";
+import type {
+  QuestionCategory,
+  ThreadQuestion,
+} from "@/app/lib/api/thread";
 
-export interface ThreadQuestion {
-  id: string;
-  category: QuestionCategory;
-  categoryLabel: string;
-  item: { id: string; name: string } | null;
-  content: string;
-  status: QuestionStatus;
-  createdAt: string;
-  isMine: boolean;
-  answer: {
-    content: string;
-    media: { url: string; thumb: string } | null;
-    answeredAt: string;
-  } | null;
-}
-
-export interface BlockedCategory {
-  category: QuestionCategory;
-  itemId: string | null;
-  questionId: string;
-}
-
-export interface ThreadPermissions {
-  canAsk: boolean;
-  remaining: number;
-  blockedCategories: BlockedCategory[];
-}
-
-export interface RequestThreadData {
-  thread: {
-    status: ThreadStatus;
-    total: number;
-    answered: number;
-    pending: number;
-  };
-  questions: ThreadQuestion[];
-  permissions: ThreadPermissions;
-}
+export type {
+  ThreadStatus,
+  QuestionStatus,
+  QuestionCategory,
+  ThreadQuestion,
+  BlockedCategory,
+  ThreadPermissions,
+  RequestThreadData,
+} from "@/app/lib/api/thread";
+export { getRequestThread } from "@/app/lib/api/thread";
 
 export interface CreateQuestionBody {
   category: QuestionCategory;
@@ -92,35 +59,6 @@ export async function createThreadQuestion(
   } catch (error) {
     console.error("Fetch error in createThreadQuestion:", error);
     return { ok: false, code: "UNKNOWN" };
-  }
-}
-
-export async function getRequestThread(
-  jwt: string,
-  requestDocumentId: string,
-): Promise<{ ok: boolean; data: RequestThreadData }> {
-  try {
-    const res = await fetch(
-      `${API_URL}/quote-requests/${requestDocumentId}/thread`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${jwt}`,
-        },
-      },
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error?.message || "Error al obtener el hilo");
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Fetch error in getRequestThread:", error);
-    throw error;
   }
 }
 

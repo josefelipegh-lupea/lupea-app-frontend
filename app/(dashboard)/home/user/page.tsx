@@ -373,6 +373,9 @@ export default function HomePage() {
               documentId={req.documentId}
               matchingSummary={req.matchingSummary}
               status={status}
+              onOpenDetail={(docId) =>
+                router.push(`/home/user/request/${docId}`)
+              }
               onViewOffers={(docId) =>
                 router.push(`/home/user/request/${docId}/quotes`)
               }

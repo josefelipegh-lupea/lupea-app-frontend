@@ -124,6 +124,9 @@ export default function UserHistoryRequestsPage() {
                   matchingSummary={req.matchingSummary}
                   documentId={req.documentId}
                   status={status}
+                  onOpenDetail={(docId) =>
+                    router.push(`/home/user/request/${docId}`)
+                  }
                   onViewOffers={(docId) =>
                     router.push(`/home/user/request/${docId}/quotes`)
                   }

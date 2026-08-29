@@ -26,6 +26,7 @@ interface RequestProps {
   documentId?: string;
   onViewOffers?: (documentId: string) => void;
   onViewQuote?: (documentId: string) => void;
+  onOpenDetail?: (documentId: string) => void;
   isProvider?: boolean;
   matchingSummary?: MatchingSummary;
   status?: string;
@@ -38,6 +39,7 @@ export const RequestCard: React.FC<RequestProps> = ({
   documentId,
   onViewOffers,
   onViewQuote,
+  onOpenDetail,
   isProvider = false,
   matchingSummary,
   status,
@@ -105,7 +107,11 @@ export const RequestCard: React.FC<RequestProps> = ({
 
   return (
     <div ref={cardRef} className={styles.card}>
-      <div className={styles.header}>
+      <div
+        className={styles.header}
+        onClick={() => onOpenDetail && documentId && onOpenDetail(documentId)}
+        style={onOpenDetail ? { cursor: "pointer" } : undefined}
+      >
         <div className={styles.headerTitle}>
           <IconsApp.Document />
           <span>Consulta {id}</span>
@@ -114,7 +120,11 @@ export const RequestCard: React.FC<RequestProps> = ({
       </div>
 
       <div className={styles.body}>
-        <p className={styles.repuestosResumen}>
+        <p
+          className={styles.repuestosResumen}
+          onClick={() => onOpenDetail && documentId && onOpenDetail(documentId)}
+          style={onOpenDetail ? { cursor: "pointer" } : undefined}
+        >
           {formatNumber(items.length)} repuestos solicitados
         </p>
 
@@ -137,7 +147,7 @@ export const RequestCard: React.FC<RequestProps> = ({
         </div>
 
         {items.length > 2 && (
-          <button className={styles.verTodosBtn} onClick={toggleExpand}>
+          <button className={styles.verTodosBtn} onClick={(e) => { e.stopPropagation(); toggleExpand(); }}>
             {isExpanded ? "Ver menos" : `Ver todos (${items.length})`}
             <span className={isExpanded ? styles.iconRotate : ""}>
               <IconsApp.DownArrow />
@@ -150,7 +160,8 @@ export const RequestCard: React.FC<RequestProps> = ({
         <div className={styles.actionsSingle}>
           <button
             className={styles.btnVerOfertas}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               if (status === "ordered" && onViewQuote) {
                 documentId && onViewQuote(documentId);
               } else if (onViewOffers) {
