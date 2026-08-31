@@ -194,10 +194,9 @@ export function PreQuoteQuestions({ requestDocumentId }: PreQuoteQuestionsProps)
               key={q.id}
               className={`${styles.questionItem} ${q.status === "pending" ? styles.pendingItem : ""}`}
             >
-              {/* Meta row: category + item chip + status pill (non-pending) */}
+              {/* Meta row: category + status pill (non-pending) */}
               <div className={styles.metaRow}>
                 <span className={styles.categoryLabel}>{q.categoryLabel.toUpperCase()}</span>
-                {q.item && <span className={styles.itemChip}>{q.item.name}</span>}
                 <span className={styles.metaRowSpacer} />
                 {q.status === "answered" && (
                   <span className={styles.badgeAnswered}>Respondida</span>
@@ -209,6 +208,12 @@ export function PreQuoteQuestions({ requestDocumentId }: PreQuoteQuestionsProps)
                   <span className={styles.badgeExpired}>Sin respuesta</span>
                 )}
               </div>
+              {/* Item chip on its own line */}
+              {q.item && (
+                <div className={styles.itemChipRow}>
+                  <span className={styles.itemChip}>{q.item.name}</span>
+                </div>
+              )}
 
               {/* Question content */}
               <p className={styles.questionContent}>{q.content}</p>

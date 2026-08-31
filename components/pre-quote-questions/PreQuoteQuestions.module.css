@@ -152,6 +152,10 @@
   letter-spacing: 0.04em;
 }
 
+.itemChipRow {
+  margin-bottom: 6px;
+}
+
 .itemChip {
   font-size: 11px;
   background: #f3f4f6;
