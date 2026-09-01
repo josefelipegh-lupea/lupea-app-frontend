@@ -12,6 +12,7 @@ import {
 import { formatRelativeTime } from "@/app/lib/utils/formatRelativeTime";
 import { ConfirmModal } from "@/components/confirm-modal/ConfirmModal";
 import { ImageViewer } from "@/components/image-viewer/ImageViewer";
+import { AnswerSheet } from "@/components/answer-sheet/AnswerSheet";
 import styles from "./PreQuoteQuestions.module.css";
 
 interface PreQuoteQuestionsProps {
@@ -50,6 +51,8 @@ export function PreQuoteQuestions({ requestDocumentId }: PreQuoteQuestionsProps)
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [targetQuestion, setTargetQuestion] = useState<ThreadQuestion | null>(null);
   const [dismissing, setDismissing] = useState(false);
+
+  const [answerTarget, setAnswerTarget] = useState<ThreadQuestion | null>(null);
 
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
@@ -105,6 +108,25 @@ export function PreQuoteQuestions({ requestDocumentId }: PreQuoteQuestionsProps)
         fetchThread();
       }
     }
+  };
+
+  const handleAnswered = (updated: ThreadQuestion) => {
+    setData((prev) => {
+      if (!prev) return prev;
+      const questions = prev.questions.map((q) => (q.id === updated.id ? updated : q));
+      return {
+        ...prev,
+        thread: {
+          ...prev.thread,
+          pending: Math.max(0, prev.thread.pending - 1),
+          answered: prev.thread.answered + 1,
+        },
+        questions,
+      };
+    });
+    setAnswerTarget(null);
+    toast.success("Respuesta publicada");
+    fetchThread();
   };
 
   // ── Loading skeleton ──────────────────────────────────────────────────────
@@ -259,7 +281,7 @@ export function PreQuoteQuestions({ requestDocumentId }: PreQuoteQuestionsProps)
                 <div className={styles.actions}>
                   <button
                     className={styles.answerBtn}
-                    onClick={() => toast("Disponible próximamente")}
+                    onClick={() => setAnswerTarget(q)}
                   >
                     Responder
                   </button>
@@ -289,6 +311,16 @@ export function PreQuoteQuestions({ requestDocumentId }: PreQuoteQuestionsProps)
         confirmText="Descartar"
         cancelText="Cancelar"
         variant="danger"
+      />
+
+      {/* Answer sheet */}
+      <AnswerSheet
+        open={!!answerTarget}
+        question={answerTarget}
+        requestDocumentId={requestDocumentId}
+        jwt={jwt ?? ""}
+        onClose={() => setAnswerTarget(null)}
+        onAnswered={handleAnswered}
       />
 
       {/* Image lightbox */}
