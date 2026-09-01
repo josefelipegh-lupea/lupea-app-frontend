@@ -13,10 +13,6 @@
   border-bottom-right-radius: 50px;
   overflow-y: auto;
   overflow-x: hidden;
-  mask-image: radial-gradient(white, black);
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
-  outline: 1px solid transparent;
-  box-shadow: 0 0 0 100px #f2f2f2;
 }
 
 .mainContent.noFooterRadius {
