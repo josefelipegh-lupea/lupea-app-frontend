@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import SheetShell from "@/components/bottom-sheet/SheetShell";
 import toast from "react-hot-toast";
 import {
   createThreadQuestion,
@@ -115,12 +116,6 @@ export function QuestionSheet({
     if (!shown && open) finalizeClose();
   };
 
-  // Escape dispara 'cancel' en <dialog>: interceptar para animar la salida.
-  const handleCancel = (e: React.SyntheticEvent<HTMLDialogElement>) => {
-    e.preventDefault();
-    requestClose();
-  };
-
   // Recalcular bloqueos cuando cambia el repuesto seleccionado.
   const blockedByCategory = useMemo(() => {
     const map = new Map<QuestionCategory, string>();
@@ -191,21 +186,14 @@ export function QuestionSheet({
         : "";
 
   return (
-    <dialog
+    <SheetShell
       ref={dialogRef}
-      onCancel={handleCancel}
-      onClick={(e) => {
-        if (e.target === dialogRef.current) requestClose();
-      }}
-      className="m-0 w-full max-w-full bg-transparent p-0 backdrop:bg-black/40 sm:mx-auto sm:max-w-md"
-      style={{ marginTop: "auto", marginBottom: 0 }}
-      aria-label="Hacer una pregunta"
+      open={open}
+      shown={shown}
+      onRequestClose={requestClose}
+      onPanelTransitionEnd={handlePanelTransitionEnd}
+      ariaLabel="Hacer una pregunta"
     >
-      <div
-        onTransitionEnd={handlePanelTransitionEnd}
-        className="flex max-h-[88vh] w-full flex-col overflow-y-auto rounded-t-2xl bg-white px-5 pb-6 pt-3 transition-transform duration-[250ms] ease-out"
-        style={{ transform: shown ? "translateY(0)" : "translateY(100%)" }}
-      >
         {/* Handle bar */}
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-300" />
 
@@ -316,8 +304,7 @@ export function QuestionSheet({
         {remainingText && (
           <p className="mt-2 text-center text-xs text-gray-400">{remainingText}</p>
         )}
-      </div>
-    </dialog>
+    </SheetShell>
   );
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import SheetShell from "@/components/bottom-sheet/SheetShell";
 import {
   answerThreadQuestion,
   answerErrorMessage,
@@ -129,11 +130,6 @@ export function AnswerSheet({
     if (!shown && open) finalizeClose();
   };
 
-  const handleCancel = (e: React.SyntheticEvent<HTMLDialogElement>) => {
-    e.preventDefault();
-    requestClose();
-  };
-
   // ── Derivados ─────────────────────────────────────────────────────────────
 
   if (!question) return null;
@@ -225,21 +221,14 @@ export function AnswerSheet({
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <dialog
+    <SheetShell
       ref={dialogRef}
-      onCancel={handleCancel}
-      onClick={(e) => {
-        if (e.target === dialogRef.current) requestClose();
-      }}
-      className="m-0 w-full max-w-full bg-transparent p-0 backdrop:bg-black/40 sm:mx-auto sm:max-w-md"
-      style={{ marginTop: "auto", marginBottom: 0 }}
-      aria-label="Responder pregunta"
+      open={open}
+      shown={shown}
+      onRequestClose={requestClose}
+      onPanelTransitionEnd={handlePanelTransitionEnd}
+      ariaLabel="Responder pregunta"
     >
-      <div
-        onTransitionEnd={handlePanelTransitionEnd}
-        className="flex max-h-[92vh] w-full flex-col overflow-y-auto rounded-t-2xl bg-white px-5 pb-6 pt-3 transition-transform duration-[250ms] ease-out"
-        style={{ transform: shown ? "translateY(0)" : "translateY(100%)" }}
-      >
         {/* Handle bar */}
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-300" />
 
@@ -320,8 +309,7 @@ export function AnswerSheet({
         >
           {submitting ? "Publicando…" : "Publicar respuesta"}
         </button>
-      </div>
-    </dialog>
+    </SheetShell>
   );
 }
 
