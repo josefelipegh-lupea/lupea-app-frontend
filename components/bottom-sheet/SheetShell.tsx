@@ -18,17 +18,18 @@ interface SheetShellProps {
  *
  * Fixes iOS Safari bug where <dialog> UA defaults (inset:0 + margin:auto + max-height
  * calc) are resolved differently from Blink: the box collapsed to min-content height and
- * floated mid-screen. Fix: explicitly own position/inset on mobile (fixed, pinned bottom)
- * and use `svh` units so the iOS dynamic toolbar can't overflow the scroll container.
+ * floated mid-screen. Fix: explicitly own position/inset on mobile (fixed, pinned bottom).
+ *
+ * The <dialog> stays mounted at all times so showModal() always finds a connected node
+ * and reliably promotes to the top layer. Visibility is controlled by showModal()/close()
+ * in the parent — a closed <dialog> is display:none by the UA stylesheet.
  *
  * The dialog ref is forwarded so each parent can call showModal()/close() directly.
  */
 const SheetShell = forwardRef<HTMLDialogElement, SheetShellProps>(function SheetShell(
-  { open, shown, onRequestClose, onPanelTransitionEnd, ariaLabel, children },
+  { shown, onRequestClose, onPanelTransitionEnd, ariaLabel, children },
   ref,
 ) {
-  if (!open) return null;
-
   return (
     <dialog
       ref={ref}
@@ -55,11 +56,8 @@ const SheetShell = forwardRef<HTMLDialogElement, SheetShellProps>(function Sheet
     >
       <div
         onTransitionEnd={onPanelTransitionEnd}
-        // svh = small viewport height — excludes iOS dynamic toolbar, so the sheet
-        // never overflows behind the address bar when it's collapsed.
-        // Desktop: 85vh is fine (no dynamic toolbar).
         className="
-          flex max-h-[88svh] w-full flex-col overflow-y-auto
+          flex max-h-[85vh] w-full flex-col overflow-y-auto
           rounded-t-2xl bg-white px-5 pb-6 pt-3
           transition-transform duration-[250ms] ease-out
           sm:max-h-[85vh] sm:rounded-2xl
