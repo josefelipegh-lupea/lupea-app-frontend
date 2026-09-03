@@ -4,23 +4,27 @@ export function Section02Problema() {
   const cards = [
     {
       num: "01",
-      title: "No sabe qué pedir",
+      title: "",
       body: "Asimetría de conocimiento: el conductor no sabe qué tiene su carro ni qué repuesto pedir, y eso lo deja a merced del mecánico.",
     },
     {
       num: "02",
-      title: "Pierde tiempo buscándolo",
-      body: "Pierde el día caminando la calle 42 de tienda en tienda.",
+      title: "",
+      body: "Pierde el día recorriendo de tienda en tienda.",
     },
     {
       num: "03",
-      title: "Siente que lo están robando",
+      title: "",
       body: "Llama a veinte proveedores sin saber si el precio es justo. Está en emergencia, y esa urgencia lo hace vulnerable.",
     },
   ];
 
   return (
-    <SectionShell num="02" label="El Problema" labelFontSize="clamp(22px,1.9vw,36px)">
+    <SectionShell
+      num="02"
+      label="El Problema"
+      labelFontSize="clamp(22px,1.9vw,36px)"
+    >
       <div className="flex flex-col" style={{ gap: "clamp(20px,3.2vh,44px)" }}>
         <p
           className="m-0 font-semibold leading-[1.3]"
@@ -30,8 +34,8 @@ export function Section02Problema() {
             color: "#1E1A49",
           }}
         >
-          Son tres dolores: no sabe qué pedir, pierde tiempo buscándolo, y siente
-          que lo están robando.
+          ¿No sabe qué pedir? ¿Pierde tiempo buscándolo? ¿Y siente que lo están
+          robando?
         </p>
 
         {/* Responsive grid: 1 col mobile → 3 col desktop */}
@@ -58,14 +62,20 @@ export function Section02Problema() {
               </span>
               <h3
                 className="m-0 font-bold leading-[1.25]"
-                style={{ fontSize: "clamp(16px,1.35vw,25px)", color: "#1E1A49" }}
+                style={{
+                  fontSize: "clamp(16px,1.35vw,25px)",
+                  color: "#1E1A49",
+                }}
               >
                 {c.title}
               </h3>
               {/* Body text: min 14px for readability */}
               <p
                 className="m-0 leading-[1.55]"
-                style={{ fontSize: "clamp(14px,1.05vw,19px)", color: "#1E1A49BF" }}
+                style={{
+                  fontSize: "clamp(14px,1.05vw,19px)",
+                  color: "#1E1A49BF",
+                }}
               >
                 {c.body}
               </p>
@@ -91,8 +101,8 @@ export function Section02Problema() {
             className="m-0 font-medium leading-[1.45]"
             style={{ fontSize: "clamp(14px,1.15vw,22px)", color: "#1E1A49" }}
           >
-            Del lado proveedor: vende quien está de guardia, no quien tiene mejor
-            precio o inventario.
+            Del lado proveedor: vende quien está de guardia, no quien tiene
+            mejor precio o inventario.
           </p>
         </div>
       </div>

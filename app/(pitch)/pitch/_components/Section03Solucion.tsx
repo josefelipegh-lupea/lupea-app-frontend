@@ -16,7 +16,7 @@ const STEPS = [
   {
     n: "3",
     title: "Solicitud correcta",
-    body: "Lo acompaña a construir la solicitud con los repuestos correctos y su nombre técnico real.",
+    body: "Le ayuda a precisar su solicitud, sugiriendo el repuesto adecuado con su denominación comercial y técnica correcta.",
     accent: false,
   },
   {
@@ -35,7 +35,11 @@ const STEPS = [
 
 export function Section03Solucion() {
   return (
-    <SectionShell num="03" label="La Solución" labelFontSize="clamp(22px,1.9vw,36px)">
+    <SectionShell
+      num="03"
+      label="La Solución"
+      labelFontSize="clamp(22px,1.9vw,36px)"
+    >
       <div className="flex flex-col" style={{ gap: "clamp(22px,3.4vh,48px)" }}>
         <p
           className="m-0 font-semibold leading-[1.35]"
@@ -45,7 +49,8 @@ export function Section03Solucion() {
             color: "#1E1A49",
           }}
         >
-          De lo que el conductor describe a cotizaciones comparables, en un solo lupeo.
+          De lo que el conductor describe a <br></br> cotizaciones comparables,
+          en un solo lupeo.
         </p>
 
         {/* Responsive grid: 1 col mobile → 2 col sm → 5 col lg (desktop) */}
@@ -78,14 +83,20 @@ export function Section03Solucion() {
               </div>
               <h3
                 className="m-0 font-bold leading-[1.25]"
-                style={{ fontSize: "clamp(14px,1.15vw,21px)", color: "#1E1A49" }}
+                style={{
+                  fontSize: "clamp(14px,1.15vw,21px)",
+                  color: "#1E1A49",
+                }}
               >
                 {s.title}
               </h3>
               {/* Body text: min 14px for readability */}
               <p
                 className="m-0 leading-[1.5]"
-                style={{ fontSize: "clamp(14px,.98vw,18px)", color: "#1E1A49BF" }}
+                style={{
+                  fontSize: "clamp(14px,.98vw,18px)",
+                  color: "#1E1A49BF",
+                }}
               >
                 {s.body}
               </p>
@@ -118,8 +129,8 @@ export function Section03Solucion() {
             className="m-0 font-medium leading-[1.45]"
             style={{ fontSize: "clamp(14px,1.1vw,21px)", color: "#1E1A49" }}
           >
-            Una solicitud puede llevar varios repuestos: ocho piezas siguen siendo
-            un solo lupeo.
+            Una solicitud puede llevar varios repuestos: ocho piezas siguen
+            siendo un solo lupeo.
           </p>
         </div>
       </div>
