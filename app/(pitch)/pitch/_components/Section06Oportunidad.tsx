@@ -31,13 +31,10 @@ export function Section06Oportunidad() {
   return (
     <SectionShell num="06" label="La Oportunidad" labelFontSize="clamp(22px,1.9vw,36px)">
       <div className="flex flex-col" style={{ gap: "clamp(22px,3.4vh,46px)" }}>
-        {/* 4-column roadmap */}
+        {/* Responsive roadmap: 1 col mobile (vertical timeline) → 4 col md (horizontal) */}
         <div
-          className="grid"
-          style={{
-            gridTemplateColumns: "repeat(4,1fr)",
-            gap: "clamp(12px,1.3vw,26px)",
-          }}
+          className="grid grid-cols-1 md:grid-cols-4"
+          style={{ gap: "clamp(12px,1.3vw,26px)" }}
         >
           {FASES.map((f, idx) => (
             <div key={idx} className="flex flex-col" style={{ gap: "14px" }}>
@@ -54,10 +51,10 @@ export function Section06Oportunidad() {
                     boxSizing: "border-box",
                   }}
                 />
-                {/* connector — all except last */}
+                {/* Horizontal connector: only shown in md+ grid layout */}
                 {idx < FASES.length - 1 && (
                   <span
-                    className="flex-1"
+                    className="hidden md:block flex-1"
                     style={{
                       height: "2px",
                       background: f.active ? "#DB8F1B" : "#1E1A4926",
@@ -89,9 +86,10 @@ export function Section06Oportunidad() {
                 )}
               </div>
 
+              {/* Body text: min 14px for readability */}
               <p
                 className="m-0 leading-[1.5]"
-                style={{ fontSize: "clamp(12px,1vw,19px)", color: "#1E1A49BF" }}
+                style={{ fontSize: "clamp(14px,1vw,19px)", color: "#1E1A49BF" }}
               >
                 {f.body}
               </p>

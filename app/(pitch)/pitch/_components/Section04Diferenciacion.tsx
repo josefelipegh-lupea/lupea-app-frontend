@@ -36,12 +36,10 @@ export function Section04Diferenciacion() {
       labelFontSize="clamp(20px,1.75vw,33px)"
     >
       <div className="flex flex-col" style={{ gap: "clamp(18px,2.6vh,36px)" }}>
+        {/* Responsive grid: 1 col mobile → 2 col sm → 3 col lg */}
         <div
-          className="grid"
-          style={{
-            gridTemplateColumns: "repeat(3,1fr)",
-            gap: "clamp(14px,1.7vw,34px) clamp(18px,2.2vw,44px)",
-          }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          style={{ gap: "clamp(14px,1.7vw,34px) clamp(18px,2.2vw,44px)" }}
         >
           {items.map((item) => (
             <div key={item.num} className="flex flex-col" style={{ gap: "10px" }}>
@@ -57,9 +55,10 @@ export function Section04Diferenciacion() {
               >
                 {item.title}
               </h3>
+              {/* Body text: min 14px for readability */}
               <p
                 className="m-0 leading-[1.5]"
-                style={{ fontSize: "clamp(12px,1vw,18px)", color: "#1E1A49BF" }}
+                style={{ fontSize: "clamp(14px,1vw,18px)", color: "#1E1A49BF" }}
               >
                 {item.body}
               </p>

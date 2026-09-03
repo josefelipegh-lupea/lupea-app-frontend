@@ -37,13 +37,10 @@ export function Section07Equipo() {
   return (
     <SectionShell num="07" label="Equipo y Magia" labelFontSize="clamp(22px,1.9vw,36px)">
       <div className="flex flex-col" style={{ gap: "clamp(14px,2.2vh,30px)" }}>
-        {/* Team grid */}
+        {/* Team grid: 1 col mobile → 2 col sm → 3 col lg */}
         <div
-          className="grid"
-          style={{
-            gridTemplateColumns: "repeat(3,1fr)",
-            gap: "clamp(10px,1.2vw,24px)",
-          }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          style={{ gap: "clamp(10px,1.2vw,24px)" }}
         >
           {TEAM.map((member) => (
             <div
@@ -69,9 +66,10 @@ export function Section07Equipo() {
                 {member.role}
               </span>
               {member.bio && (
+                // Body text: min 14px for readability
                 <p
                   className="m-0 leading-[1.5]"
-                  style={{ fontSize: "clamp(11px,.95vw,17px)", color: "#1E1A49BF" }}
+                  style={{ fontSize: "clamp(14px,.95vw,17px)", color: "#1E1A49BF" }}
                 >
                   {member.bio}
                 </p>
@@ -105,7 +103,7 @@ export function Section07Equipo() {
           </p>
         </div>
 
-        {/* Footer row */}
+        {/* Footer row — logo replaces placeholder, tagline to the right */}
         <div
           className="flex items-center justify-between flex-wrap"
           style={{
@@ -114,20 +112,13 @@ export function Section07Equipo() {
             borderTop: "1px solid #1E1A491F",
           }}
         >
-          <div
-            className="flex items-center justify-center text-center font-medium uppercase tracking-[.06em] box-border"
-            style={{
-              width: "clamp(110px,9vw,150px)",
-              height: "clamp(40px,3.4vw,56px)",
-              border: "1.5px dashed #1E1A4940",
-              borderRadius: "16px",
-              color: "#1E1A4966",
-              fontSize: "10px",
-              padding: "0 8px",
-            }}
-          >
-            Espacio logo
-          </div>
+          {/* Logo — same asset as portada, smaller for footer context */}
+          <img
+            alt="Lupea"
+            src="/images/landing/LUPEA_LOGO.svg"
+            className="w-auto object-contain block"
+            style={{ height: "clamp(36px,3.2vw,50px)" }}
+          />
           <span
             className="font-medium"
             style={{ fontSize: "clamp(12px,1vw,18px)", color: "#1E1A4999" }}

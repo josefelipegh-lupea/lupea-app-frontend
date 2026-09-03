@@ -25,7 +25,7 @@ export function Section02Problema() {
         <p
           className="m-0 font-semibold leading-[1.3]"
           style={{
-            fontSize: "clamp(20px,1.9vw,36px)",
+            fontSize: "clamp(18px,1.9vw,36px)",
             maxWidth: "32ch",
             color: "#1E1A49",
           }}
@@ -34,13 +34,10 @@ export function Section02Problema() {
           que lo están robando.
         </p>
 
-        {/* 3-column grid */}
+        {/* Responsive grid: 1 col mobile → 3 col desktop */}
         <div
-          className="grid"
-          style={{
-            gridTemplateColumns: "repeat(3,1fr)",
-            gap: "clamp(14px,1.6vw,30px)",
-          }}
+          className="grid grid-cols-1 md:grid-cols-3"
+          style={{ gap: "clamp(14px,1.6vw,30px)" }}
         >
           {cards.map((c) => (
             <div
@@ -65,9 +62,10 @@ export function Section02Problema() {
               >
                 {c.title}
               </h3>
+              {/* Body text: min 14px for readability */}
               <p
                 className="m-0 leading-[1.55]"
-                style={{ fontSize: "clamp(13px,1.05vw,19px)", color: "#1E1A49BF" }}
+                style={{ fontSize: "clamp(14px,1.05vw,19px)", color: "#1E1A49BF" }}
               >
                 {c.body}
               </p>

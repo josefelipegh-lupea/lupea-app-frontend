@@ -109,23 +109,28 @@ export default function PitchPage() {
   return (
     <>
       <ProgressBar barRef={barRef} />
+      {/* Dots nav — hidden on mobile (<md), visible on desktop */}
       <DotsNav activeIndex={activeIndex} goTo={goTo} />
 
-      {/* Scroll container — padding-right leaves room for dots nav */}
+      {/* Scroll container.
+          Mobile: scroll-snap proximity so tall sections can be scrolled fully.
+          Desktop md+: mandatory snap for crisp slide-to-slide feel.
+          pr-0 on mobile (no dots); md:pr-[34px] leaves room for dots nav. */}
       <div
         ref={scrollRef}
         style={{
-          height: "100vh",
+          height: "100dvh",
           overflowY: "scroll",
-          scrollSnapType: "y mandatory",
-          paddingRight: "34px",
           boxSizing: "border-box",
           color: "#1E1A49",
           background: "#fff",
           scrollbarWidth: "none",
         }}
-        // Hide webkit scrollbar via className
-        className="[&::-webkit-scrollbar]:hidden"
+        className={[
+          "[scroll-snap-type:y_proximity] md:[scroll-snap-type:y_mandatory]",
+          "pr-0 md:pr-[34px]",
+          "[&::-webkit-scrollbar]:hidden",
+        ].join(" ")}
       >
         <Section01Portada />
         <Section02Problema />

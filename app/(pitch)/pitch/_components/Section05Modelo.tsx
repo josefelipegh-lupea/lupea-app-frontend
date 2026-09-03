@@ -8,12 +8,10 @@ export function Section05Modelo() {
       labelFontSize="clamp(20px,1.75vw,33px)"
     >
       <div className="flex flex-col" style={{ gap: "clamp(16px,2.4vh,32px)" }}>
+        {/* Responsive grid: 1 col mobile → 2 col md (desktop) */}
         <div
-          className="grid"
-          style={{
-            gridTemplateColumns: "1fr 1fr",
-            gap: "clamp(14px,1.8vw,32px)",
-          }}
+          className="grid grid-cols-1 md:grid-cols-2"
+          style={{ gap: "clamp(14px,1.8vw,32px)" }}
         >
           {/* Lado usuario */}
           <div
@@ -43,9 +41,10 @@ export function Section05Modelo() {
             >
               Cinco lupas gratuitas al mes, paquetes adicionales desde el perfil
             </h3>
+            {/* Body text: min 14px for readability */}
             <p
               className="m-0 leading-[1.55]"
-              style={{ fontSize: "clamp(13px,1.05vw,20px)", color: "#1E1A49BF" }}
+              style={{ fontSize: "clamp(14px,1.05vw,20px)", color: "#1E1A49BF" }}
             >
               La lupa es un portón de uso justo, no la caja registradora. El ingreso
               de este lado es marginal a propósito.
@@ -80,9 +79,10 @@ export function Section05Modelo() {
               Pay per match: se descuenta un token solo cuando el cliente acepta la
               cotización
             </h3>
+            {/* Body text: min 14px for readability */}
             <p
               className="m-0 leading-[1.55]"
-              style={{ fontSize: "clamp(13px,1.05vw,20px)", color: "#FFFFFFC7" }}
+              style={{ fontSize: "clamp(14px,1.05vw,20px)", color: "#FFFFFFC7" }}
             >
               Nadie paga por mostrarse, se paga cuando se vende.
             </p>

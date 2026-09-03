@@ -48,13 +48,10 @@ export function Section03Solucion() {
           De lo que el conductor describe a cotizaciones comparables, en un solo lupeo.
         </p>
 
-        {/* 5-column step flow */}
+        {/* Responsive grid: 1 col mobile → 2 col sm → 5 col lg (desktop) */}
         <div
-          className="grid"
-          style={{
-            gridTemplateColumns: "repeat(5,1fr)",
-            gap: "clamp(10px,1vw,20px)",
-          }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
+          style={{ gap: "clamp(10px,1vw,20px)" }}
         >
           {STEPS.map((s, idx) => (
             <div key={s.n} className="flex flex-col" style={{ gap: "14px" }}>
@@ -71,10 +68,10 @@ export function Section03Solucion() {
                 >
                   {s.n}
                 </span>
-                {/* connector — all except last */}
+                {/* Connector: only in 5-col layout (lg+); hidden on mobile/sm */}
                 {idx < STEPS.length - 1 && (
                   <span
-                    className="flex-1"
+                    className="hidden lg:block flex-1"
                     style={{ height: "2px", background: "#1E1A4926" }}
                   />
                 )}
@@ -85,9 +82,10 @@ export function Section03Solucion() {
               >
                 {s.title}
               </h3>
+              {/* Body text: min 14px for readability */}
               <p
                 className="m-0 leading-[1.5]"
-                style={{ fontSize: "clamp(12px,.98vw,18px)", color: "#1E1A49BF" }}
+                style={{ fontSize: "clamp(14px,.98vw,18px)", color: "#1E1A49BF" }}
               >
                 {s.body}
               </p>

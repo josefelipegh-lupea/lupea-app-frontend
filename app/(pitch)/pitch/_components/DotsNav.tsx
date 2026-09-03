@@ -7,8 +7,9 @@ interface DotsNavProps {
 
 export function DotsNav({ activeIndex, goTo }: DotsNavProps) {
   return (
+    // hidden on mobile; flex on md+ (desktop/tablet)
     <nav
-      className="fixed right-[26px] top-1/2 -translate-y-1/2 z-[60] flex flex-col items-end gap-[16px]"
+      className="hidden md:flex fixed right-[26px] top-1/2 -translate-y-1/2 z-[60] flex-col items-end gap-[16px]"
       aria-label="Navegación de secciones"
     >
       {SECTION_LABELS.map((label, n) => {
