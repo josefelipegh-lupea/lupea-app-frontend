@@ -75,6 +75,12 @@
   --font-label-bold: "Hanken Grotesk";
   --font-label-sm: "Hanken Grotesk";
   
+  /* Pitch brand colors */
+  --color-pitch-navy: #1E1A49;
+  --color-pitch-plum: #4C1952;
+  --color-pitch-orange: #DB8F1B;
+  --color-pitch-amber: #E6AD19;
+
   /* Lupea Border Radius */
   --rounded: 0.25rem;
   --rounded-lg: 0.5rem;
@@ -102,4 +108,16 @@ body.comparison-page #scroll-container,
 body.request-page #scroll-container {
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
+}
+
+/* Pitch page — entrance animation */
+@keyframes lupRise {
+  from { opacity: 0; transform: translateY(26px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes lupRise {
+    from { opacity: 1; transform: none; }
+    to   { opacity: 1; transform: none; }
+  }
 }
