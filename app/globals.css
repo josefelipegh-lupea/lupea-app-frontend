@@ -80,6 +80,11 @@
   --color-pitch-plum: #4C1952;
   --color-pitch-orange: #DB8F1B;
   --color-pitch-amber: #E6AD19;
+  --color-pitch-mint: #34D99F;
+  --color-pitch-mist: #F9F9FB;
+  --color-pitch-chip: #F0F0F5;
+
+  --animate-lup-pulse: lupPulse 1.5s ease-in-out infinite;
 
   /* Lupea Border Radius */
   --rounded: 0.25rem;
@@ -120,4 +125,10 @@ body.request-page #scroll-container {
     from { opacity: 1; transform: none; }
     to   { opacity: 1; transform: none; }
   }
+}
+
+/* Pitch Dolphin Tank — status dot pulse */
+@keyframes lupPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.25); opacity: .6; }
 }
