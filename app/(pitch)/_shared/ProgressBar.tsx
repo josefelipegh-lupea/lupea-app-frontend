@@ -2,12 +2,13 @@ import { RefObject } from "react";
 
 interface ProgressBarProps {
   barRef: RefObject<HTMLDivElement | null>;
+  heightClass?: string;
 }
 
-export function ProgressBar({ barRef }: ProgressBarProps) {
+export function ProgressBar({ barRef, heightClass = "h-[3px]" }: ProgressBarProps) {
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[60] h-[3px]"
+      className={`fixed top-0 left-0 right-0 z-[60] ${heightClass}`}
       style={{ background: "#1E1A4914" }}
     >
       <div
